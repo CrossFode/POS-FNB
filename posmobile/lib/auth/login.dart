@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+
+
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -49,55 +51,81 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Center(child: Text('Login')),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+    ),
+    body: LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                   
+                    Image.asset(
+                      'assets/images/logo.png',
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                    SizedBox(height: 24),
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      controller: _emailController,
+                    ),
+                    SizedBox(height: 16),
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        border: OutlineInputBorder(),
+                      ),
+                      obscureText: true,
+                      controller: _passwordController,
+                    ),
+                    SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        String email = _emailController.text;
+                        String password = _passwordController.text;
+                        if (email.isEmpty || password.isEmpty) {
+                          _showMessage('Please fill in all fields');
+                          return;
+                        }
+                        login(email, password);
+                      },
+                      child: Text('Login'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(210, 9, 9, 9),
+                        foregroundColor: Colors.white,
+                        minimumSize: Size(1000,50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)
+                        ),
+                        // Full-width button
+                      ),
+                    ),
+                    
+                    Spacer(), 
+                    Image.asset(
+                      'assets/images/lakesidefnb.png',
+                      height: 100,
+                    ),
+                  ],
+                ),
               ),
-              keyboardType: TextInputType.emailAddress,
-              controller: _emailController,
             ),
-            SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-              controller: _passwordController,
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                String email = _emailController.text;
-                String password = _passwordController.text;
-                if (email.isEmpty || password.isEmpty) {
-                  _showMessage('Please fill in all fields');
-                  return;
-                }
-                login(email, password);
-                // Handle login logic here
-              },
-              child: Text('Login'),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: Text('Don\'t have an account? Sign up'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
+        );
+      },
+    ),
+  );
+}
 }
