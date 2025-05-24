@@ -1,24 +1,117 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class AdminPage extends StatelessWidget {
-  final List<String> options = [
-    'Literasi',
-    'Lakeside',
-    'Lakeside FIT',
-    'Harmony Cafe',
-  ];
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:posmobile/model/Outlet.dart';
+
+class AdminPage extends StatefulWidget {
+  final String token;
+  const AdminPage({Key? key, required this.token}) : super(key: key);
+  @override
+  _AdminScreenState createState() => _AdminScreenState();
+}
+
+class _AdminScreenState extends State<AdminPage> {
+  late Future<OutletResponse> _outletFuture;
+  @override
+  void initState() {
+    super.initState();
+    _outletFuture = fetchOutletByLogin(widget.token);
+  }
+
+  final String baseUrl = 'https://pos.lakesidefnb.group';
+  Future<OutletResponse> fetchOutletByLogin(String token) async {
+    final url = Uri.parse('$baseUrl/api/outlet/current/user');
+
+    try {
+      final response = await http.get(url, headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      });
+
+      if (response.statusCode == 200) {
+        return OutletResponse.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load outlet: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load outlet: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Container(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
+    // return MaterialApp(
+    //   home: Scaffold(
+    //     body: Center(
+    //       child: Container(
+    //         padding: EdgeInsets.all(16),
+    //         child: Column(
+    //           mainAxisSize: MainAxisSize.min,
+    //           children: [
+    //             Text(
+    //               'Choose Outlet',
+    //               style: TextStyle(
+    //                 fontSize: 30,
+    //                 fontWeight: FontWeight.bold,
+    //                 fontFamily: 'Poppins',
+    //               ),
+    //             ),
+    //             SizedBox(height: 24),
+    //             GridView.count(
+    //               crossAxisCount: 2,
+    //               shrinkWrap: true,
+    //               mainAxisSpacing: 16,
+    //               crossAxisSpacing: 16,
+    //               physics: NeverScrollableScrollPhysics(),
+    //               children: options.map((title) {
+    //                 return InkWell(
+    //                   onTap: () {
+    //                     // Add your onTap logic here
+    //                   },
+    //                   child: Card(
+    //                     elevation: 4,
+    //                     shape: RoundedRectangleBorder(
+    //                       borderRadius: BorderRadius.circular(12),
+    //                     ),
+    //                     child: Center(
+    //                       child: Padding(
+    //                         padding: const EdgeInsets.all(12.0),
+    //                         child: Text(
+    //                           title,
+    //                           textAlign: TextAlign.center,
+    //                           style: TextStyle(
+    //                             fontSize: 16,
+    //                             fontWeight: FontWeight.w600,
+    //                           ),
+    //                         ),
+    //                       ),
+    //                     ),
+    //                   ),
+    //                 );
+    //               }).toList(),
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Admin Page'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min, // Don't take all vertical space
+          children: [
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(
+                child: Text(
                   'Choose Outlet',
                   style: TextStyle(
                     fontSize: 30,
@@ -26,43 +119,77 @@ class AdminPage extends StatelessWidget {
                     fontFamily: 'Poppins',
                   ),
                 ),
-                SizedBox(height: 24),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  physics: NeverScrollableScrollPhysics(),
-                  children: options.map((title) {
-                    return InkWell(
-                      onTap: () {
-                        // Add your onTap logic here
-                      },
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Text(
-                              title,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(
+              height: 400,
+              child: FutureBuilder<OutletResponse>(
+                future: _outletFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return GridView.builder(
+                      padding: EdgeInsets.all(16),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, // 2 columns
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 3 / 3, // Adjust card aspect ratio
+                      ),
+                      itemCount: snapshot.data!.data.length,
+                      itemBuilder: (context, index) {
+                        final outlet = snapshot.data!.data[index];
+                        return InkWell(
+                          onTap: () {
+                            // Handle outlet selection
+                          },
+                          child: Card(
+                            elevation: 6,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    outlet.image.isNotEmpty
+                                        ? Image(
+                                            width: 110,
+                                            height: 110,
+                                            image: NetworkImage(
+                                                '${baseUrl}/storage/${outlet.image}'),
+                                          )
+                                        : Icon(Icons.store, size: 40),
+                                    SizedBox(height: 8),
+                                    // Text(
+                                    //   outlet.outlet_name,
+                                    //   textAlign: TextAlign.center,
+                                    //   style: TextStyle(
+                                    //     fontSize: 16,
+                                    //     fontWeight: FontWeight.w600,
+                                    //   ),
+                                    // ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     );
-                  }).toList(),
-                ),
-              ],
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
+                  }
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                },
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
