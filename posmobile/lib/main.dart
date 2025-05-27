@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import './auth/login.dart';
-import 'Dashboard/Admin.dart';
+// import 'Dashboard/Admin.dart';
 
 void main() {
   runApp(const MyApp());
