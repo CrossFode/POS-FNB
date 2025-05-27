@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:posmobile/Dashboard/HomeAdmin.dart';
 import 'package:posmobile/model/Outlet.dart';
+
+
 
 class AdminPage extends StatefulWidget {
   final String token;
@@ -41,62 +44,7 @@ class _AdminScreenState extends State<AdminPage> {
 
   @override
   Widget build(BuildContext context) {
-    // return MaterialApp(
-    //   home: Scaffold(
-    //     body: Center(
-    //       child: Container(
-    //         padding: EdgeInsets.all(16),
-    //         child: Column(
-    //           mainAxisSize: MainAxisSize.min,
-    //           children: [
-    //             Text(
-    //               'Choose Outlet',
-    //               style: TextStyle(
-    //                 fontSize: 30,
-    //                 fontWeight: FontWeight.bold,
-    //                 fontFamily: 'Poppins',
-    //               ),
-    //             ),
-    //             SizedBox(height: 24),
-    //             GridView.count(
-    //               crossAxisCount: 2,
-    //               shrinkWrap: true,
-    //               mainAxisSpacing: 16,
-    //               crossAxisSpacing: 16,
-    //               physics: NeverScrollableScrollPhysics(),
-    //               children: options.map((title) {
-    //                 return InkWell(
-    //                   onTap: () {
-    //                     // Add your onTap logic here
-    //                   },
-    //                   child: Card(
-    //                     elevation: 4,
-    //                     shape: RoundedRectangleBorder(
-    //                       borderRadius: BorderRadius.circular(12),
-    //                     ),
-    //                     child: Center(
-    //                       child: Padding(
-    //                         padding: const EdgeInsets.all(12.0),
-    //                         child: Text(
-    //                           title,
-    //                           textAlign: TextAlign.center,
-    //                           style: TextStyle(
-    //                             fontSize: 16,
-    //                             fontWeight: FontWeight.w600,
-    //                           ),
-    //                         ),
-    //                       ),
-    //                     ),
-    //                   ),
-    //                 );
-    //               }).toList(),
-    //             ),
-    //           ],
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
+   
 
     return Scaffold(
       appBar: AppBar(
@@ -140,6 +88,13 @@ class _AdminScreenState extends State<AdminPage> {
                         final outlet = snapshot.data!.data[index];
                         return InkWell(
                           onTap: () {
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HomePage(token: widget.token),
+                              ),
+                            );
                             // Handle outlet selection
                           },
                           child: Card(
