@@ -3,9 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:posmobile/Dashboard/HomeAdmin.dart';
-import 'package:posmobile/model/Outlet.dart';
-
-
+import 'package:posmobile/Model/Model.dart';
 
 class AdminPage extends StatefulWidget {
   final String token;
@@ -44,8 +42,6 @@ class _AdminScreenState extends State<AdminPage> {
 
   @override
   Widget build(BuildContext context) {
-   
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Admin Page'),
@@ -88,11 +84,13 @@ class _AdminScreenState extends State<AdminPage> {
                         final outlet = snapshot.data!.data[index];
                         return InkWell(
                           onTap: () {
-
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => HomePage(token: widget.token),
+                                builder: (context) => HomePage(
+                                  token: widget.token,
+                                  outletId: outlet.id,
+                                ),
                               ),
                             );
                             // Handle outlet selection
