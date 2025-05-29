@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
     _pages = [
       ProductPage(token: widget.token, outletId: widget.outletId),
       HistoryPage(),
-      CreateOrderPage(),
+      CreateOrderPage(token: widget.token, outletId: widget.outletId),
       CategoryPage(),
       ModifierPage()
     ];
@@ -32,9 +32,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-      ),
       body: _pages[_currentIndex],
       bottomNavigationBar: Navbar(
         currentIndex: _currentIndex,
