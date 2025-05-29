@@ -34,8 +34,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               onPressed: _showCart,
               backgroundColor: Colors.black,
               icon: const Icon(Icons.shopping_cart, color: Colors.white),
-              label: Text('${_cartItems.length} item(s)', 
-                  style: const TextStyle(color: Colors.white),
+              label: Text(
+                '${_cartItems.length} item(s)',
+                style: const TextStyle(color: Colors.white),
               ),
             )
           : null,
@@ -61,8 +62,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(name,
-              style: const TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.bold)),
+              style:
+                  const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -208,8 +209,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                       },
                       icon: const Icon(Icons.remove),
                     ),
-                    Text('$quantity',
-                        style: const TextStyle(fontSize: 18)),
+                    Text('$quantity', style: const TextStyle(fontSize: 18)),
                     IconButton(
                       onPressed: () => setModalState(() => quantity++),
                       icon: const Icon(Icons.add),
@@ -243,110 +243,117 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     );
   }
 
-final TextEditingController _customerNameController = TextEditingController();
+  final TextEditingController _customerNameController = TextEditingController();
 
   void _showCart() {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (_) {
-      return StatefulBuilder(
-        builder: (context, setModalState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              top: 16,
-              left: 16,
-              right: 16,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "Order Type",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: ["Take Away", "Dine In"]
-                      .map(
-                        (type) => Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: OutlinedButton(
-                              onPressed: () => setModalState(() => _orderType = type),
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: _orderType == type ? Colors.black : Colors.white,
-                                foregroundColor: _orderType == type ? Colors.white : Colors.black,
-                                side: const BorderSide(color: Colors.black),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                top: 16,
+                left: 16,
+                right: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Order Type",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: ["Take Away", "Dine In"]
+                        .map(
+                          (type) => Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              child: OutlinedButton(
+                                onPressed: () =>
+                                    setModalState(() => _orderType = type),
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: _orderType == type
+                                      ? Colors.black
+                                      : Colors.white,
+                                  foregroundColor: _orderType == type
+                                      ? Colors.white
+                                      : Colors.black,
+                                  side: const BorderSide(color: Colors.black),
+                                ),
+                                child: Text(type),
                               ),
-                              child: Text(type),
                             ),
                           ),
-                        ),
-                      )
-                      .toList(),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Input Nama Customer
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text("Customer Name",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _customerNameController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter customer name',
-                    border: OutlineInputBorder(),
+                        )
+                        .toList(),
                   ),
-                ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Cart items
-                SizedBox(
-                  height: 200, // Fixed height to prevent overflow
-                  child: ListView(
-                    children: _cartItems.map((item) {
-                      return ListTile(
-                        title: Text('${item['name']} x${item['quantity']}'),
-                        subtitle: Text('${item['modifier']} — ${item['notes'].isNotEmpty ? item['notes'] : 'No notes'}'),
-                        trailing: Text('Rp ${item['price']}'),
-                      );
-                    }).toList(),
+                  // Input Nama Customer
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Customer Name",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Checkout button
-                ElevatedButton(
-                  onPressed: () {
-                    print("Order Type: $_orderType");
-                    print("Customer Name: ${_customerNameController.text}");
-                    print("Items: $_cartItems");
-                    // Tambahkan logika checkout sesuai kebutuhan
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    minimumSize: const Size(double.infinity, 50),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _customerNameController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter customer name',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                  child: const Text(
-                    "CHECKOUT",
-                    style: TextStyle(color: Colors.white),
+
+                  const SizedBox(height: 16),
+
+                  // Cart items
+                  SizedBox(
+                    height: 200, // Fixed height to prevent overflow
+                    child: ListView(
+                      children: _cartItems.map((item) {
+                        return ListTile(
+                          title: Text('${item['name']} x${item['quantity']}'),
+                          subtitle: Text(
+                              '${item['modifier']} — ${item['notes'].isNotEmpty ? item['notes'] : 'No notes'}'),
+                          trailing: Text('Rp ${item['price']}'),
+                        );
+                      }).toList(),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          );
-        },
-      );
-    },
-  );
-}
+
+                  const SizedBox(height: 16),
+
+                  // Checkout button
+                  ElevatedButton(
+                    onPressed: () {
+                      print("Order Type: $_orderType");
+                      print("Customer Name: ${_customerNameController.text}");
+                      print("Items: $_cartItems");
+                      // Tambahkan logika checkout sesuai kebutuhan
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Text(
+                      "CHECKOUT",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
