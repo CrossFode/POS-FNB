@@ -12,22 +12,22 @@ class Product {
   final DateTime updated_at;
   final String category_name;
   final List<Modifier> modifiers;
-  // final List<Variants> variants;
+  final List<Variants> variants;
 
-  Product({
-    required this.id,
-    required this.name,
-    required this.category_id,
-    required this.description,
-    this.image,
-    required this.outlet_id,
-    required this.modifiers,
-    // required this.variants,
-    required this.created_at,
-    required this.updated_at,
-    required this.category_name,
-    required this.is_active,
-  });
+  Product(
+      {required this.id,
+      required this.name,
+      required this.category_id,
+      required this.description,
+      this.image,
+      required this.outlet_id,
+      required this.modifiers,
+      // required this.variants,
+      required this.created_at,
+      required this.updated_at,
+      required this.category_name,
+      required this.is_active,
+      required this.variants});
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
@@ -46,7 +46,34 @@ class Product {
                   Modifier.fromJson(modifierJson as Map<String, dynamic>))
               .toList() ??
           [],
+      variants: (json['variants'] as List<dynamic>?)
+              ?.map((variantsJson) =>
+                  Variants.fromJson(variantsJson as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
+  }
+}
+
+class Variants {
+  final int id;
+  final int product_id;
+  final String name;
+  final int price;
+
+  Variants({
+    required this.id,
+    required this.product_id,
+    required this.name,
+    required this.price,
+  });
+
+  factory Variants.fromJson(Map<String, dynamic> json) {
+    return Variants(
+        id: json['id'] as int,
+        product_id: json['product_id'] as int,
+        name: json['name'] as String,
+        price: json['price'] as int);
   }
 }
 

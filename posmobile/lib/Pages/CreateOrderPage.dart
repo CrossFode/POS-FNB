@@ -370,14 +370,17 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           title: Text('${item['name']} x${item['quantity']}'),
                           subtitle: Text(
                               '${item['modifier']} — ${item['notes'].isNotEmpty ? item['notes'] : 'No notes'}'),
+
                           trailing: Text(
                               'Rp ${int.parse(item['price']) * item['quantity']}'),
+
                         );
                       }).toList(),
                     ),
                   ),
 
                   const SizedBox(height: 16),
+
 
                   // Total dan Checkout button dengan layout baru
                   Row(
