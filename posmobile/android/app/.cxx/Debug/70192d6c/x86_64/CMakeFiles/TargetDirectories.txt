@@ -1,0 +1,2 @@
+D:/Project KP/POS-FNB/posmobile/android/app/.cxx/Debug/70192d6c/x86_64/CMakeFiles/edit_cache.dir
+D:/Project KP/POS-FNB/posmobile/android/app/.cxx/Debug/70192d6c/x86_64/CMakeFiles/rebuild_cache.dir

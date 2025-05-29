@@ -7,27 +7,75 @@ class CreateOrderPage extends StatefulWidget {
 
 class _CreateOrderPageState extends State<CreateOrderPage> {
   final List<Map<String, dynamic>> menuItems = const [
-    {'name': 'Salted Caramel latte', 'price': '24000'},
-    {'name': 'Vanilla Bean latte', 'price': '22000'},
-    {'name': 'Hazelnut Mocha', 'price': '25000'},
+    {'name': 'Salted Caramel latte', 'price': '24000', 'category': 'Coffee'},
+    {'name': 'Vanilla Bean latte', 'price': '22000', 'category': 'Coffee'},
+    {'name': 'Hazelnut Mocha', 'price': '25000', 'category': 'Coffee'},
   ];
 
   final List<Map<String, dynamic>> _cartItems = [];
   String _orderType = 'Take Away'; // Default order type
 
+  // Tambahkan state kategori
+  List<String> categories = ['All', 'Coffee', 'Food', 'Tea'];
+  String selectedCategory = 'All';
+
+  // Function untuk menghitung total harga
+  int _calculateTotal() {
+    int total = 0;
+    for (var item in _cartItems) {
+      int price = int.parse(item['price']);
+      int quantity = item['quantity'];
+      total += price * quantity;
+    }
+    return total;
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Filter menu berdasarkan kategori
+    final filteredMenu = selectedCategory == 'All'
+        ? menuItems
+        : menuItems
+            .where((item) => item['category'] == selectedCategory)
+            .toList();
+
     return Scaffold(
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: menuItems.length,
-        itemBuilder: (context, index) {
-          final item = menuItems[index];
-          return _buildMenuItem(
-            name: item['name'],
-            price: item['price'],
-          );
-        },
+      body: Column(
+        children: [
+          // Pilihan kategori
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: categories
+                  .map((cat) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: ChoiceChip(
+                          label: Text(cat),
+                          selected: selectedCategory == cat,
+                          onSelected: (selected) {
+                            setState(() {
+                              selectedCategory = cat;
+                            });
+                          },
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: filteredMenu.length,
+              itemBuilder: (context, index) {
+                final item = filteredMenu[index];
+                return _buildMenuItem(
+                  name: item['name'],
+                  price: item['price'],
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: _cartItems.isNotEmpty
           ? FloatingActionButton.extended(
@@ -322,7 +370,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           title: Text('${item['name']} x${item['quantity']}'),
                           subtitle: Text(
                               '${item['modifier']} — ${item['notes'].isNotEmpty ? item['notes'] : 'No notes'}'),
-                          trailing: Text('Rp ${item['price']}'),
+
+                          trailing: Text(
+                              'Rp ${int.parse(item['price']) * item['quantity']}'),
+
                         );
                       }).toList(),
                     ),
@@ -330,22 +381,62 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
                   const SizedBox(height: 16),
 
-                  // Checkout button
-                  ElevatedButton(
-                    onPressed: () {
-                      print("Order Type: $_orderType");
-                      print("Customer Name: ${_customerNameController.text}");
-                      print("Items: $_cartItems");
-                      // Tambahkan logika checkout sesuai kebutuhan
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text(
-                      "CHECKOUT",
-                      style: TextStyle(color: Colors.white),
-                    ),
+
+                  // Total dan Checkout button dengan layout baru
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Total harga di kiri
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Total:",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            "Rp ${_calculateTotal()}",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Tombol checkout di kanan
+                      ElevatedButton(
+                        onPressed: () {
+                          print("Order Type: $_orderType");
+                          print(
+                              "Customer Name: ${_customerNameController.text}");
+                          print("Items: $_cartItems");
+                          print("Total: ${_calculateTotal()}");
+                          // Tambahkan logika checkout sesuai kebutuhan
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          "CHECKOUT",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                 ],
