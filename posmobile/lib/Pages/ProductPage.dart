@@ -19,6 +19,8 @@ class ProductPage extends StatefulWidget {
 class _ProductPageState extends State<ProductPage> {
   final String baseUrl = 'https://pos.lakesidefnb.group';
 
+  final List<Map<String, dynamic>> _cartItems = [];
+
   late Future<ProductResponse> _productFuture;
 
   @override
@@ -122,7 +124,7 @@ class _ProductPageState extends State<ProductPage> {
                                   product.name,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -169,6 +171,7 @@ class _ProductPageState extends State<ProductPage> {
                     );
                   },
                 );
+
                 // return ListView.builder(
                 //     itemCount: snapshot.data!.data.length,
                 //     itemBuilder: (context, index) {
@@ -225,17 +228,85 @@ class _ProductPageState extends State<ProductPage> {
                 //     });
               },
             ),
-          )
+          ),
         ],
       ),
+      floatingActionButton: _cartItems.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: _showCart,
+              backgroundColor: Colors.black,
+              icon: const Icon(Icons.shopping_cart, color: Colors.white),
+              label: Text(
+                '${_cartItems.length} item(s)',
+                style: const TextStyle(color: Colors.white),
+              ),
+            )
+          : null,
     );
   }
 
-  List<Map<String, dynamic>> selectedModifiers = [];
   void _showOrderOptions(BuildContext context, Product product) {
     int quantity = 1;
-
+    List<Map<String, dynamic>> selectedModifiers = [];
+    List<Map<String, dynamic>> selectedVariants = [];
     TextEditingController noteController = TextEditingController();
+    void _handleModifierSelection({
+      required bool selected,
+      required Modifier modifier,
+      required ModifierOptions option,
+    }) {
+      if (modifier.max_selected == 1) {
+        // Single selection mode - replace any existing selection for this modifier
+        selectedModifiers.removeWhere((m) => m['id'] == modifier.id);
+        if (selected) {
+          selectedModifiers.add({
+            'id': modifier.id,
+            'name': modifier.name,
+            'modifier_options': {
+              'id': option.id,
+              'name': option.name,
+              'price': option.price,
+            },
+          });
+        }
+      } else {
+        // Multiple selection mode
+        if (selected) {
+          selectedModifiers.add({
+            'id': modifier.id,
+            'name': modifier.name,
+            'modifier_options': {
+              'id': option.id,
+              'name': option.name,
+              'price': option.price,
+            }
+          });
+        } else {
+          selectedModifiers.removeWhere((m) =>
+              m['id'] == modifier.id &&
+              m['modifier_options']['id'] == option.id);
+        }
+      }
+    }
+
+    void _handlerVariantsSelection({
+      required bool selected,
+      required int max_selected,
+      required Variants variants,
+    }) {
+      // Single selection mode - replace any existing selection for this modifier
+      if (max_selected == 1) {
+        selectedVariants.removeWhere((v) => v['product_id'] == product.id);
+        if (selected) {
+          selectedVariants.add({
+            'id': variants.id,
+            'product_id': product.id,
+            'name': variants.name,
+            'price': variants.price
+          });
+        }
+      }
+    }
 
     showModalBottomSheet(
       context: context,
@@ -274,13 +345,18 @@ class _ProductPageState extends State<ProductPage> {
                         Navigator.pop(context);
 
                         setState(() {
-                          // _cartItems.add({
-                          //   'name': pfr,
-                          //   'price': price,
-                          //   'modifier': selectedModifier,
-                          //   'quantity': quantity,
-                          //   'notes': noteController.text,
-                          // });
+                          double price =
+                              product.variants.first.price.toDouble();
+                          double totalPrice = _calculateTotalPriceWithModifiers(
+                              price, selectedModifiers, quantity);
+                          _cartItems.add({
+                            'product': product,
+                            'name': product.name,
+                            'modifier': List.from(selectedModifiers),
+                            'quantity': quantity,
+                            'notes': noteController.text,
+                            'variants': List<dynamic>.from(selectedVariants)
+                          });
                         });
                       },
                       style: ElevatedButton.styleFrom(
@@ -357,7 +433,63 @@ class _ProductPageState extends State<ProductPage> {
                       ],
                     ),
                   ),
-                ],
+                ] else
+                  Text(
+                    "No options available",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                const SizedBox(height: 8),
+                // Variants
+                if (product.variants.isNotEmpty) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Variants",
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.start,
+                      children: product.variants.map((variants) {
+                        final isSelected = selectedVariants.any((v) =>
+                            v['id'] == variants.id &&
+                            v['product_id'] == product.id);
+
+                        return ChoiceChip(
+                          label: Text(
+                            "${variants.name}${variants.price > 0 ? ' ${variants.price}' : ''}",
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setModalState(() {
+                              _handlerVariantsSelection(
+                                  selected: selected,
+                                  variants: variants,
+                                  max_selected: 1);
+                            });
+                          },
+                          selectedColor: Colors.black,
+                          checkmarkColor: Colors.white,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(color: Colors.black),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  )
+                ] else
+                  Text(
+                    "No options available",
+                    style: TextStyle(color: Colors.grey),
+                  ),
 
                 const SizedBox(height: 16),
 
@@ -410,41 +542,144 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  void _handleModifierSelection({
-    required bool selected,
-    required Modifier modifier,
-    required ModifierOptions option,
-  }) {
-    if (modifier.max_selected == 1) {
-      // Single selection mode - replace any existing selection for this modifier
-      selectedModifiers.removeWhere((m) => m['id'] == modifier.id);
-      if (selected) {
-        selectedModifiers.add({
-          'id': modifier.id,
-          'name': modifier.name,
-          'modifier_options': {
-            'id': option.id,
-            'name': option.name,
-            'price': option.price,
-          }
-        });
-      }
-    } else {
-      // Multiple selection mode
-      if (selected) {
-        selectedModifiers.add({
-          'id': modifier.id,
-          'name': modifier.name,
-          'modifier_options': {
-            'id': option.id,
-            'name': option.name,
-            'price': option.price,
-          }
-        });
-      } else {
-        selectedModifiers.removeWhere((m) =>
-            m['id'] == modifier.id && m['modifier_options']['id'] == option.id);
-      }
-    }
+  void _showCart() {
+    String _orderType = 'Take Away'; // Default order type
+    final TextEditingController _customerNameController =
+        TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                top: 16,
+                left: 16,
+                right: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Order Type",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: ["Take Away", "Dine In"]
+                        .map(
+                          (type) => Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              child: OutlinedButton(
+                                onPressed: () =>
+                                    setModalState(() => _orderType = type),
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: _orderType == type
+                                      ? Colors.black
+                                      : Colors.white,
+                                  foregroundColor: _orderType == type
+                                      ? Colors.white
+                                      : Colors.black,
+                                  side: const BorderSide(color: Colors.black),
+                                ),
+                                child: Text(type),
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Input Nama Customer
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Customer Name",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _customerNameController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter customer name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Cart items
+                  SizedBox(
+                    height: 200, // Fixed height to prevent overflow
+                    child: ListView(
+                      children: _cartItems.map((item) {
+                        return ListTile(
+                          title: Text('${item['name']} x${item['quantity']}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (item['variants'].isNotEmpty)
+                                Text(
+                                  'Variant: ${item['variants'].map((v) => v['name']).join(', ')}',
+                                ),
+                              if (item['modifier'].isNotEmpty)
+                                Text(
+                                  'Modifier: ${item['modifier'].map((m) => m['modifier_options']['name']).join(', ')}',
+                                ),
+                              Text(
+                                item['notes'].isNotEmpty
+                                    ? item['notes']
+                                    : 'No notes',
+                              ),
+                            ],
+                          ),
+                          trailing: Text(
+                            'Rp ${(item['variants'].isNotEmpty ? item['variants'][0]['price'] : 0) * item['quantity']}',
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Checkout button
+                  ElevatedButton(
+                    onPressed: () {
+                      print("Order Type: $_orderType");
+                      print("Customer Name: ${_customerNameController.text}");
+                      print("Items: $_cartItems");
+                      // Tambahkan logika checkout sesuai kebutuhan
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Text(
+                      "CHECKOUT",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  double _calculateTotalPriceWithModifiers(
+      double basePrice, List<Map<String, dynamic>> modifiers, int quantity) {
+    double modifierTotal = modifiers.fold(0, (sum, modifier) {
+      return sum + (modifier['modifier_options']['price'] as num).toDouble();
+    });
+    return (basePrice + modifierTotal) * quantity;
   }
 }
