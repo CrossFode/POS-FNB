@@ -44,6 +44,18 @@ class _ProductPageState extends State<ProductPage> {
     }
   }
 
+  // Dummy categories for demonstration
+  List<String> categories = [
+    'All',
+    'Food',
+    'Cofee',
+    'Non coffee',
+    'Milk',
+    'Tea'
+  ];
+  String selectedCategory = 'All';
+  // sampai sini
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,6 +74,28 @@ class _ProductPageState extends State<ProductPage> {
               ),
             ),
           ),
+          // Kategori
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: categories
+                  .map(
+                    (cat) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ChoiceChip(
+                        label: Text(cat),
+                        selected: selectedCategory == cat,
+                        onSelected: (selected) {
+                          setState(() {
+                            selectedCategory = cat;
+                          });
+                        },
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
           Expanded(
             child: FutureBuilder<ProductResponse>(
               future: _productFuture,
@@ -73,6 +107,15 @@ class _ProductPageState extends State<ProductPage> {
                 } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
                   return const Center(child: Text('No products available'));
                 }
+                final filteredProducts = selectedCategory == 'All'
+                    ? snapshot.data!.data
+                    : snapshot.data!.data
+                        .where((p) => p.category_name == selectedCategory)
+                        .toList();
+                final allCategories = snapshot.data!.data
+                    .map((p) => p.category_name)
+                    .toSet()
+                    .toList();
                 return GridView.builder(
                   padding: EdgeInsets.all(16),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -81,9 +124,9 @@ class _ProductPageState extends State<ProductPage> {
                       mainAxisSpacing: 16,
                       childAspectRatio: 0.8 // Adjust card aspect ratio
                       ),
-                  itemCount: snapshot.data!.data.length,
+                  itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
-                    final product = snapshot.data!.data[index];
+                    final product = filteredProducts[index];
                     return InkWell(
                       onTap: () {
                         // Navigator.push(
