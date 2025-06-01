@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './auth/login.dart';
+import 'Auth/login.dart';
 // import 'Dashboard/Admin.dart';
 
 void main() {
@@ -8,7 +8,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -35,5 +35,3 @@ class MyApp extends StatelessWidget {
         home: LoginPage());
   }
 }
-
-

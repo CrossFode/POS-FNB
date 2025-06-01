@@ -63,21 +63,27 @@ class ModifierResponse {
 
 class ModifierOptions {
   final int id;
-  final int modifier_id;
-  final String name;
-  final int price;
-  final DateTime created_at;
-  final DateTime updated_at;
+  final int? modifier_id;
+  final String? name;
+  final int? price;
+  final DateTime? created_at;
+  final DateTime? updated_at;
 
   ModifierOptions({
     required this.id,
-    required this.modifier_id,
-    required this.name,
-    required this.price,
-    required this.created_at,
-    required this.updated_at,
+    this.modifier_id,
+    this.name,
+    this.price,
+    this.created_at,
+    this.updated_at,
   });
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'modifier_id': modifier_id,
+        'name': name,
+        'price': price,
+      };
   factory ModifierOptions.fromJson(Map<String, dynamic> json) {
     return ModifierOptions(
         id: json['id'] as int,
@@ -86,5 +92,16 @@ class ModifierOptions {
         price: json['price'] as int,
         created_at: DateTime.parse(json['created_at'] as String),
         updated_at: DateTime.parse(json['updated_at'] as String));
+  }
+  @override
+  String toString() {
+    return '''
+    ModifierOptions(
+      id: "$id",
+      modifier_id: $modifier_id,
+      name: $name,
+      price: $price,
+      created_at: $created_at,
+      updated_at: $updated_at)''';
   }
 }

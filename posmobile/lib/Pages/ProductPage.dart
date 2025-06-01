@@ -17,7 +17,9 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
-  final String baseUrl = 'https://pos.lakesidefnb.group';
+  final String baseUrl = 'http://10.0.2.2:8000';
+
+  // final String baseUrl = 'https://pos.lakesidefnb.group';
 
   final List<Map<String, dynamic>> _cartItems = [];
 
