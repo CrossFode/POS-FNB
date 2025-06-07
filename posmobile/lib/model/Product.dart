@@ -53,6 +53,8 @@ class Product {
           [],
     );
   }
+
+  get status => null;
 }
 
 class Variants {

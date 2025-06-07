@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:posmobile/Model/Model.dart';
@@ -18,10 +17,11 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
   final String baseUrl = 'https://pos.lakesidefnb.group';
-
   final List<Map<String, dynamic>> _cartItems = [];
-
   late Future<ProductResponse> _productFuture;
+  
+  // Track product status (true = in stock, false = sold out)
+  Map<String, bool> productStatus = {};
 
   @override
   void initState() {
@@ -37,7 +37,12 @@ class _ProductPageState extends State<ProductPage> {
         'Content-Type': 'application/json',
       });
       if (response.statusCode == 200) {
-        return ProductResponse.fromJson(jsonDecode(response.body));
+        final data = ProductResponse.fromJson(jsonDecode(response.body));
+        // Initialize all products as in stock by default
+        for (var product in data.data) {
+          productStatus[product.id.toString()] = true;
+        }
+        return data;
       } else {
         throw Exception('Failed to load outlet: ${response.statusCode}');
       }
@@ -45,18 +50,6 @@ class _ProductPageState extends State<ProductPage> {
       throw Exception('Failed to load product: $e');
     }
   }
-
-  // Dummy categories for demonstration
-  List<String> categories = [
-    'All',
-    'Food',
-    'Cofee',
-    'Non coffee',
-    'Milk',
-    'Tea'
-  ];
-  String selectedCategory = 'All';
-  // sampai sini
 
   @override
   Widget build(BuildContext context) {
@@ -77,28 +70,6 @@ class _ProductPageState extends State<ProductPage> {
                 ),
               ),
             ),
-            // Kategori
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: categories
-                    .map(
-                      (cat) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: ChoiceChip(
-                          label: Text(cat),
-                          selected: selectedCategory == cat,
-                          onSelected: (selected) {
-                            setState(() {
-                              selectedCategory = cat;
-                            });
-                          },
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
             Expanded(
               child: FutureBuilder<ProductResponse>(
                 future: _productFuture,
@@ -110,56 +81,159 @@ class _ProductPageState extends State<ProductPage> {
                   } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
                     return const Center(child: Text('No products available'));
                   }
-                  final filteredProducts = selectedCategory == 'All'
-                      ? snapshot.data!.data
-                      : snapshot.data!.data
-                          .where((p) => p.category_name == selectedCategory)
-                          .toList();
-                  final allCategories = snapshot.data!.data
-                      .map((p) => p.category_name)
-                      .toSet()
-                      .toList();
-                  return ListView.builder(
-                      itemCount: snapshot.data!.data.length,
-                      itemBuilder: (context, index) {
-                        final product = snapshot.data!.data[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.65,
+                    ),
+                    itemCount: snapshot.data!.data.length,
+                    itemBuilder: (context, index) {
+                      final product = snapshot.data!.data[index];
+                      final isInStock = productStatus[product.id.toString()] ?? true;
+
+                      return Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Centered icon
+                              Center(
+                                child: Icon(Icons.local_cafe, size: 40, color: Colors.black87),
+                              ),
+                              const SizedBox(height: 12),
+                              // Centered product name
+                              Center(
+                                child: Text(
+                                  product.name.toString().toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // Centered price
+                              Center(
+                                child: Text(
+                                  product.variants.isNotEmpty
+                                      ? 'Rp ${product.variants.first.price}'
+                                      : '-',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              const Spacer(),
+                              // Bottom row with status button and menu
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.center, // Center the children horizontally
+                                children: [
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      backgroundColor: isInStock ? Colors.green[100] : Colors.red[100],
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        productStatus[product.id.toString()] = !isInStock;
+                                      });
+                                    },
+                                    child: Text(
+                                      isInStock ? 'In Stock' : 'Sold Out',
+                                      style: TextStyle(
+                                        color: isInStock ? Colors.green[800] : Colors.red[800],
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center, // Center the row's children
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Color.fromARGB(255, 71, 71, 71), size: 22),
+                                        tooltip: 'Edit',
+                                        onPressed: () {
+                                          // TODO: Implement edit logic here
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.redAccent, size: 22),
+                                        tooltip: 'Delete',
+                                        onPressed: () {
+                                          // TODO: Implement delete logic here
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(product.name,
-                                  style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 8),
-                              Text(product.description,
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.normal,
-                                      color: Colors.brown)),
-                            ],
-                          ),
-                        );
-                      });
+                        ),
+                      );
+                    },
+                  );
                 },
               ),
             ),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+  onPressed: () {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Center(child: Text('Create Product')),
+      content: SizedBox(
+        width: 400, // Set your desired width
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('General Information', style: TextStyle(color: Color.fromARGB(255, 112, 112, 112)),),
+            ),
+            Divider(
+              color: Colors.grey,
+              thickness: 1,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+      )
+    );
+  },
+  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+  child: const Icon(Icons.add, color: Colors.white),
+  tooltip: 'Create Product',
+),
     );
   }
 }
