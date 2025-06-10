@@ -35,11 +35,14 @@ dependencies:
   fluttertoast: ^8.2.12
   http: ^1.4.0
   intl: ^0.20.2
+  flutter_dotenv: ^5.1.0
+
 
 dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -54,6 +57,7 @@ flutter:
   assets:
     - assets/images/lakesidefnb.png
     - assets/images/logo.png
+    - .env
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
   # For details regarding adding assets from package dependencies, see

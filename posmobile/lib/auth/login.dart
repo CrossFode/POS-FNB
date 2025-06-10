@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import '../Dashboard/Admin.dart';
 
@@ -11,12 +12,12 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
+  final String apiBaseUrl = dotenv.env['API_BASE_URL'] ?? '';
   Future<void> login(String email, String password) async {
     try {
       final response = await http.post(
         // Uri.parse('https://pos.lakesidefnb.group/api/auth'),
-        Uri.parse('http://10.0.2.2:8000/api/auth'),
+        Uri.parse('${dotenv.env['API_BASE_URL']}/api/auth'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:posmobile/Model/Category.dart';
 import 'package:posmobile/Model/Model.dart';
 
 class CreateOrderPage extends StatefulWidget {
@@ -19,14 +21,22 @@ class CreateOrderPage extends StatefulWidget {
 
 class _CreateOrderPageState extends State<CreateOrderPage> {
   // final String baseUrl = 'https://pos.lakesidefnb.group';
-  final String baseUrl = 'http://10.0.2.2:8000';
+  final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
 
   final List<Map<String, dynamic>> _cartItems = [];
 
   late Future<ProductResponse> _productFuture;
   late Future<DiskonResponse> _diskonFuture;
   late Future<PaymentMethodResponse> _paymentFuture;
+  late Future<CategoryResponse> _categoryFuture;
+
   Diskon? _selectedDiskon;
+  final Diskon noDiscountOption = Diskon(
+    id: null, // atau nilai khusus seperti -1
+    name: 'No Discount',
+    amount: 0, type: '',
+    // tambahkan field lain sesuai kebutuhan
+  );
 
   @override
   void initState() {
@@ -34,6 +44,27 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     _productFuture = fetchAllProduct(widget.token, widget.outletId);
     _diskonFuture = fetchDiskonByOutlet(widget.token, widget.outletId);
     _paymentFuture = fetchPaymentMethod(widget.token, widget.outletId);
+    _categoryFuture = fetchCategoryinOutlet(widget.token, widget.outletId);
+    _selectedDiskon = noDiscountOption;
+  }
+
+  Future<CategoryResponse> fetchCategoryinOutlet(token, outletId) async {
+    final url = Uri.parse('$baseUrl/api/category/outlet/$outletId');
+
+    try {
+      final response = await http.get(url, headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      });
+      if (response.statusCode == 200) {
+        return CategoryResponse.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception(
+            'Failed to load Payment Method: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load Category: $e');
+    }
   }
 
   Future<PaymentMethodResponse> fetchPaymentMethod(token, outletId) async {
@@ -46,15 +77,16 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       if (response.statusCode == 200) {
         return PaymentMethodResponse.fromJson(jsonDecode(response.body));
       } else {
-        throw Exception('Failed to load outlet: ${response.statusCode}');
+        throw Exception(
+            'Failed to load Payment Method: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Failed to load product: $e');
+      throw Exception('Failed to load Payment Method: $e');
     }
   }
 
   Future<ProductResponse> fetchAllProduct(token, outletId) async {
-    final url = Uri.parse('$baseUrl/api/product/ext/outlet/${outletId}');
+    final url = Uri.parse('$baseUrl/api/product/ext/available');
     try {
       final response = await http.get(url, headers: {
         'Authorization': 'Bearer $token',
@@ -159,18 +191,17 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     }
   }
 
-  // Dummy categories for demonstration
-  List<String> categories = [
-    'All',
-    'Food',
-    'Cofee',
-    'Non coffee',
-    'Milk',
-    'Tea'
-  ];
+  List<String> categories = ['All']; // Mulai dengan 'All' sebagai default
   String selectedCategory = 'All';
 
   // sampai sini
+  String formatPriceToK(num price) {
+    if (price >= 1000) {
+      return '${(price / 1000).toStringAsFixed(1)}K';
+    } else {
+      return price.toString();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,23 +225,37 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
             // Kategori
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: categories
-                    .map(
-                      (cat) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: ChoiceChip(
-                          label: Text(cat),
-                          selected: selectedCategory == cat,
-                          onSelected: (selected) {
-                            setState(() {
-                              selectedCategory = cat;
-                            });
-                          },
-                        ),
-                      ),
-                    )
-                    .toList(),
+              child: FutureBuilder<CategoryResponse>(
+                future: _categoryFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final categoryNames = ['All'] +
+                        snapshot.data!.data
+                            .map((category) => category.category_name)
+                            .toList();
+
+                    return Row(
+                      // ← Gunakan Row untuk menampilkan banyak ChoiceChip
+                      children: categoryNames.map((category) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: ChoiceChip(
+                            label: Text(category),
+                            selected: selectedCategory == category,
+                            onSelected: (selected) {
+                              setState(() {
+                                selectedCategory = category;
+                              });
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
+                  return const CircularProgressIndicator();
+                },
               ),
             ),
             Expanded(
@@ -233,17 +278,21 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                       .map((p) => p.category_name)
                       .toSet()
                       .toList();
-                  return GridView.builder(
-                    padding: EdgeInsets.all(16),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, // 2 columns
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.8 // Adjust card aspect ratio
-                        ),
+                  return ListView.builder(
+                    padding: EdgeInsets.all(10),
+                    // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    //     crossAxisCount: 2, // 2 columns
+                    //     crossAxisSpacing: 16,
+                    //     mainAxisSpacing: 16,
+                    //     childAspectRatio: 0.8 // Adjust card aspect ratio
+                    //     ),
                     itemCount: filteredProducts.length,
                     itemBuilder: (context, index) {
+                      // Urutkan produk berdasarkan nama
+                      filteredProducts.sort((a, b) =>
+                          a.name.toLowerCase().compareTo(b.name.toLowerCase()));
                       final product = filteredProducts[index];
+                      final price = product.variants[0].price;
                       return InkWell(
                         onTap: () {
                           // Navigator.push(
@@ -262,67 +311,79 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // product.image != null
-                                  //     ? Image(
-                                  //         width: 40,
-                                  //         height: 40,
-                                  //         image: NetworkImage(
-                                  //             '${baseUrl}/${product.image}'),
-                                  //       )
-                                  //     :
-                                  Icon(Icons.emoji_food_beverage, size: 40),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    product.name,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  // Text(
-                                  //   product.description,
-                                  //   textAlign: TextAlign.center,
-                                  //   style: TextStyle(
-                                  //     fontSize: 10,
-                                  //     fontWeight: FontWeight.normal,
-                                  //   ),
-                                  // ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  SizedBox(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        _showOrderOptions(context, product);
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.black,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(40))),
-                                        padding: EdgeInsets.zero,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // product.image != null
+                                //     ? Image(
+                                //         width: 40,
+                                //         height: 40,
+                                //         image: NetworkImage(
+                                //             '${baseUrl}/${product.image}'),
+                                //       )
+                                //     :
+                                // Icon(Icons.emoji_food_beverage, size: 40),
+
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      product.name,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                      child: Padding(
-                                          padding: const EdgeInsets.only(
-                                              right: 8.0,
-                                              left: 8,
-                                              top: 15,
-                                              bottom: 15),
-                                          child: const Icon(
-                                            Icons.add,
-                                            color: Colors.white,
-                                          )),
                                     ),
+                                    Text(
+                                      formatPriceToK(price),
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        color: Colors.blueGrey,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                // Text(
+                                //   product.description,
+                                //   textAlign: TextAlign.center,
+                                //   style: TextStyle(
+                                //     fontSize: 10,
+                                //     fontWeight: FontWeight.normal,
+                                //   ),
+                                // ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                SizedBox(
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      _showOrderOptions(context, product);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(40))),
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    child: Padding(
+                                        padding: const EdgeInsets.only(
+                                            right: 8.0,
+                                            left: 8,
+                                            top: 15,
+                                            bottom: 15),
+                                        child: const Icon(
+                                          Icons.add,
+                                          color: Colors.white,
+                                        )),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -675,39 +736,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          "Order Type",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
                         const SizedBox(height: 8),
-                        Row(
-                          children: ["TakeAway", "DineIn"]
-                              .map(
-                                (type) => Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 4),
-                                    child: OutlinedButton(
-                                      onPressed: () => setModalState(
-                                          () => _orderType = type),
-                                      style: OutlinedButton.styleFrom(
-                                        backgroundColor: _orderType == type
-                                            ? Colors.black
-                                            : Colors.white,
-                                        foregroundColor: _orderType == type
-                                            ? Colors.white
-                                            : Colors.black,
-                                        side: const BorderSide(
-                                            color: Colors.black),
-                                      ),
-                                      child: Text(type),
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
                         SizedBox(height: 16),
                         Align(
                             alignment: Alignment.topLeft,
@@ -743,24 +772,24 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               ],
                             )),
                         SizedBox(height: 12),
-                        if (_orderType.toLowerCase() == 'dinein')
-                          Align(
-                              alignment: Alignment.topLeft,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text("Table Number",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold)),
-                                  TextField(
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        hintText: "Enter table number"),
-                                    controller: _tableNumberController,
-                                  )
-                                ],
-                              )),
-                        const SizedBox(height: 4),
+                        // if (_orderType.toLowerCase() == 'dinein')
+                        //   Align(
+                        //       alignment: Alignment.topLeft,
+                        //       child: Column(
+                        //         crossAxisAlignment: CrossAxisAlignment.start,
+                        //         children: [
+                        //           Text("Table Number",
+                        //               style: TextStyle(
+                        //                   fontWeight: FontWeight.bold)),
+                        //           TextField(
+                        //             decoration: InputDecoration(
+                        //                 border: OutlineInputBorder(),
+                        //                 hintText: "Enter table number"),
+                        //             controller: _tableNumberController,
+                        //           )
+                        //         ],
+                        //       )),
+                        // const SizedBox(height: 4),
                         Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -877,7 +906,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                   'takeaway'
                               ? int.tryParse(_tableNumberController.text) ?? 0
                               : 1;
-                          final order_type = _orderType.toLowerCase();
+
                           final order_details = orderDetails;
                           final order = Order(
                             outlet_id: outlet_id,
@@ -885,7 +914,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                             phone_number: phone_number,
                             order_totals: order_totals,
                             order_table: order_table,
-                            order_type: order_type,
+                            order_type: 'takeaway',
                             order_details: order_details,
                             order_payment: 0,
                           );
@@ -928,7 +957,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     TextEditingController referralCode = TextEditingController();
     String? refCode = null;
     PaymentMethod? _selectedPaymentMethod;
-
+    int _finalTotalWithDiscount = 0;
+    String? _referralCode;
+    int _referralDiscount = 0;
     // Tambahkan variabel untuk selected payment method
     _cachedCheckoutData = Future.wait([
       _diskonFuture,
@@ -951,7 +982,18 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 }
 
                 final diskonList = snapshot.data?[0]?.data ?? [];
+                List<Diskon> diskonListWithNoOption =
+                    [noDiscountOption] + diskonList;
                 final paymentMethods = snapshot.data?[1]?.data ?? [];
+                // Inisialisasi nilai awal
+                final orderTotal =
+                    int.tryParse(order.order_totals.toString()) ?? 0;
+                final diskon = _selectedDiskon == noDiscountOption
+                    ? 0
+                    : (_selectedDiskon?.amount ?? 0);
+                _finalTotalWithDiscount =
+                    (orderTotal - (orderTotal * diskon) ~/ 100) -
+                        _referralDiscount;
 
                 return SingleChildScrollView(
                   padding: EdgeInsets.only(
@@ -989,8 +1031,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         contentPadding: EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 14),
                                       ),
-                                      value: _selectedDiskon,
-                                      items: diskonList
+                                      value:
+                                          _selectedDiskon ?? noDiscountOption,
+                                      items: diskonListWithNoOption
                                           .map<DropdownMenuItem<Diskon>>(
                                               (diskon) {
                                         return DropdownMenuItem<Diskon>(
@@ -1048,8 +1091,21 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                                     await fetchReferralCodes(
                                                         widget.token,
                                                         referralCode.text);
-                                                if (response.status == 200) {
+                                                if (response.status == true) {
                                                   refCode = referralCode.text;
+
+                                                  setModalState(() {
+                                                    _referralDiscount =
+                                                        (_finalTotalWithDiscount *
+                                                                response.data
+                                                                    .discount) ~/
+                                                            100;
+                                                    _finalTotalWithDiscount -=
+                                                        _referralDiscount;
+
+                                                    print(
+                                                        _finalTotalWithDiscount);
+                                                  });
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     SnackBar(
@@ -1109,8 +1165,30 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               ),
                               SizedBox(height: 20),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "Total:",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      Text(
+                                        "Rp ${NumberFormat("#,##0", "id_ID").format(_finalTotalWithDiscount)}",
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                   ElevatedButton(
                                     onPressed: () async {
                                       if (_selectedPaymentMethod == null) {
@@ -1132,23 +1210,25 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                             0;
                                         final int diskon =
                                             _selectedDiskon?.amount ?? 0;
-                                        final int finalTotal = (orderTotal -
-                                            (orderTotal * diskon) ~/ 100);
+
                                         print(orderTotal);
                                         print(diskon);
-                                        print(finalTotal);
+
                                         final result = await makeOrder(
                                           token: widget.token,
                                           order: Order(
                                             outlet_id: widget.outletId,
                                             customer_name: order.customer_name,
                                             phone_number: order.phone_number,
-                                            order_totals: finalTotal.toString(),
                                             order_payment: _selectedPaymentMethod!
                                                 .id, // Gunakan ID payment method yang dipilih
                                             order_table: order.order_table,
                                             discount_id: _selectedDiskon?.id,
                                             referral_code: refCode,
+
+                                            order_totals:
+                                                _finalTotalWithDiscount
+                                                    .toString(),
                                             order_type: order.order_type,
                                             order_details: order.order_details,
                                           ),
