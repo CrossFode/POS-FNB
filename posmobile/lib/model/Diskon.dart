@@ -1,5 +1,5 @@
 class Diskon {
-  final int id;
+  final int? id;
   final String name;
   final String type;
   final int amount;
@@ -7,7 +7,7 @@ class Diskon {
   final DateTime? updated_at;
 
   Diskon(
-      {required this.id,
+      {this.id,
       required this.name,
       required this.type,
       required this.amount,

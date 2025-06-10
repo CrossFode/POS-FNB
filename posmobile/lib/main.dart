@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'Auth/login.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 // import 'Dashboard/Admin.dart';
 
-void main() {
+Future<void> main() async {
+  await dotenv.load();
   runApp(const MyApp());
 }
 
