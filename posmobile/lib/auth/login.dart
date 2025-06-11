@@ -15,7 +15,8 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> login(String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('https://pos.lakesidefnb.group/api/auth'),
+        // Uri.parse('https://pos.lakesidefnb.group/api/auth'),
+        Uri.parse('http://10.0.2.2:8000/api/auth'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

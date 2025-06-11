@@ -2,13 +2,13 @@ class Outlet {
   final String id;
   final String outlet_name;
   final String email;
-  final String image;
+  final String? image;
 
   Outlet({
     required this.id,
     required this.outlet_name,
     required this.email,
-    required this.image,
+    this.image,
   });
 
   factory Outlet.fromJson(Map<String, dynamic> json) {
@@ -16,7 +16,7 @@ class Outlet {
       id: json['id'] as String,
       outlet_name: json['outlet_name'] as String,
       email: json['email'] as String,
-      image: json['image'] as String,
+      image: json['image'] as String?,
     );
   }
 }
