@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:posmobile/Model/Model.dart';
 import 'package:flutter/services.dart';
 import 'package:posmobile/Model/Modifier.dart';
+import 'package:posmobile/Model/Category.dart';
+
+const String baseUrl = 'http://10.0.2.2:8000';
 
 // Fungsi format harga agar seperti "20.0K" dan "5.5K" tanpa "Rp" dan underline
 String formatPrice(int price) {
@@ -72,24 +75,32 @@ class _ProductPageState extends State<ProductPage> {
       throw Exception('Failed to load product: $e');
     }
   }
+  
 
  Future<void> _createProduct({
-  required String name,
   required String category_name,
+  required String name,
   required String description,
-  required int? price,
+  required String price,
   required List<Map<String, dynamic>> variants,
   required List<int> modifier_ids,
 }) async {
   final url = Uri.parse('$baseUrl/api/product');
 
-  // Fetch all products to get category mapping (assuming categories are unique by name)
-  final productResponse = await fetchAllProduct(widget.token, widget.outletId);
-  // Find the first product with the selected category name to get its category_id
-  final categoryProduct = productResponse.data.where((product) => product.category_name == category_name).isNotEmpty
-      ? productResponse.data.firstWhere((product) => product.category_name == category_name)
-      : null;
-  final category_id = categoryProduct != null ? categoryProduct.category_id : null;
+  // Fetch categories instead of products
+  final categoryResponse = await fetchCategories(widget.token, widget.outletId);
+  
+  // Debug print untuk melihat data kategori
+  print('Available categories: ${categoryResponse.data.map((c) => '${c.id}:${c.category_name}').toList()}');
+  print('Selected category: $category_name');
+
+  // Find category_id from categories data
+  final categoryList = categoryResponse.data.where(
+    (cat) => cat.category_name.trim().toLowerCase() == category_name.trim().toLowerCase(),
+  ).toList();
+  final categoryData = categoryList.isNotEmpty ? categoryList.first : null;
+  
+  final category_id = categoryData?.id;
 
   if (category_id == null) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -98,21 +109,17 @@ class _ProductPageState extends State<ProductPage> {
     return;
   }
 
-  // Debug print the request payload
+  // Create product data
   final productData = {
     'name': name,
-    'category_id': category_id,
+    'category_id': category_id, // Use category_id from categories
     'description': description,
-    'outlet_id': widget.outletId,
+    'price': int.tryParse(price),
     'is_active': 1,
-    if (variants.isEmpty && price != null) 'price': price,
+    'outlet_id': widget.outletId,
     if (variants.isNotEmpty) 'variants': variants,
     if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
-    'created_at': DateTime.now().toIso8601String(),
-    'updated_at': DateTime.now().toIso8601String(),
   };
-
-  print('Attempting to create product with: ${jsonEncode(productData)}');
 
   try {
     final response = await http.post(
@@ -236,20 +243,36 @@ class _ProductPageState extends State<ProductPage> {
                         const SizedBox(height: 16),
                         
                         // Category Dropdown
-                        DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: 'Category',
-                            border: OutlineInputBorder(),
-                          ),
-                          value: _selectedCategory,
-                          items: _categories.where((c) => c != 'All').map((category) {
-                            return DropdownMenuItem(
-                              value: category,
-                              child: Text(category),
+                        FutureBuilder<CategoryResponse>(
+                          future: fetchCategories(widget.token, widget.outletId),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
+                              return const Text('No categories available');
+                            }
+                            final categories = snapshot.data!.data;
+                            final categoryNames = categories.map((c) => c.category_name).toList();
+                            // Ensure _selectedCategory is either null or in the list
+                            final dropdownValue = (categoryNames.contains(_selectedCategory)) ? _selectedCategory : null;
+                            return DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Category',
+                                border: OutlineInputBorder(),
+                              ),
+                              value: dropdownValue,
+                              items: categories.map((category) {
+                                return DropdownMenuItem(
+                                  value: category.category_name,
+                                  child: Text(category.category_name),
+                                );
+                              }).toList(),
+                              onChanged: (value) => setStateDialog(() => _selectedCategory = value),
+                              validator: (value) => value == null ? 'Select a category' : null,
                             );
-                          }).toList(),
-                          onChanged: (value) => setStateDialog(() => _selectedCategory = value),
-                          validator: (value) => value == null ? 'Select a category' : null,
+                          },
                         ),
                         const SizedBox(height: 16),
                         
@@ -441,6 +464,13 @@ class _ProductPageState extends State<ProductPage> {
       // Update product
       try {
         final url = Uri.parse('$baseUrl/api/product/${product!.id}');
+        // Cari category_id baru berdasarkan _selectedCategory
+        final productResponse = await fetchAllProduct(widget.token, widget.outletId);
+        final categoryProduct = productResponse.data.where((p) => p.category_name == _selectedCategory).isNotEmpty
+            ? productResponse.data.firstWhere((p) => p.category_name == _selectedCategory)
+            : null;
+        final category_id = categoryProduct != null ? categoryProduct.category_id : product.category_id;
+
         final response = await http.put(
           url,
           headers: {
@@ -449,7 +479,7 @@ class _ProductPageState extends State<ProductPage> {
           },
           body: jsonEncode({
             'name': _productName,
-            'category_id': product.category_id,
+            'category_id': category_id, // gunakan category_id baru
             'description': _description,
             'price': _showSinglePrice ? int.tryParse(_price) : null,
             'is_active': 1,
@@ -484,7 +514,7 @@ class _ProductPageState extends State<ProductPage> {
         name: _productName,
         category_name: _selectedCategory!,
         description: _description,
-        price: _showSinglePrice ? int.tryParse(_price) : null,
+        price: _showSinglePrice ? _price : '',
         variants: variants,
         modifier_ids: modifier_ids,
       );
@@ -493,7 +523,7 @@ class _ProductPageState extends State<ProductPage> {
     Navigator.of(context).pop();
   }
 },
-                  child: const Text('Create'),
+                  child: const Text('Save'),
                 ),
               ],
             );
@@ -734,5 +764,20 @@ class _ProductPageState extends State<ProductPage> {
   @override
   void dispose() {
     super.dispose();
+  }
+}
+
+Future<CategoryResponse> fetchCategories(String token, String outletId) async {
+  final url = Uri.parse('$baseUrl/api/category'); // Ganti sesuai endpoint yang benar
+  final response = await http.get(url, headers: {
+    'Authorization': 'Bearer $token',
+    'Content-Type': 'application/json',
+  });
+  print('Category API status: ${response.statusCode}');
+  print('Category API body: ${response.body}');
+  if (response.statusCode == 200) {
+    return CategoryResponse.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load categories');
   }
 }
