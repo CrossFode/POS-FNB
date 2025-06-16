@@ -1,3 +1,4 @@
+
 import 'package:posmobile/Model/Modifier.dart';
 
 class Product {
@@ -14,20 +15,20 @@ class Product {
   final List<Modifier> modifiers;
   final List<Variants> variants;
 
-  Product(
-      {required this.id,
-      required this.name,
-      required this.category_id,
-      required this.description,
-      this.image,
-      required this.outlet_id,
-      required this.modifiers,
-      // required this.variants,
-      required this.created_at,
-      required this.updated_at,
-      required this.category_name,
-      required this.is_active,
-      required this.variants});
+  Product({
+    required this.id,
+    required this.name,
+    required this.category_id,
+    required this.description,
+    this.image,
+    required this.outlet_id,
+    required this.modifiers,
+    required this.variants,
+    required this.created_at,
+    required this.updated_at,
+    required this.category_name,
+    required this.is_active,
+  });
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
@@ -42,16 +43,29 @@ class Product {
       updated_at: DateTime.parse(json['updated_at'] as String),
       category_name: json['category_name'] as String,
       modifiers: (json['modifiers'] as List<dynamic>?)
-              ?.map((modifierJson) =>
-                  Modifier.fromJson(modifierJson as Map<String, dynamic>))
-              .toList() ??
-          [],
+          ?.map((m) => Modifier.fromJson(m))
+          .toList() ?? [],
       variants: (json['variants'] as List<dynamic>?)
-              ?.map((variantsJson) =>
-                  Variants.fromJson(variantsJson as Map<String, dynamic>))
-              .toList() ??
-          [],
+          ?.map((v) => Variants.fromJson(v))
+          .toList() ?? [],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{
+      'name': name,
+      'category_id': category_id,
+      'description': description,
+      'is_active': is_active,
+      'outlet_id': outlet_id,
+      'category_name': category_name,
+    };
+
+    if (image != null) data['image'] = image;
+    if (variants.isNotEmpty) data['variants'] = variants.map((v) => v.toJson()).toList();
+    if (modifiers.isNotEmpty) data['modifiers'] = modifiers.map((m) => m.id).toList();
+
+    return data;
   }
 }
 
@@ -70,10 +84,20 @@ class Variants {
 
   factory Variants.fromJson(Map<String, dynamic> json) {
     return Variants(
-        id: json['id'] as int,
-        product_id: json['product_id'] as int,
-        name: json['name'] as String,
-        price: json['price'] as int);
+      id: json['id'] as int,
+      product_id: json['product_id'] as int,
+      name: json['name'] as String,
+      price: json['price'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'price': price,
+      if (id != 0) 'id': id,
+      if (product_id != 0) 'product_id': product_id,
+    };
   }
 }
 
@@ -92,9 +116,17 @@ class ProductResponse {
     return ProductResponse(
       message: json['message'] as String,
       status: json['status'] as String,
-      data: (json['data'] as List)
-          .map((i) => Product.fromJson(i as Map<String, dynamic>))
+      data: (json['data'] as List<dynamic>)
+          .map((p) => Product.fromJson(p))
           .toList(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'status': status,
+      'data': data.map((p) => p.toJson()).toList(),
+    };
   }
 }
