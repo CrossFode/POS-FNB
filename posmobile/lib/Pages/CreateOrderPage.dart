@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posmobile/Model/Category.dart';
 import 'package:posmobile/Model/Model.dart';
+import 'package:posmobile/Pages/previewBill.dart';
 
 class CreateOrderPage extends StatefulWidget {
   final String token;
@@ -29,6 +30,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   late Future<DiskonResponse> _diskonFuture;
   late Future<PaymentMethodResponse> _paymentFuture;
   late Future<CategoryResponse> _categoryFuture;
+  late Future<OutletResponseById> _outletFuture;
 
   Diskon? _selectedDiskon;
   final Diskon noDiscountOption = Diskon(
@@ -45,7 +47,47 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     _diskonFuture = fetchDiskonByOutlet(widget.token, widget.outletId);
     _paymentFuture = fetchPaymentMethod(widget.token, widget.outletId);
     _categoryFuture = fetchCategoryinOutlet(widget.token, widget.outletId);
+    _outletFuture = fetchOutletById(widget.token, widget.outletId);
     _selectedDiskon = noDiscountOption;
+  }
+
+  Future<OutletResponseById> fetchOutletById(token, outletId) async {
+    final url = Uri.parse('$baseUrl/api/outlet/$outletId');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+
+        // Add debug print to see actual response structure
+        print('Outlet Response: $responseBody');
+
+        if (responseBody == null) {
+          throw Exception('Received null response from server');
+        }
+
+        return OutletResponseById.fromJson(responseBody);
+      } else {
+        // Try to get error message from response if available
+        final errorResponse = jsonDecode(response.body);
+        final errorMessage =
+            errorResponse['message'] ?? 'Failed to load outlet';
+        throw Exception('$errorMessage (Status: ${response.statusCode})');
+      }
+    } on http.ClientException catch (e) {
+      throw Exception('Network error: ${e.message}');
+    } on FormatException catch (e) {
+      throw Exception('Data parsing error: ${e.message}');
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
+    }
   }
 
   Future<CategoryResponse> fetchCategoryinOutlet(token, outletId) async {
@@ -151,6 +193,58 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     } catch (e) {
       print('Error verifying referral code: $e');
       throw Exception('Failed to verify referral code: ${e.toString()}');
+    }
+  }
+
+  Future<void> _processOrder({
+    required BuildContext context,
+    required Order order,
+    required String? refCode,
+    required PaymentMethod? selectedPaymentMethod,
+    required Diskon? selectedDiskon,
+    required int finalTotalWithDiscount,
+  }) async {
+    try {
+      final result = await makeOrder(
+        token: widget.token,
+        order: Order(
+          outlet_id: widget.outletId,
+          customer_name: order.customer_name,
+          phone_number: order.phone_number,
+          order_payment: selectedPaymentMethod!.id,
+          order_table: order.order_table,
+          discount_id: selectedDiskon?.id,
+          referral_code: refCode,
+          order_totals: finalTotalWithDiscount.toString(),
+          order_type: order.order_type,
+          order_details: order.order_details,
+        ),
+      );
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: Colors.green,
+          ),
+        );
+        setState(() => _cartItems.clear());
+        Navigator.popUntil(context, (route) => route.isFirst);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -961,10 +1055,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     String? _referralCode;
     int _referralDiscount = 0;
     // Tambahkan variabel untuk selected payment method
-    _cachedCheckoutData = Future.wait([
-      _diskonFuture,
-      _paymentFuture,
-    ]);
+    _cachedCheckoutData =
+        Future.wait([_diskonFuture, _paymentFuture, _outletFuture]);
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -1000,8 +1092,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                     bottom: MediaQuery.of(context).viewInsets.bottom,
                   ),
                   child: Container(
-                    height: 270,
-                    padding: EdgeInsets.all(10),
+                    padding: EdgeInsets.all(16),
                     child: Column(
                       children: [
                         Text(
@@ -1010,286 +1101,365 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               fontWeight: FontWeight.bold, fontSize: 20),
                         ),
                         SizedBox(height: 16),
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Row untuk Dropdown dan TextField
-                              Row(
-                                children: [
-                                  // Dropdown diskon
-                                  Expanded(
-                                    flex: 2,
-                                    child: DropdownButtonFormField<Diskon>(
-                                      decoration: InputDecoration(
-                                        labelText: 'Discount',
-                                        hintText: 'No Discount',
-                                        floatingLabelBehavior:
-                                            FloatingLabelBehavior.always,
-                                        border: OutlineInputBorder(),
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 14),
-                                      ),
-                                      value:
-                                          _selectedDiskon ?? noDiscountOption,
-                                      items: diskonListWithNoOption
-                                          .map<DropdownMenuItem<Diskon>>(
-                                              (diskon) {
-                                        return DropdownMenuItem<Diskon>(
-                                          value: diskon,
-                                          child: Text('${diskon.name}',
-                                              overflow: TextOverflow.ellipsis),
-                                        );
-                                      }).toList(),
-                                      onChanged: (Diskon? newValue) {
-                                        setModalState(() {
-                                          _selectedDiskon = newValue;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                  SizedBox(width: 10),
-                                  // TextField referral code
-                                  Expanded(
-                                    flex: 3,
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: TextField(
-                                            controller: referralCode,
-                                            decoration: InputDecoration(
-                                              labelText: 'Referral Code',
-                                              border: OutlineInputBorder(),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            border:
-                                                Border.all(color: Colors.grey),
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                          ),
-                                          child: IconButton(
-                                            icon: Icon(Icons.search),
-                                            onPressed: () async {
-                                              if (referralCode.text.isEmpty) {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                        'Please enter a referral code'),
-                                                  ),
-                                                );
-                                                return;
-                                              }
 
-                                              try {
-                                                final response =
-                                                    await fetchReferralCodes(
-                                                        widget.token,
-                                                        referralCode.text);
-                                                if (response.status == true) {
-                                                  refCode = referralCode.text;
-
-                                                  setModalState(() {
-                                                    _referralDiscount =
-                                                        (_finalTotalWithDiscount *
-                                                                response.data
-                                                                    .discount) ~/
-                                                            100;
-                                                    _finalTotalWithDiscount -=
-                                                        _referralDiscount;
-
-                                                    print(
-                                                        _finalTotalWithDiscount);
-                                                  });
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                          'Referral code applied successfully!'),
-                                                      backgroundColor:
-                                                          Colors.green,
-                                                    ),
-                                                  );
-                                                }
-                                              } catch (e) {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                        'Error: ${e.toString()}'),
-                                                    backgroundColor: Colors.red,
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              ),
-                              SizedBox(height: 16),
-                              // Dropdown payment method
-                              DropdownButtonFormField<PaymentMethod>(
+                        // Discount Dropdown
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<Diskon>(
                                 decoration: InputDecoration(
-                                  labelText: 'Payment Method',
+                                  labelText: 'Discount',
+                                  labelStyle: TextStyle(fontSize: 8),
+                                  hintText: 'No Discount',
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.always,
                                   border: OutlineInputBorder(),
                                   contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 14),
+                                      horizontal: 6, vertical: 14),
                                 ),
-                                value: _selectedPaymentMethod,
-                                hint: Text(
-                                    'Select Payment Method'), // Placeholder jelas
-                                items: paymentMethods
-                                    .map<DropdownMenuItem<PaymentMethod>>(
-                                        (method) {
-                                  return DropdownMenuItem<PaymentMethod>(
-                                    value: method,
+                                value: _selectedDiskon ?? noDiscountOption,
+                                items: diskonListWithNoOption
+                                    .map<DropdownMenuItem<Diskon>>((diskon) {
+                                  return DropdownMenuItem<Diskon>(
+                                    value: diskon,
                                     child: Text(
-                                      method.payment_name,
+                                      '${diskon.name}',
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(fontSize: 14),
                                     ),
                                   );
                                 }).toList(),
-                                onChanged: (PaymentMethod? newValue) {
+                                onChanged: (Diskon? newValue) {
                                   setModalState(() {
-                                    _selectedPaymentMethod = newValue;
+                                    _selectedDiskon = newValue;
                                   });
                                 },
                               ),
-                              SizedBox(height: 20),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                            ),
+                            SizedBox(width: 10),
+
+                            // Referral Code Field
+                            Expanded(
+                              flex: 3,
+                              child: Row(
                                 children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Total:",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: referralCode,
+                                      decoration: InputDecoration(
+                                        labelText: 'Referral Code',
+                                        labelStyle: TextStyle(fontSize: 14),
+                                        border: OutlineInputBorder(),
                                       ),
-                                      Text(
-                                        "Rp ${NumberFormat("#,##0", "id_ID").format(_finalTotalWithDiscount)}",
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      if (_selectedPaymentMethod == null) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                'Please select a payment method'),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                        return;
-                                      }
-
-                                      try {
-                                        final int orderTotal = int.tryParse(
-                                                order.order_totals
-                                                    .toString()) ??
-                                            0;
-                                        final int diskon =
-                                            _selectedDiskon?.amount ?? 0;
-
-                                        print(orderTotal);
-                                        print(diskon);
-
-                                        final result = await makeOrder(
-                                          token: widget.token,
-                                          order: Order(
-                                            outlet_id: widget.outletId,
-                                            customer_name: order.customer_name,
-                                            phone_number: order.phone_number,
-                                            order_payment: _selectedPaymentMethod!
-                                                .id, // Gunakan ID payment method yang dipilih
-                                            order_table: order.order_table,
-                                            discount_id: _selectedDiskon?.id,
-                                            referral_code: refCode,
-
-                                            order_totals:
-                                                _finalTotalWithDiscount
-                                                    .toString(),
-                                            order_type: order.order_type,
-                                            order_details: order.order_details,
-                                          ),
-                                        );
-
-                                        if (result['success'] == true) {
+                                  SizedBox(width: 8),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: IconButton(
+                                      icon: Icon(Icons.search),
+                                      onPressed: () async {
+                                        if (referralCode.text.isEmpty) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             SnackBar(
-                                              content: Text(result['message']),
-                                              backgroundColor: Colors.green,
+                                              content: Text(
+                                                  'Please enter a referral code'),
                                             ),
                                           );
-                                          setState(() => _cartItems.clear());
-                                          Navigator.pop(context);
-                                          Navigator.pop(context);
-                                        } else {
+                                          return;
+                                        }
+
+                                        try {
+                                          final response =
+                                              await fetchReferralCodes(
+                                                  widget.token,
+                                                  referralCode.text);
+                                          if (response.status == true) {
+                                            refCode = referralCode.text;
+
+                                            setModalState(() {
+                                              _referralDiscount =
+                                                  (_finalTotalWithDiscount *
+                                                          response
+                                                              .data.discount) ~/
+                                                      100;
+                                              _finalTotalWithDiscount -=
+                                                  _referralDiscount;
+                                            });
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    'Referral code applied successfully!'),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             SnackBar(
-                                              content: Text(result['message']),
+                                              content: Text(
+                                                  'Error: ${e.toString()}'),
                                               backgroundColor: Colors.red,
                                             ),
                                           );
                                         }
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content:
-                                                Text('Error: ${e.toString()}'),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      fixedSize:
-                                          Size.fromWidth(double.infinity),
-                                      backgroundColor: Colors.black,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 32,
-                                        vertical: 16,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
+                                      },
                                     ),
-                                    child: const Text(
-                                      "Confirm",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
+                                  )
                                 ],
                               ),
-                            ],
+                            )
+                          ],
+                        ),
+                        SizedBox(height: 16),
+
+                        // Payment Method Dropdown
+                        DropdownButtonFormField<PaymentMethod>(
+                          decoration: InputDecoration(
+                            labelText: 'Payment Method',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 14),
                           ),
+                          value: _selectedPaymentMethod,
+                          hint: Text('Select Payment Method'),
+                          items: paymentMethods
+                              .map<DropdownMenuItem<PaymentMethod>>((method) {
+                            return DropdownMenuItem<PaymentMethod>(
+                              value: method,
+                              child: Text(
+                                method.payment_name,
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (PaymentMethod? newValue) {
+                            setModalState(() {
+                              _selectedPaymentMethod = newValue;
+                            });
+                          },
+                        ),
+                        SizedBox(height: 20),
+
+                        // Total and Buttons Section
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Total:",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  "Rp ${NumberFormat("#,##0", "id_ID").format(_finalTotalWithDiscount)}",
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // Preview Button
+                            ElevatedButton(
+                              onPressed: () async {
+                                Navigator.pop(context); // Tutup modal checkout
+
+                                try {
+                                  final outletResponse = await _outletFuture;
+                                  final outletName =
+                                      outletResponse.data.outlet_name;
+
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => Previewbill(
+                                              outletName: outletName,
+                                              orderId:
+                                                  'ORDER-${DateTime.now().millisecondsSinceEpoch}',
+                                              customerName: order.customer_name,
+                                              orderType: order.order_type,
+                                              tableNumber:
+                                                  order.order_table ?? 0,
+                                              items: _cartItems,
+                                              subtotal: int.tryParse(
+                                                      order.order_totals) ??
+                                                  0,
+                                              discount:
+                                                  (_selectedDiskon?.amount ??
+                                                          0) +
+                                                      _referralDiscount,
+                                              total: _finalTotalWithDiscount,
+                                              paymentMethod:
+                                                  _selectedPaymentMethod
+                                                          ?.payment_name ??
+                                                      'N/A',
+                                              orderTime: DateTime.now(),
+                                            )),
+                                  );
+                                  final result = await makeOrder(
+                                    token: widget.token,
+                                    order: Order(
+                                      outlet_id: widget.outletId,
+                                      customer_name: order.customer_name,
+                                      phone_number: order.phone_number,
+                                      order_payment: _selectedPaymentMethod!.id,
+                                      order_table: order.order_table,
+                                      discount_id: _selectedDiskon?.id,
+                                      referral_code: refCode,
+                                      order_totals:
+                                          _finalTotalWithDiscount.toString(),
+                                      order_type: order.order_type,
+                                      order_details: order.order_details,
+                                    ),
+                                  );
+
+                                  if (result['success'] == true) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(result['message']),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    setState(() => _cartItems.clear());
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            'Failed to load outlet data: $e')),
+                                  );
+                                }
+                              },
+                              // ... style dan child tetap sama ...
+
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                "Preview Struk",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+
+                            // Confirm Button (tetap dipertahankan tapi dikomen)
+                            /*
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (_selectedPaymentMethod == null) {
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'Please select a payment method'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                try {
+                                  final int orderTotal = int.tryParse(
+                                          order.order_totals
+                                              .toString()) ??
+                                      0;
+                                  final int diskon =
+                                      _selectedDiskon?.amount ?? 0;
+
+                                  final result = await makeOrder(
+                                    token: widget.token,
+                                    order: Order(
+                                      outlet_id: widget.outletId,
+                                      customer_name: order.customer_name,
+                                      phone_number: order.phone_number,
+                                      order_payment: _selectedPaymentMethod!
+                                          .id,
+                                      order_table: order.order_table,
+                                      discount_id: _selectedDiskon?.id,
+                                      referral_code: refCode,
+                                      order_totals:
+                                          _finalTotalWithDiscount
+                                              .toString(),
+                                      order_type: order.order_type,
+                                      order_details: order.order_details,
+                                    ),
+                                  );
+
+                                  if (result['success'] == true) {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(
+                                      SnackBar(
+                                        content: Text(result['message']),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    setState(() => _cartItems.clear());
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
+                                  } else {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(
+                                      SnackBar(
+                                        content: Text(result['message']),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          Text('Error: ${e.toString()}'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                "Confirm",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            */
+                          ],
                         ),
                       ],
                     ),
