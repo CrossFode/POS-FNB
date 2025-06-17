@@ -20,7 +20,7 @@ class _AdminScreenState extends State<AdminPage> {
     _outletFuture = fetchOutletByLogin(widget.token);
   }
 
-  final String baseUrl = 'http://10.0.2.2:8000';
+  final String baseUrl = 'http://192.168.100.16:8000';
   // final String baseUrl = 'https://pos.lakesidefnb.group';
   Future<OutletResponse> fetchOutletByLogin(String token) async {
     final url = Uri.parse('$baseUrl/api/outlet/current/user');

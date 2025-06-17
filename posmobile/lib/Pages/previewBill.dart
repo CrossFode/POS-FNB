@@ -1,14 +1,8 @@
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_bluetooth_printer/flutter_bluetooth_printer.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:posmobile/Model/Category.dart';
-import 'package:posmobile/Model/Model.dart';
 
-class PreviewBill extends StatelessWidget {
+class Previewbill extends StatefulWidget {
   final String outletName;
   final String orderId;
   final String customerName;
@@ -20,10 +14,9 @@ class PreviewBill extends StatelessWidget {
   final int total;
   final String paymentMethod;
   final DateTime orderTime;
-  final VoidCallback onPrint;
 
-  const PreviewBill({
-    Key? key,
+  const Previewbill({
+    super.key,
     required this.outletName,
     required this.orderId,
     required this.customerName,
@@ -35,8 +28,20 @@ class PreviewBill extends StatelessWidget {
     required this.total,
     required this.paymentMethod,
     required this.orderTime,
-    required this.onPrint,
-  }) : super(key: key);
+  });
+
+  @override
+  State<Previewbill> createState() => _PreviewBillState();
+}
+
+class _PreviewBillState extends State<Previewbill> {
+  ReceiptController? controller;
+  bool isPrinting = false;
+  final double paperWidth = 58 * 3.78; // 58mm in pixels
+
+  String _formatCurrency(int amount) {
+    return NumberFormat("#,##0", "id_ID").format(amount);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,166 +51,256 @@ class PreviewBill extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.print),
-            onPressed: onPrint,
+            onPressed: () async {
+              if (isPrinting || controller == null) return;
+              setState(() => isPrinting = true);
+
+              try {
+                final device =
+                    await FlutterBluetoothPrinter.selectDevice(context);
+                if (device != null) {
+                  await controller!.print(
+                    address: device.address,
+                    keepConnected: true,
+                    addFeeds: 4,
+                  );
+                }
+              } catch (e) {
+                print('Print error: $e');
+              }
+
+              setState(() => isPrinting = false);
+            },
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Header
-            Text(
-              outletName,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+        child: Center(
+          child: Container(
+            width: paperWidth,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
             ),
-            const Divider(),
-
-            // Order Info
-            _buildRow('Order #', orderId),
-            _buildRow(
-                'Tanggal', DateFormat('dd/MM/yyyy HH:mm').format(orderTime)),
-            _buildRow('Pelanggan', customerName),
-            if (orderType.toLowerCase() != 'takeaway')
-              _buildRow('Meja', tableNumber.toString()),
-            const Divider(),
-
-            // Items
-            const Text(
-              'ITEM',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            ...items.map((item) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${item['name']} x${item['quantity']}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+            child: Receipt(
+              builder: (context) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Center(
+                      child: Text('*** STRUK PENJUALAN ***',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24,
+                              height: 1.2),
+                          textAlign: TextAlign.center),
+                    ),
+                    const SizedBox(height: 4),
+                    Center(
+                      child: Text(
+                        widget.outletName,
+                        style: TextStyle(fontSize: 22, height: 1.2),
+                        textAlign: TextAlign.center,
                       ),
-                      Text(
-                        'Rp ${NumberFormat("#,##0", "id_ID").format(item['total_price'])}',
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Order Info
+                    Center(
+                      child: Text(
+                        "No. Order: ${widget.orderId}",
+                        style: TextStyle(fontSize: 18, height: 1.2),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Center(
+                      child: Text(
+                        "Tgl: ${DateFormat('dd/MM/yyyy HH:mm').format(widget.orderTime)}",
+                        style: TextStyle(fontSize: 18, height: 1.2),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Center(
+                      child: Text(
+                        "Pelanggan: ${widget.customerName}",
+                        style: TextStyle(fontSize: 18, height: 1.2),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Center(
+                      child: Text(
+                        "Jenis: ${widget.orderType}${widget.orderType == 'Dine In' ? ' (Meja ${widget.tableNumber})' : ''}",
+                        style: TextStyle(fontSize: 18, height: 1.2),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Table header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        SizedBox(
+                          width: paperWidth * 0.2,
+                          child: Text('Qty',
+                              style: TextStyle(fontSize: 22, height: 1.2)),
+                        ),
+                        SizedBox(
+                          width: paperWidth * 0.65,
+                          child: Text('Item',
+                              style: TextStyle(fontSize: 22, height: 1.2)),
+                        ),
+                        SizedBox(
+                          width: paperWidth * 0.6,
+                          child: Text('Subtotal',
+                              style: TextStyle(fontSize: 22, height: 1.2),
+                              textAlign: TextAlign.right),
+                        ),
+                      ],
+                    ),
+                    const Divider(thickness: 1, color: Colors.black),
+
+                    // Product list
+                    for (var item in widget.items) ...[
+                      Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              SizedBox(
+                                width: paperWidth * 0.02,
+                                child: Text('${item['quantity']}',
+                                    style:
+                                        TextStyle(fontSize: 24, height: 1.2)),
+                              ),
+                              SizedBox(
+                                width: paperWidth * 0.2,
+                              ),
+                              SizedBox(
+                                width: paperWidth * 0.7,
+                                child: Text('${item['name']}',
+                                    style:
+                                        TextStyle(fontSize: 24, height: 1.2)),
+                              ),
+                              SizedBox(
+                                width: paperWidth * 0.6,
+                                child: Text(
+                                    '${_formatCurrency(item['total_price'])}',
+                                    style: TextStyle(fontSize: 21, height: 1.2),
+                                    textAlign: TextAlign.right),
+                              ),
+                            ],
+                          ),
+                          // Display variants if exists
+                          if (item['variants'] != null &&
+                              item['variants'].isNotEmpty)
+                            Text(
+                              'Varian: ${item['variants'][0]['name']}',
+                              style: TextStyle(fontSize: 20, height: 1.2),
+                              textAlign: TextAlign.start,
+                            ),
+                          // Display modifiers if exists
+                          if (item['modifier'] != null &&
+                              item['modifier'].isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 60.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  for (var mod in item['modifier'])
+                                    Text(
+                                      '${mod['name']}: ${mod['modifier_options']['name']}',
+                                      style:
+                                          TextStyle(fontSize: 20, height: 1.2),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          // Display notes if exists
+                          if (item['notes'] != null && item['notes'].isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 40.0),
+                              child: Text(
+                                'Catatan: ${item['notes']}',
+                                style: TextStyle(fontSize: 17, height: 1.2),
+                              ),
+                            ),
+                          SizedBox(height: 4),
+                        ],
                       ),
                     ],
-                  ),
 
-                  // Variants
-                  if (item['variants'].isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: Column(
-                        children: item['variants'].map<Widget>((variant) {
-                          return Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              '- ${variant['name']}',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                    const Divider(thickness: 1, color: Colors.black),
+                    const SizedBox(height: 4),
+
+                    // Summary
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Subtotal:',
+                            style: TextStyle(fontSize: 20, height: 1.2)),
+                        Text('${_formatCurrency(widget.subtotal)}',
+                            style: TextStyle(fontSize: 20, height: 1.2)),
+                      ],
                     ),
-
-                  // Modifiers
-                  if (item['modifier'].isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: Column(
-                        children: item['modifier'].map<Widget>((mod) {
-                          final option = mod['modifier_options'];
-                          return Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              '+ ${option['name']} (Rp ${option['price']})',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                    SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Diskon:',
+                            style: TextStyle(fontSize: 20, height: 1.2)),
+                        Text('${widget.discount}%',
+                            style: TextStyle(fontSize: 20, height: 1.2)),
+                      ],
                     ),
+                    const Divider(thickness: 1, color: Colors.black),
 
-                  // Notes
-                  if (item['notes'] != null && item['notes'].isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
+                    // Total
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('TOTAL:',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                height: 1.2)),
+                        Text('${_formatCurrency(widget.total)}',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                height: 1.2)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Payment Method
+                    Center(
                       child: Text(
-                        'Catatan: ${item['notes']}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                        ),
+                        'Pembayaran: ${widget.paymentMethod}',
+                        style: TextStyle(fontSize: 20, height: 1.2),
                       ),
                     ),
+                    const SizedBox(height: 20),
 
-                  const SizedBox(height: 8),
-                ],
-              );
-            }).toList(),
-
-            const Divider(),
-
-            // Totals
-            _buildRow('Subtotal',
-                'Rp ${NumberFormat("#,##0", "id_ID").format(subtotal)}'),
-            if (discount > 0)
-              _buildRow('Diskon',
-                  '-Rp ${NumberFormat("#,##0", "id_ID").format(discount)}'),
-            _buildRow(
-              'TOTAL',
-              'Rp ${NumberFormat("#,##0", "id_ID").format(total)}',
-              isBold: true,
+                    // Footer
+                    Center(
+                      child: Text(
+                        'Terima kasih atas kunjungannya!',
+                        style: TextStyle(fontSize: 20, height: 1.2),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 100),
+                  ],
+                );
+              },
+              onInitialized: (controller) {
+                this.controller = controller;
+                controller.paperSize = PaperSize.mm58;
+              },
             ),
-
-            const Divider(),
-
-            // Payment
-            _buildRow('Pembayaran', paymentMethod),
-
-            // Footer
-            const SizedBox(height: 16),
-            const Text(
-              'Terima kasih atas kunjungan Anda',
-              style: TextStyle(fontStyle: FontStyle.italic),
-              textAlign: TextAlign.center,
-            ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildRow(String label, String value, {bool isBold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
       ),
     );
   }

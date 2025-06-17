@@ -1110,20 +1110,24 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               child: DropdownButtonFormField<Diskon>(
                                 decoration: InputDecoration(
                                   labelText: 'Discount',
+                                  labelStyle: TextStyle(fontSize: 8),
                                   hintText: 'No Discount',
                                   floatingLabelBehavior:
                                       FloatingLabelBehavior.always,
                                   border: OutlineInputBorder(),
                                   contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 14),
+                                      horizontal: 6, vertical: 14),
                                 ),
                                 value: _selectedDiskon ?? noDiscountOption,
                                 items: diskonListWithNoOption
                                     .map<DropdownMenuItem<Diskon>>((diskon) {
                                   return DropdownMenuItem<Diskon>(
                                     value: diskon,
-                                    child: Text('${diskon.name}',
-                                        overflow: TextOverflow.ellipsis),
+                                    child: Text(
+                                      '${diskon.name}',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: 14),
+                                    ),
                                   );
                                 }).toList(),
                                 onChanged: (Diskon? newValue) {
@@ -1145,6 +1149,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       controller: referralCode,
                                       decoration: InputDecoration(
                                         labelText: 'Referral Code',
+                                        labelStyle: TextStyle(fontSize: 14),
                                         border: OutlineInputBorder(),
                                       ),
                                     ),
@@ -1281,31 +1286,56 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => PreviewBill(
-                                        outletName: outletName,
-                                        orderId:
-                                            'ORDER-${DateTime.now().millisecondsSinceEpoch}',
-                                        customerName: order.customer_name,
-                                        orderType: order.order_type,
-                                        tableNumber: order.order_table ?? 0,
-                                        items: _cartItems,
-                                        subtotal:
-                                            int.tryParse(order.order_totals) ??
-                                                0,
-                                        discount:
-                                            (_selectedDiskon?.amount ?? 0) +
-                                                _referralDiscount,
-                                        total: _finalTotalWithDiscount,
-                                        paymentMethod: _selectedPaymentMethod
-                                                ?.payment_name ??
-                                            'N/A',
-                                        orderTime: DateTime.now(),
-                                        onPrint: () {
-                                          print('Print button pressed');
-                                        },
-                                      ),
+                                        builder: (context) => Previewbill(
+                                              outletName: outletName,
+                                              orderId:
+                                                  'ORDER-${DateTime.now().millisecondsSinceEpoch}',
+                                              customerName: order.customer_name,
+                                              orderType: order.order_type,
+                                              tableNumber:
+                                                  order.order_table ?? 0,
+                                              items: _cartItems,
+                                              subtotal: int.tryParse(
+                                                      order.order_totals) ??
+                                                  0,
+                                              discount:
+                                                  (_selectedDiskon?.amount ??
+                                                          0) +
+                                                      _referralDiscount,
+                                              total: _finalTotalWithDiscount,
+                                              paymentMethod:
+                                                  _selectedPaymentMethod
+                                                          ?.payment_name ??
+                                                      'N/A',
+                                              orderTime: DateTime.now(),
+                                            )),
+                                  );
+                                  final result = await makeOrder(
+                                    token: widget.token,
+                                    order: Order(
+                                      outlet_id: widget.outletId,
+                                      customer_name: order.customer_name,
+                                      phone_number: order.phone_number,
+                                      order_payment: _selectedPaymentMethod!.id,
+                                      order_table: order.order_table,
+                                      discount_id: _selectedDiskon?.id,
+                                      referral_code: refCode,
+                                      order_totals:
+                                          _finalTotalWithDiscount.toString(),
+                                      order_type: order.order_type,
+                                      order_details: order.order_details,
                                     ),
                                   );
+
+                                  if (result['success'] == true) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(result['message']),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    setState(() => _cartItems.clear());
+                                  }
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
