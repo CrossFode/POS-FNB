@@ -1157,6 +1157,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     int _finalTotalWithDiscount = 0;
     String? _referralCode;
     int _referralDiscount = 0;
+    int? _besarDiskon = 0;
     // Tambahkan variabel untuk selected payment method
     _cachedCheckoutData =
         Future.wait([_diskonFuture, _paymentFuture, _outletFuture]);
@@ -1291,6 +1292,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                                           response
                                                               .data.discount) ~/
                                                       100;
+                                              _besarDiskon = response
+                                                  .data.discount
+                                                  .toInt();
                                               _finalTotalWithDiscount -=
                                                   _referralDiscount;
                                             });
@@ -1401,10 +1405,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                               subtotal: int.tryParse(
                                                       order.order_totals) ??
                                                   0,
-                                              discount:
+                                              discountVoucher:
                                                   (_selectedDiskon?.amount ??
-                                                          0) +
-                                                      _referralDiscount,
+                                                      0),
+                                              discountRef: (_besarDiskon ?? 0),
                                               total: _finalTotalWithDiscount,
                                               paymentMethod:
                                                   _selectedPaymentMethod
@@ -1429,7 +1433,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       order_details: order.order_details,
                                     ),
                                   );
-
+                                  if (mounted) return;
                                   if (result['success'] == true) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -1440,10 +1444,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                     setState(() => _cartItems.clear());
                                   }
                                 } catch (e) {
+                                  if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content: Text(
-                                            'Failed to load outlet data: $e')),
+                                        content:
+                                            Text('Failed to  outlet data: $e')),
                                   );
                                 }
                               },

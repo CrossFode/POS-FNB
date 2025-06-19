@@ -10,7 +10,8 @@ class Previewbill extends StatefulWidget {
   final int tableNumber;
   final List<Map<String, dynamic>> items;
   final int subtotal;
-  final int discount;
+  final int discountVoucher;
+  final int discountRef;
   final int total;
   final String paymentMethod;
   final DateTime orderTime;
@@ -24,7 +25,8 @@ class Previewbill extends StatefulWidget {
     required this.tableNumber,
     required this.items,
     required this.subtotal,
-    required this.discount,
+    required this.discountVoucher,
+    required this.discountRef,
     required this.total,
     required this.paymentMethod,
     required this.orderTime,
@@ -89,7 +91,7 @@ class _PreviewBillState extends State<Previewbill> {
                   children: [
                     // Header
                     Center(
-                      child: Text('*** STRUK PENJUALAN ***',
+                      child: Text('=== STRUK PENJUALAN ===',
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 24,
@@ -109,31 +111,31 @@ class _PreviewBillState extends State<Previewbill> {
                     // Order Info
                     Center(
                       child: Text(
-                        "No. Order: ${widget.orderId}",
+                        widget.orderId,
                         style: TextStyle(fontSize: 18, height: 1.2),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Center(
                       child: Text(
-                        "Tgl: ${DateFormat('dd/MM/yyyy HH:mm').format(widget.orderTime)}",
+                        DateFormat('dd/MM/yyyy HH:mm').format(widget.orderTime),
                         style: TextStyle(fontSize: 18, height: 1.2),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Center(
                       child: Text(
-                        "Pelanggan: ${widget.customerName}",
+                        widget.customerName,
                         style: TextStyle(fontSize: 18, height: 1.2),
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Center(
-                      child: Text(
-                        "Jenis: ${widget.orderType}${widget.orderType == 'Dine In' ? ' (Meja ${widget.tableNumber})' : ''}",
-                        style: TextStyle(fontSize: 18, height: 1.2),
-                      ),
-                    ),
+                    // Center(
+                    //   child: Text(
+                    //     widget.orderType,
+                    //     style: TextStyle(fontSize: 18, height: 1.2),
+                    //   ),
+                    // ),
                     const SizedBox(height: 8),
 
                     // Table header
@@ -249,7 +251,8 @@ class _PreviewBillState extends State<Previewbill> {
                       children: [
                         Text('Diskon:',
                             style: TextStyle(fontSize: 20, height: 1.2)),
-                        Text('${widget.discount}%',
+                        Text(
+                            '${widget.discountVoucher}% + ${widget.discountRef}%',
                             style: TextStyle(fontSize: 20, height: 1.2)),
                       ],
                     ),
