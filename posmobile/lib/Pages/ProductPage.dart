@@ -223,8 +223,9 @@ class _ProductPageState extends State<ProductPage> {
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'General Information',
-                            style: TextStyle(color: Colors.grey),
+                            'GENERAL INFORMATION',
+                            style: TextStyle(color: Color.fromARGB(255, 66, 66, 66),
+                            fontSize: 16,fontWeight: FontWeight.bold),
                           ),
                         ),
                         const Divider(color: Colors.grey, thickness: 1),
@@ -292,8 +293,9 @@ class _ProductPageState extends State<ProductPage> {
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Pricing',
-                            style: TextStyle(color: Colors.grey),
+                            'PRICING',
+                            style: TextStyle(color: Color.fromARGB(255, 66, 66, 66),
+                            fontSize: 16,fontWeight: FontWeight.bold),
                           ),
                         ),
                         const Divider(color: Colors.grey, thickness: 1),
@@ -392,8 +394,10 @@ class _ProductPageState extends State<ProductPage> {
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Modifiers',
-                            style: TextStyle(color: Colors.grey),
+                            'MODIFIERS',
+                            style: TextStyle(color: Color.fromARGB(255, 68, 68, 68),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
                           ),
                         ),
                         const Divider(color: Colors.grey, thickness: 1),
@@ -417,20 +421,25 @@ class _ProductPageState extends State<ProductPage> {
                             }
                             
                             return Column(
-                              children: snapshot.data!.data.map((modifier) {
-                                return CheckboxListTile(
-                                  title: Text(modifier.name),
-                                  value: _selectedModifiers[modifier.id] ?? false,
-                                  onChanged: (bool? value) {
-                                    setStateDialog(() {
-                                      _selectedModifiers[modifier.id] = value ?? false;
-                                    });
-                                  },
-                                  controlAffinity: ListTileControlAffinity.leading,
-                                  dense: true,
-                                );
-                              }).toList(),
-                            );
+  children: snapshot.data!.data.map((modifier) {
+    return CheckboxListTile(
+      title: Text(
+        modifier.name,
+        style: const TextStyle(fontSize: 14),
+      ),
+      value: _selectedModifiers[modifier.id] ?? false,
+      onChanged: (bool? value) {
+        setStateDialog(() {
+          _selectedModifiers[modifier.id] = value ?? false;
+        });
+      },
+      controlAffinity: ListTileControlAffinity.leading,
+      dense: true, 
+      contentPadding: EdgeInsets.zero, // Remove all padding
+      visualDensity: VisualDensity(horizontal: -4, vertical: -4), // Make it more compact
+    );
+  }).toList(),
+);
                           },
                         ),
                       ],
@@ -464,12 +473,23 @@ class _ProductPageState extends State<ProductPage> {
       // Update product
       try {
         final url = Uri.parse('$baseUrl/api/product/${product!.id}');
-        // Cari category_id baru berdasarkan _selectedCategory
-        final productResponse = await fetchAllProduct(widget.token, widget.outletId);
-        final categoryProduct = productResponse.data.where((p) => p.category_name == _selectedCategory).isNotEmpty
-            ? productResponse.data.firstWhere((p) => p.category_name == _selectedCategory)
-            : null;
-        final category_id = categoryProduct != null ? categoryProduct.category_id : product.category_id;
+        
+        // Ambil category_id dari data kategori, bukan dari produk
+        final categoryResponse = await fetchCategories(widget.token, widget.outletId);
+        final categoryData = categoryResponse.data.firstWhere(
+          (cat) => cat.category_name.trim().toLowerCase() == _selectedCategory!.trim().toLowerCase(),
+          orElse: () => categoryResponse.data.first,
+        );
+        
+        // Gunakan id dari kategori yang dipilih
+        final category_id = categoryData?.id;
+        
+        if (category_id == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to determine category ID')),
+          );
+          return;
+        }
 
         final response = await http.put(
           url,
@@ -479,7 +499,7 @@ class _ProductPageState extends State<ProductPage> {
           },
           body: jsonEncode({
             'name': _productName,
-            'category_id': category_id, // gunakan category_id baru
+            'category_id': category_id, // Gunakan category_id dari kategori yang dipilih
             'description': _description,
             'price': _showSinglePrice ? int.tryParse(_price) : null,
             'is_active': 1,
@@ -489,6 +509,9 @@ class _ProductPageState extends State<ProductPage> {
             'updated_at': DateTime.now().toIso8601String(),
           }),
         );
+
+        print('Update response status: ${response.statusCode}');
+        print('Update response body: ${response.body}');
         
         if (response.statusCode == 200) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -629,7 +652,7 @@ class _ProductPageState extends State<ProductPage> {
                                           context: context,
                                           builder: (context) => AlertDialog(
                                           title: const Text('Delete Product'),
-                                          content: const Text('Are you sure you want to delete this product?'),
+                                          content: const Text('Apakah anda yakin ingin menghapus produk ini?'),
                                           actions: [
                                           TextButton(
                                             onPressed: () => Navigator.of(context).pop(false),

@@ -22,10 +22,10 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _pages = [
       ProductPage(token: widget.token, outletId: widget.outletId),
-      HistoryPage(),
+      HistoryPage(token: widget.token, outletId: widget.outletId),
       CreateOrderPage(token: widget.token, outletId: widget.outletId),
       CategoryPage(),
-      ModifierPage()
+      ModifierPage(token: widget.token, outletId: widget.outletId)
     ];
   }
 
