@@ -4,3 +4,5 @@ export 'HistoryPage.dart';
 export 'ModifierPage.dart';
 export 'OrderDescription.dart';
 export 'ProductPage.dart';
+export 'UserPage.dart';
+export 'OutletPage.dart';

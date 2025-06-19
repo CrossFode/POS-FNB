@@ -13,10 +13,10 @@ class Outlet {
 
   factory Outlet.fromJson(Map<String, dynamic> json) {
     return Outlet(
-      id: json['id'] as String,
-      outlet_name: json['outlet_name'] as String,
-      email: json['email'] as String,
-      image: json['image'] as String?,
+      id: json['id'].toString(),
+      outlet_name: json['outlet_name'] ?? '',
+      email: json['email'] ?? '',
+      image: json['image'],
     );
   }
 }
@@ -34,11 +34,11 @@ class OutletResponse {
 
   factory OutletResponse.fromJson(Map<String, dynamic> json) {
     return OutletResponse(
-      message: json['message'] as String,
-      status: json['status'] as bool,
-      data: (json['data'] as List)
-          .map((i) => Outlet.fromJson(i as Map<String, dynamic>))
-          .toList(),
+      message: json['message'] ?? '',
+      status: json['status'] ?? false,
+      data: (json['data'] as List?)
+          ?.map((item) => Outlet.fromJson(item))
+          .toList() ?? [],
     );
   }
 }
