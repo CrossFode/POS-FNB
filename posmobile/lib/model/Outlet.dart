@@ -42,3 +42,24 @@ class OutletResponse {
     );
   }
 }
+
+class OutletResponseById {
+  final String message;
+  final bool status;
+  final Outlet data;
+
+  OutletResponseById({
+    required this.message,
+    required this.status,
+    required this.data,
+  });
+
+  factory OutletResponseById.fromJson(Map<String, dynamic> json) {
+    return OutletResponseById(
+      message: json['message'] as String,
+      status: json['status'] as bool,
+      data: Outlet.fromJson(
+          json['data'] as Map<String, dynamic>), // Directly parse as Map
+    );
+  }
+}

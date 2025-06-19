@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:posmobile/Model/Modifier.dart';
 import 'package:posmobile/Model/Category.dart';
 
-const String baseUrl = 'http://10.0.2.2:8000';
+
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Fungsi format harga agar seperti "20.0K" dan "5.5K" tanpa "Rp" dan underline
 String formatPrice(int price) {
@@ -29,7 +30,7 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
-  final String baseUrl = 'http://10.0.2.2:8000';
+  final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
   // final List<Map<String, dynamic>> _cartItems = [];
   late Future<ProductResponse> _productFuture;
   List<String> _categories = ['All']; // Default to 'All'
