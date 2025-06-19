@@ -103,6 +103,25 @@ class _HistoryPageState extends State<HistoryPage>
     }
   }
 
+  Future<bool> _updateCustomer(
+      String customerId, String newName, String oldPhone) async {
+    final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
+    final String token = widget.token;
+    final apiUrl = '$baseUrl/api/customer/$customerId';
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'name': newName,
+        'phone': oldPhone, // selalu kirim nomor lama
+      }),
+    );
+    return response.statusCode == 200;
+  }
+
   void _filterOrders() {
     setState(() {
       filteredOrders = orders.where((order) {
@@ -124,25 +143,45 @@ class _HistoryPageState extends State<HistoryPage>
       builder: (context) => AlertDialog(
         title: const Text('Hapus Order'),
         content:
-            Text('Apakah Anda yakin ingin menghapus order #$orderNumberStr?'),
+            Text('Apakah Anda yakin ingin menghapus order ${order.customer}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Tidak'),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                orders.removeWhere((o) => o.id == order.id);
-                _filterOrders();
-              });
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Order #$orderNumberStr berhasil dihapus'),
-                  backgroundColor: Colors.red,
-                ),
+            onPressed: () async {
+              // Tambahkan request DELETE ke backend
+              final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
+              final String token = widget.token;
+              final response = await http.delete(
+                Uri.parse('$baseUrl/api/order/${order.id}'),
+                headers: {
+                  'Authorization': 'Bearer $token',
+                  'Content-Type': 'application/json',
+                },
               );
+              if (response.statusCode == 200) {
+                setState(() {
+                  orders.removeWhere((o) => o.id == order.id);
+                  _filterOrders();
+                });
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Order ${order.customer} berhasil dihapus'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } else {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Gagal menghapus order: ${response.body}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             child: const Text('Ya', style: TextStyle(color: Colors.red)),
           ),
@@ -153,14 +192,14 @@ class _HistoryPageState extends State<HistoryPage>
 
   void _editOrder(History order) async {
     // State untuk data edit
-    String? editedCustomerId;
+    String editedCustomerName = order.customer;
+    String? editedCustomerId = order.customerId; // <-- add this line
     String? editedCashierId;
     String? editedPaymentId;
     String? editedOrderType;
     DateTime editedOrderDate = order.orderDate;
 
     // State untuk dropdown data
-    List<Map<String, dynamic>> customers = [];
     List<Map<String, dynamic>> cashiers = [];
     List<Map<String, dynamic>> paymentMethods = [];
     List<Map<String, dynamic>> orderTypes = [
@@ -168,6 +207,7 @@ class _HistoryPageState extends State<HistoryPage>
       {'value': 'takeaway', 'label': 'Take Away'},
       {'value': 'delivery', 'label': 'Delivery'},
     ];
+    List<Map<String, dynamic>> customers = []; // fetch dari API
 
     bool loading = true;
     Map<String, String> errors = {};
@@ -177,10 +217,6 @@ class _HistoryPageState extends State<HistoryPage>
       try {
         final token = widget.token;
         final outletId = widget.outletId;
-        final customerRes = await http.get(
-          Uri.parse('${dotenv.env['API_BASE_URL']}/api/customer'),
-          headers: {'Authorization': 'Bearer $token'},
-        );
         final cashierRes = await http.get(
           Uri.parse('${dotenv.env['API_BASE_URL']}/api/outlet/$outletId'),
           headers: {'Authorization': 'Bearer $token'},
@@ -189,10 +225,10 @@ class _HistoryPageState extends State<HistoryPage>
           Uri.parse('${dotenv.env['API_BASE_URL']}/api/payment'),
           headers: {'Authorization': 'Bearer $token'},
         );
-        if (customerRes.statusCode == 200) {
-          customers = List<Map<String, dynamic>>.from(
-              json.decode(customerRes.body)['data']);
-        }
+        final customerRes = await http.get(
+          Uri.parse('${dotenv.env['API_BASE_URL']}/api/customers'),
+          headers: {'Authorization': 'Bearer $token'},
+        );
         if (cashierRes.statusCode == 200) {
           cashiers = List<Map<String, dynamic>>.from(
               json.decode(cashierRes.body)['data']['users']);
@@ -200,6 +236,10 @@ class _HistoryPageState extends State<HistoryPage>
         if (paymentRes.statusCode == 200) {
           paymentMethods = List<Map<String, dynamic>>.from(
               json.decode(paymentRes.body)['data']);
+        }
+        if (customerRes.statusCode == 200) {
+          customers = List<Map<String, dynamic>>.from(
+              json.decode(customerRes.body)['data']);
         }
       } catch (e) {
         debugPrint('Error fetching dropdown data: $e');
@@ -210,12 +250,6 @@ class _HistoryPageState extends State<HistoryPage>
     loading = false;
 
     // Set initial value
-    editedCustomerId = customers
-        .firstWhere(
-          (c) => c['name'] == order.customer,
-          orElse: () => {},
-        )['id']
-        ?.toString();
     editedCashierId = cashiers
         .firstWhere(
           (c) => c['name'] == order.cashier,
@@ -242,6 +276,7 @@ class _HistoryPageState extends State<HistoryPage>
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
               child: Container(
@@ -262,7 +297,7 @@ class _HistoryPageState extends State<HistoryPage>
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Edit Order #${(orders.indexWhere((o) => o.id == order.id) + 1).toString().padLeft(4, '0')}',
+                                    'Edit Order ${order.customer}',
                                     style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -279,21 +314,49 @@ class _HistoryPageState extends State<HistoryPage>
                               ),
                               const Divider(),
                               const SizedBox(height: 16),
-                              DropdownButtonFormField<String>(
-                                value: editedCustomerId,
-                                decoration: InputDecoration(
-                                  labelText: 'Customer Name',
-                                  border: const OutlineInputBorder(),
-                                  errorText: errors['customer_id'],
-                                ),
-                                items: customers.map((customer) {
-                                  return DropdownMenuItem<String>(
-                                    value: customer['id'].toString(),
-                                    child: Text(customer['name']),
+                              // Customer Name pakai input field saja
+                              Autocomplete<Map<String, dynamic>>(
+                                optionsBuilder:
+                                    (TextEditingValue textEditingValue) {
+                                  if (textEditingValue.text == '') {
+                                    return const Iterable<
+                                        Map<String, dynamic>>.empty();
+                                  }
+                                  return customers.where((c) => c['name']
+                                      .toLowerCase()
+                                      .contains(
+                                          textEditingValue.text.toLowerCase()));
+                                },
+                                displayStringForOption: (option) =>
+                                    option['name'],
+                                initialValue:
+                                    TextEditingValue(text: order.customer),
+                                onSelected: (Map<String, dynamic> selection) {
+                                  setState(() {
+                                    editedCustomerId =
+                                        selection['id'].toString();
+                                    editedCustomerName = selection['name'];
+                                  });
+                                },
+                                fieldViewBuilder: (context, controller,
+                                    focusNode, onEditingComplete) {
+                                  return TextFormField(
+                                    controller: controller,
+                                    focusNode: focusNode,
+                                    decoration: InputDecoration(
+                                      labelText: 'Customer Name',
+                                      border: const OutlineInputBorder(),
+                                      errorText: errors['customer_id'] ??
+                                          errors['customer_name'],
+                                    ),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        editedCustomerName = value;
+                                        // Jika user mengetik manual, customerId dikosongkan
+                                      });
+                                    },
                                   );
-                                }).toList(),
-                                onChanged: (value) =>
-                                    setState(() => editedCustomerId = value),
+                                },
                               ),
                               const SizedBox(height: 12),
                               DropdownButtonFormField<String>(
@@ -388,10 +451,9 @@ class _HistoryPageState extends State<HistoryPage>
                                   const SizedBox(width: 12),
                                   ElevatedButton(
                                     onPressed: () async {
-                                      // Validasi sederhana
                                       setState(() => errors = {});
-                                      if (editedCustomerId == null) {
-                                        setState(() => errors['customer_id'] =
+                                      if (editedCustomerName.trim().isEmpty) {
+                                        setState(() => errors['customer_name'] =
                                             'Customer wajib diisi');
                                         return;
                                       }
@@ -410,7 +472,50 @@ class _HistoryPageState extends State<HistoryPage>
                                             'Order type wajib diisi');
                                         return;
                                       }
+
+                                      if (editedCustomerId != null &&
+                                          editedCustomerId!.isNotEmpty) {
+                                        if (editedCustomerName.trim() !=
+                                            order.customer) {
+                                          // Update customer lama (PUT)
+                                          final updated = await _updateCustomer(
+                                            editedCustomerId!,
+                                            editedCustomerName.trim(),
+                                            order.customerPhone, // nomor lama
+                                          );
+                                          if (!updated) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                    'Gagal update customer'),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                        }
+                                      }
                                       // Kirim ke API (PUT)
+                                      final body = <String, dynamic>{
+                                        'order_cashier': editedCashierId,
+                                        'order_payment': editedPaymentId,
+                                        'order_type': editedOrderType,
+                                        'created_at':
+                                            editedOrderDate.toIso8601String(),
+                                      };
+                                      if (editedCustomerId != null &&
+                                          editedCustomerId!.isNotEmpty) {
+                                        body['customer_id'] = editedCustomerId;
+                                      }
+                                      if (editedCustomerId == null ||
+                                          editedCustomerId!.isEmpty) {
+                                        body['customer_name'] =
+                                            editedCustomerName.trim();
+                                      }
+
+                                      print(json.encode(body));
+
                                       final response = await http.put(
                                         Uri.parse(
                                             '${dotenv.env['API_BASE_URL']}/api/order/${order.id}'),
@@ -419,14 +524,7 @@ class _HistoryPageState extends State<HistoryPage>
                                           'Authorization':
                                               'Bearer ${widget.token}',
                                         },
-                                        body: json.encode({
-                                          'customer_id': editedCustomerId,
-                                          'order_cashier': editedCashierId,
-                                          'order_payment': editedPaymentId,
-                                          'order_type': editedOrderType,
-                                          'created_at':
-                                              editedOrderDate.toIso8601String(),
-                                        }),
+                                        body: json.encode(body),
                                       );
                                       if (response.statusCode == 200) {
                                         if (!mounted) return;
@@ -434,10 +532,7 @@ class _HistoryPageState extends State<HistoryPage>
                                           orders[orders.indexWhere(
                                                   (o) => o.id == order.id)] =
                                               order.copyWith(
-                                            customer: customers.firstWhere(
-                                                (c) =>
-                                                    c['id'].toString() ==
-                                                    editedCustomerId)['name'],
+                                            customer: editedCustomerName.trim(),
                                             cashier: cashiers.firstWhere((c) =>
                                                 c['id'].toString() ==
                                                 editedCashierId)['name'],
@@ -467,8 +562,22 @@ class _HistoryPageState extends State<HistoryPage>
                                         final errorData =
                                             json.decode(response.body);
                                         setState(() {
-                                          errors = Map<String, String>.from(
-                                              errorData['errors'] ?? {});
+                                          errors = {};
+                                          if (errorData['errors'] != null) {
+                                            final errorsData =
+                                                errorData['errors'];
+                                            if (errorsData is Map) {
+                                              errorsData.forEach((key, value) {
+                                                if (value is List &&
+                                                    value.isNotEmpty) {
+                                                  errors[key] =
+                                                      value.first.toString();
+                                                } else if (value is String) {
+                                                  errors[key] = value;
+                                                }
+                                              });
+                                            }
+                                          }
                                         });
                                       } else {
                                         if (!mounted) return;
@@ -503,11 +612,15 @@ class _HistoryPageState extends State<HistoryPage>
       context: context,
       builder: (BuildContext context) {
         return Dialog(
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -537,160 +650,235 @@ class _HistoryPageState extends State<HistoryPage>
                   ],
                 ),
                 const Divider(color: Color(0xFFE2E8F0)),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Order #${(index + 1).toString().padLeft(4, '0')}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    // Ubah warna status badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor(order.status).withAlpha(30),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        order.status,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: _getStatusColor(order.status),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                // Ubah warna text detail
-                _buildDetailRow('Customer', order.customer),
-                _buildDetailRow('Phone', order.customerPhone),
-                _buildDetailRow('Order Type', order.orderType),
-                if (order.tableNumber != null)
-                  _buildDetailRow('Table', order.tableNumber!),
-                _buildDetailRow('Outlet', order.outlet),
-                _buildDetailRow('Cashier', order.cashier),
-                _buildDetailRow('Payment Method', order.paymentMethod),
-                _buildDetailRow('Date', _formatDateTime(order.orderDate)),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 16),
-                const Text(
-                  'Items Ordered:',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Items dengan background subtle
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Items: ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    ...order.products
-                        .map((item) => Container(
-                              margin: const EdgeInsets.only(top: 8),
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(8),
+
+                // Content yang bisa di-scroll
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Order By ${order.customer}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
                               ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      '${item.name} (x${item.quantity})',
-                                      style: const TextStyle(
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color:
+                                    _getStatusColor(order.status).withAlpha(30),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                order.status,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _getStatusColor(order.status),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Detail information
+                        _buildDetailRow('Customer', order.customer),
+                        _buildDetailRow('Phone', order.customerPhone),
+                        _buildDetailRow('Order Type', order.orderType),
+                        if (order.tableNumber != null)
+                          _buildDetailRow('Table', order.tableNumber!),
+                        _buildDetailRow('Outlet', order.outlet),
+                        _buildDetailRow('Cashier', order.cashier),
+                        _buildDetailRow('Payment Method', order.paymentMethod),
+                        _buildDetailRow(
+                            'Date', _formatDateTime(order.orderDate)),
+
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 16),
+
+                        // Items Ordered Section
+                        const Text(
+                          'Items Ordered:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Items container with max height and scroll
+                        Container(
+                          constraints: const BoxConstraints(
+                            maxHeight: 200, // Maksimal tinggi 200px
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            children: [
+                              // List produk scrollable
+                              Expanded(
+                                child: ListView.separated(
+                                  shrinkWrap: true,
+                                  padding: const EdgeInsets.all(8),
+                                  itemCount: order.products.length,
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(height: 8),
+                                  itemBuilder: (context, index) {
+                                    final item = order.products[index];
+                                    return Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF8FAFC),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item.name,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Color(0xFF1E293B),
+                                                  ),
+                                                ),
+                                                if (item.variantName != null &&
+                                                    item.variantName!
+                                                        .isNotEmpty)
+                                                  Text(
+                                                    'Variant: ${item.variantName}',
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Color(0xFF64748B),
+                                                    ),
+                                                  ),
+                                                Text(
+                                                  'Qty: ${item.quantity}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: Color(0xFF64748B),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                _formatPrice(item.price),
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                              ),
+                                              Text(
+                                                _formatPrice(
+                                                    item.price * item.quantity),
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF1E293B),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              // Subtotal fixed di bawah
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(8),
+                                    bottomRight: Radius.circular(8),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Subtotal:',
+                                      style: TextStyle(
                                         fontSize: 14,
+                                        fontWeight: FontWeight.bold,
                                         color: Color(0xFF64748B),
                                       ),
                                     ),
-                                  ),
-                                  Text(
-                                    _formatPrice(item.price * item.quantity),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                                    Text(
+                                      _formatPrice(order.totalPrice),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ))
-                        .toList(),
-                    const Divider(),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Subtotal:',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
+                            ],
                           ),
-                          Text(
-                            _formatPrice(order.totalPrice),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Total dengan background berbeda
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.indigo.withAlpha(30),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ],
-                      ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total:',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo,
+                                ),
+                              ),
+                              Text(
+                                _formatPrice(order.totalPrice),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.indigo,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Total dengan background berbeda
-                Container(
-                  margin: const EdgeInsets.only(top: 16),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.indigo.withAlpha(30),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Total:',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo,
-                        ),
-                      ),
-                      Text(
-                        _formatPrice(order.totalPrice),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo,
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ],
@@ -823,185 +1011,188 @@ class _HistoryPageState extends State<HistoryPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Order History',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
+        appBar: AppBar(
+          automaticallyImplyLeading: false, // Tambahkan baris ini
+          title: const Text(
+            'Order History',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
           ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          shadowColor: Colors.black12,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+              onPressed: () {
+                _fetchOrdersFromApi();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Data refreshed'),
+                    backgroundColor: Colors.green,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.download, color: Color(0xFF64748B)),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Export feature coming soon'),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+          ],
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        shadowColor: Colors.black12,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
-            onPressed: () {
-              _fetchOrdersFromApi();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Data refreshed'),
-                  backgroundColor: Colors.green,
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.download, color: Color(0xFF64748B)),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Export feature coming soon'),
-                  backgroundColor: Colors.blue,
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      spreadRadius: 0,
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Date Range',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF64748B))),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => _selectDate(context, true),
-                            child: Container(
-                              height: 48,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                border:
-                                    Border.all(color: const Color(0xFFE2E8F0)),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(_formatDate(startDate),
-                                      style: const TextStyle(fontSize: 14)),
-                                  const Icon(Icons.calendar_today,
-                                      size: 18, color: Color(0xFF64748B)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: Icon(Icons.arrow_forward,
-                              color: Color(0xFF64748B)),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => _selectDate(context, false),
-                            child: Container(
-                              height: 48,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                border:
-                                    Border.all(color: const Color(0xFFE2E8F0)),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(_formatDate(endDate),
-                                      style: const TextStyle(fontSize: 14)),
-                                  const Icon(Icons.calendar_today,
-                                      size: 18, color: Color(0xFF64748B)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-              filteredOrders.isEmpty
-                  ? SizedBox(
-                      height: 300,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.inbox,
-                                size: 64, color: Colors.grey[400]),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'No orders found',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Try adjusting your filters',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        spreadRadius: 0,
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    )
-                  : ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: filteredOrders.length,
-                      itemBuilder: (context, index) {
-                        final order = filteredOrders[index];
-                        return Container(
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Date Range',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF64748B))),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _selectDate(context, true),
+                              child: Container(
+                                height: 48,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: const Color(0xFFE2E8F0)),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(_formatDate(startDate),
+                                        style: const TextStyle(fontSize: 14)),
+                                    const Icon(Icons.calendar_today,
+                                        size: 18, color: Color(0xFF64748B)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Icon(Icons.arrow_forward,
+                                color: Color(0xFF64748B)),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _selectDate(context, false),
+                              child: Container(
+                                height: 48,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: const Color(0xFFE2E8F0)),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(_formatDate(endDate),
+                                        style: const TextStyle(fontSize: 14)),
+                                    const Icon(Icons.calendar_today,
+                                        size: 18, color: Color(0xFF64748B)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+                filteredOrders.isEmpty
+                    ? SizedBox(
+                        height: 300,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.inbox,
+                                  size: 64, color: Colors.grey[400]),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No orders found',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Try adjusting your filters',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : // Ganti bagian ListView.builder di dalam build method (sekitar baris 850-950)
+                    // Ganti bagian ListView.builder di dalam build method (sekitar baris 850-950)
+                    ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: filteredOrders.length,
+                        itemBuilder: (context, index) {
+                          final order = filteredOrders[index];
+                          return Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             child: Card(
-                              elevation: 2,
+                              elevation: 1,
                               color: Colors.white,
-                              shadowColor: Colors.indigo.withOpacity(0.1),
+                              shadowColor: Colors.grey.withOpacity(0.1),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(12),
                                 side: BorderSide(
-                                    color: Colors.indigo.withOpacity(0.1),
+                                    color: Colors.grey.withOpacity(0.2),
                                     width: 1),
                               ),
                               child: InkWell(
@@ -1013,16 +1204,19 @@ class _HistoryPageState extends State<HistoryPage>
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      // Header dengan nama customer dan menu
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            'Order #${(index + 1).toString().padLeft(4, '0')}',
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF1E293B),
+                                          Expanded(
+                                            child: Text(
+                                              'Order By ${order.customer}',
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: Color(0xFF1E293B),
+                                              ),
                                             ),
                                           ),
                                           Row(
@@ -1030,37 +1224,42 @@ class _HistoryPageState extends State<HistoryPage>
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 6),
+                                                        horizontal: 8,
+                                                        vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: _getStatusColor(
-                                                          order.status)
-                                                      .withAlpha(30),
+                                                  color: order.status == 'PAID'
+                                                      ? const Color(0xFFDCFCE7)
+                                                      : _getStatusColor(
+                                                              order.status)
+                                                          .withAlpha(30),
                                                   borderRadius:
-                                                      BorderRadius.circular(12),
+                                                      BorderRadius.circular(8),
                                                 ),
                                                 child: Text(
                                                   order.status,
                                                   style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: _getStatusColor(
-                                                        order.status),
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w500,
+                                                    color:
+                                                        order.status == 'PAID'
+                                                            ? const Color(
+                                                                0xFF16A34A)
+                                                            : _getStatusColor(
+                                                                order.status),
                                                   ),
                                                 ),
                                               ),
-                                              const SizedBox(width: 4),
                                               PopupMenuButton<String>(
                                                 icon: const Icon(
-                                                    Icons.more_vert,
-                                                    color: Colors.grey,
-                                                    size: 20),
+                                                  Icons.more_vert,
+                                                  color: Color(0xFF64748B),
+                                                  size: 20,
+                                                ),
                                                 offset: const Offset(0, 35),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(8),
                                                 ),
-                                                padding: EdgeInsets.zero,
                                                 onSelected: (value) {
                                                   switch (value) {
                                                     case 'edit':
@@ -1073,7 +1272,7 @@ class _HistoryPageState extends State<HistoryPage>
                                                     case 'complete':
                                                       _markOrderComplete(order);
                                                       break;
-                                                    case 'print': // Tambahkan ini
+                                                    case 'print':
                                                       _printOrder(order);
                                                       break;
                                                     case 'delete':
@@ -1182,121 +1381,41 @@ class _HistoryPageState extends State<HistoryPage>
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        children: [
-                                          const Text(
-                                            'Customer: ',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          Text(
-                                            order.customer,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(0xFF1E293B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+
                                       const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          const Text(
-                                            'Date: ',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          Text(
-                                            _formatDateTime(order.orderDate),
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          const Text(
-                                            'Outlet: ',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          Text(
-                                            order.outlet,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      const Text(
-                                        'Items: ',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
+
+                                      // Date
                                       Text(
-                                        order.products
-                                            .map((item) => item.name)
-                                            .join(', '),
+                                        'Date: ${_formatDateTime(order.orderDate)}',
                                         style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
+                                          fontSize: 13,
+                                          color: Color(0xFF64748B),
                                         ),
                                       ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                'Total:',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                              Text(
-                                                _formatPrice(order.totalPrice),
-                                                style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.indigo,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+
+                                      const SizedBox(height: 8),
+
+                                      // Total
+                                      Text(
+                                        _formatPrice(order.totalPrice),
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF3B82F6),
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                            ));
-                      },
-                    ),
-              const SizedBox(height: 20),
-            ],
+                            ),
+                          );
+                        },
+                      ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 }

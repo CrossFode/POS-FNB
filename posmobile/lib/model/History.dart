@@ -1,5 +1,6 @@
 class History {
   final String id;
+  final String customerId;
   final String customer;
   final String customerPhone;
   final String orderType;
@@ -14,6 +15,7 @@ class History {
 
   History({
     required this.id,
+    required this.customerId,
     required this.customer,
     required this.customerPhone,
     required this.orderType,
@@ -43,6 +45,8 @@ class History {
   }) {
     return History(
       id: id ?? this.id,
+      customerId:
+          this.customerId, // customerId is not nullable in the constructor
       customer: customer ?? this.customer,
       customerPhone: customerPhone ?? this.customerPhone,
       orderType: orderType ?? this.orderType,
@@ -66,6 +70,7 @@ class History {
         : <dynamic>[];
     return History(
       id: json['id']?.toString() ?? '',
+      customerId: json['customer']?['id']?.toString() ?? '',
       customer: json['customer']?['name']?.toString() ?? '-',
       customerPhone: json['customer']?['phone']?.toString() ?? '-',
       orderType: json['order_type'] == 'dinein'
@@ -93,15 +98,18 @@ class ProductItem {
   final String name;
   final int price;
   final int quantity;
+  final String? variantName;
 
   ProductItem({
     required this.name,
     required this.price,
     this.quantity = 1,
+    this.variantName,
   });
 
   factory ProductItem.fromJson(Map<String, dynamic> json) {
     final product = json['product'];
+    final variantName = json['variants']?['variant_name']?.toString();
     return ProductItem(
       name: product != null && product['name'] != null
           ? product['name'].toString()
@@ -110,6 +118,7 @@ class ProductItem {
       quantity: json['quantity'] is int
           ? json['quantity']
           : int.tryParse(json['quantity']?.toString() ?? '1') ?? 1,
+      variantName: variantName,
     );
   }
 }
