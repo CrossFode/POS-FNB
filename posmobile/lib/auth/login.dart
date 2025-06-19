@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:posmobile/Pages/Pages.dart';
 import 'dart:convert';
 import '../Dashboard/Admin.dart';
 
@@ -12,6 +13,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscureText = true;
   final String apiBaseUrl = dotenv.env['API_BASE_URL'] ?? '';
   Future<void> login(String email, String password) async {
     try {
@@ -31,11 +33,25 @@ class _LoginPageState extends State<LoginPage> {
         final data = jsonDecode(response.body);
         print(data['token']);
         // Navigate to the Admin page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => AdminPage(token: data['token'])),
-        );
+        if (data['data']['role_name'] == 'Admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => AdminPage(token: data['token'])),
+          );
+        } else if (data['data']['role_name'] == 'Manager') {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ModifierPage(),
+              ));
+        } else if (data['data']['role_name'] == 'Staff') {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CategoryPage(),
+              ));
+        }
       } else if (response.statusCode == 401) {
         _showMessage('Invalid email or Password');
       } else {
@@ -87,11 +103,22 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       SizedBox(height: 16),
                       TextField(
+                        obscureText: _obscureText,
                         decoration: InputDecoration(
-                          labelText: 'Password',
-                          border: OutlineInputBorder(),
-                        ),
-                        obscureText: true,
+                            labelText: 'Password',
+                            border: OutlineInputBorder(),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureText
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureText = !_obscureText;
+                                });
+                              },
+                            )),
                         controller: _passwordController,
                       ),
                       SizedBox(height: 24),
