@@ -1,0 +1,2 @@
+D:/flutter-project/POS-FNB/posmobile/android/app/.cxx/Debug/5c1l6f65/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/flutter-project/POS-FNB/posmobile/android/app/.cxx/Debug/5c1l6f65/armeabi-v7a/CMakeFiles/rebuild_cache.dir

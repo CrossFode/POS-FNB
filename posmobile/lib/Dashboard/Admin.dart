@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:posmobile/Dashboard/HomeAdmin.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:posmobile/Pages/CreateOrderPage.dart';
+
 import 'package:posmobile/Model/Model.dart';
 
 class AdminPage extends StatefulWidget {
@@ -20,8 +23,8 @@ class _AdminScreenState extends State<AdminPage> {
     _outletFuture = fetchOutletByLogin(widget.token);
   }
 
-  final String baseUrl = 'http://10.0.2.2:8000';
-  // final String baseUrl = 'https://pos.lakesidefnb.group';
+  final String baseUrl = dotenv.env['API_BASE_URL'] ??
+      ''; // final String baseUrl = 'https://pos.lakesidefnb.group';
   Future<OutletResponse> fetchOutletByLogin(String token) async {
     final url = Uri.parse('$baseUrl/api/outlet/current/user');
 
@@ -88,7 +91,7 @@ class _AdminScreenState extends State<AdminPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => HomePage(
+                                builder: (context) => CreateOrderPage(
                                   token: widget.token,
                                   outletId: outlet.id,
                                 ),
