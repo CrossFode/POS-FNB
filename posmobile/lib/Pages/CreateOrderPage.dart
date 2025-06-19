@@ -7,7 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posmobile/Model/Category.dart';
 import 'package:posmobile/Model/Model.dart';
+import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Pages/previewBill.dart';
+import 'package:posmobile/Components/Navbar.dart';
 
 class CreateOrderPage extends StatefulWidget {
   final String token;
@@ -299,6 +301,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   @override
   Widget build(BuildContext context) {
+    int _currentIndex = 2; // Assuming Create Order is at index 2
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -501,6 +505,31 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               ),
             )
           : null,
+      bottomNavigationBar: Navbar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          // Handle navigation here
+          if (index != _currentIndex) {
+            // Example navigation logic - adjust as needed
+            if (index == 0) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ProductPage(
+                        token: widget.token, outletId: widget.outletId)),
+              );
+            } else if (index == 1) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => HistoryPage(
+                        token: widget.token, outletId: widget.outletId)),
+              );
+            }
+            // And so on for other indices
+          }
+        },
+      ),
     );
   }
 
@@ -567,6 +596,54 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       }
     }
 
+    bool _areVariantsEqual(List<dynamic> variants1, List<dynamic> variants2) {
+      if (variants1.length != variants2.length) return false;
+
+      for (int i = 0; i < variants1.length; i++) {
+        if (variants1[i]['id'] != variants2[i]['id']) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool _areModifiersEqual(
+        List<dynamic> modifiers1, List<dynamic> modifiers2) {
+      if (modifiers1.length != modifiers2.length) return false;
+
+      // Urutkan dulu berdasarkan id untuk memastikan perbandingan konsisten
+      final sorted1 = List.from(modifiers1)
+        ..sort((a, b) => a['id'].compareTo(b['id']));
+      final sorted2 = List.from(modifiers2)
+        ..sort((a, b) => a['id'].compareTo(b['id']));
+
+      for (int i = 0; i < sorted1.length; i++) {
+        if (sorted1[i]['id'] != sorted2[i]['id'] ||
+            sorted1[i]['modifier_options']['id'] !=
+                sorted2[i]['modifier_options']['id']) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool _isItemAlreadyInCart(Map<String, dynamic> newItem) {
+      for (var item in _cartItems) {
+        // Bandingkan product_id
+        if (item['product_id'] != newItem['product_id']) continue;
+
+        // Bandingkan variants
+        if (!_areVariantsEqual(item['variants'], newItem['variants'])) continue;
+
+        // Bandingkan modifiers
+        if (!_areModifiersEqual(item['modifier'], newItem['modifier']))
+          continue;
+
+        return true;
+      }
+      return false;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -603,22 +680,48 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                       onPressed: () {
                         Navigator.pop(context);
 
-                        setState(() {
-                          int price = selectedVariants[0]['price'];
-                          int totalPrice = _calculateTotalPriceWithModifiers(
-                              price, selectedModifiers, quantity);
-                          _cartItems.add({
-                            'product_id': product.id,
-                            'name': product.name,
-                            'modifier': List.from(selectedModifiers),
-                            'quantity': quantity,
-                            'notes': noteController.text,
-                            'variants': List<dynamic>.from(selectedVariants),
-                            'variant_price': selectedVariants[0]
-                                ['price'], // Tambahkan ini
+                        // Buat item baru yang akan ditambahkan
+                        int price = selectedVariants[0]['price'];
+                        int totalPrice = _calculateTotalPriceWithModifiers(
+                            price, selectedModifiers, quantity);
 
-                            'total_price': totalPrice
-                          });
+                        Map<String, dynamic> newItem = {
+                          'product_id': product.id,
+                          'name': product.name,
+                          'modifier': List.from(selectedModifiers),
+                          'quantity': quantity,
+                          'notes': noteController.text,
+                          'variants': List<dynamic>.from(selectedVariants),
+                          'variant_price': selectedVariants[0]['price'],
+                          'total_price': totalPrice
+                        };
+
+                        setState(() {
+                          bool itemExists = false;
+
+                          // Cari item yang sama di cart
+                          for (int i = 0; i < _cartItems.length; i++) {
+                            var item = _cartItems[i];
+
+                            if (item['product_id'] == newItem['product_id'] &&
+                                _areVariantsEqual(
+                                    item['variants'], newItem['variants']) &&
+                                _areModifiersEqual(
+                                    item['modifier'], newItem['modifier']) &&
+                                item['notes'] == newItem['notes']) {
+                              // Jika ditemukan, update quantity dan total price
+                              _cartItems[i]['quantity'] += newItem['quantity'];
+                              _cartItems[i]['total_price'] +=
+                                  newItem['total_price'];
+                              itemExists = true;
+                              break;
+                            }
+                          }
+
+                          // Jika tidak ditemukan, tambahkan sebagai item baru
+                          if (!itemExists) {
+                            _cartItems.add(newItem);
+                          }
                         });
                         print(_cartItems);
                       },
@@ -1357,7 +1460,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                 ),
                               ),
                               child: const Text(
-                                "Preview Struk",
+                                "Process Order",
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
