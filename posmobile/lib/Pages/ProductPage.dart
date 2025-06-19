@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:posmobile/Model/Model.dart';
 import 'package:flutter/services.dart';
 import 'package:posmobile/Model/Modifier.dart';
+import 'package:posmobile/Model/Category.dart';
+
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Fungsi format harga agar seperti "20.0K" dan "5.5K" tanpa "Rp" dan underline
@@ -73,85 +76,84 @@ class _ProductPageState extends State<ProductPage> {
       throw Exception('Failed to load product: $e');
     }
   }
+  
 
-  Future<void> _createProduct({
-    required String name,
-    required String category_name,
-    required String description,
-    required int? price,
-    required List<Map<String, dynamic>> variants,
-    required List<int> modifier_ids,
-  }) async {
-    final url = Uri.parse('$baseUrl/api/product');
+ Future<void> _createProduct({
+  required String category_name,
+  required String name,
+  required String description,
+  required String price,
+  required List<Map<String, dynamic>> variants,
+  required List<int> modifier_ids,
+}) async {
+  final url = Uri.parse('$baseUrl/api/product');
 
-    // Fetch all products to get category mapping (assuming categories are unique by name)
-    final productResponse =
-        await fetchAllProduct(widget.token, widget.outletId);
-    // Find the first product with the selected category name to get its category_id
-    final categoryProduct = productResponse.data
-            .where((product) => product.category_name == category_name)
-            .isNotEmpty
-        ? productResponse.data
-            .firstWhere((product) => product.category_name == category_name)
-        : null;
-    final category_id =
-        categoryProduct != null ? categoryProduct.category_id : null;
+  // Fetch categories instead of products
+  final categoryResponse = await fetchCategories(widget.token, widget.outletId);
+  
+  // Debug print untuk melihat data kategori
+  print('Available categories: ${categoryResponse.data.map((c) => '${c.id}:${c.category_name}').toList()}');
+  print('Selected category: $category_name');
 
-    if (category_id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to determine category ID.')),
-      );
-      return;
-    }
+  // Find category_id from categories data
+  final categoryList = categoryResponse.data.where(
+    (cat) => cat.category_name.trim().toLowerCase() == category_name.trim().toLowerCase(),
+  ).toList();
+  final categoryData = categoryList.isNotEmpty ? categoryList.first : null;
+  
+  final category_id = categoryData?.id;
 
-    // Debug print the request payload
-    final productData = {
-      'name': name,
-      'category_id': category_id,
-      'description': description,
-      'outlet_id': widget.outletId,
-      'is_active': 1,
-      if (variants.isEmpty && price != null) 'price': price,
-      if (variants.isNotEmpty) 'variants': variants,
-      if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
-      'created_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    print('Attempting to create product with: ${jsonEncode(productData)}');
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(productData),
-      );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product created successfully!')),
-        );
-        setState(() {
-          _productFuture = fetchAllProduct(widget.token, widget.outletId);
-        });
-      } else {
-        final error = jsonDecode(response.body);
-        final errorMsg = error['message'] ?? error['error'] ?? response.body;
-        throw Exception('Server responded with: $errorMsg');
-      }
-    } catch (e) {
-      print('Creation error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Creation failed: ${e.toString()}')),
-      );
-    }
+  if (category_id == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Failed to determine category ID.')),
+    );
+    return;
   }
+
+  // Create product data
+  final productData = {
+    'name': name,
+    'category_id': category_id, // Use category_id from categories
+    'description': description,
+    'price': int.tryParse(price),
+    'is_active': 1,
+    'outlet_id': widget.outletId,
+    if (variants.isNotEmpty) 'variants': variants,
+    if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
+  };
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(productData),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Product created successfully!')),
+      );
+      setState(() {
+        _productFuture = fetchAllProduct(widget.token, widget.outletId);
+      });
+    } else {
+      final error = jsonDecode(response.body);
+      final errorMsg = error['message'] ?? error['error'] ?? response.body;
+      throw Exception('Server responded with: $errorMsg');
+    }
+  } catch (e) {
+    print('Creation error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Creation failed: ${e.toString()}')),
+    );
+  }
+}
 
   Future<ModifierResponse> fetchModifiers(String token, String outletId) async {
     final url = Uri.parse('$baseUrl/api/modifier/ext/outlet/$outletId');
@@ -165,14 +167,12 @@ class _ProductPageState extends State<ProductPage> {
       throw Exception('Failed to load modifiers');
     }
   }
+  
 
-  void _showCreateProductDialog(
-      {BuildContext? context, Product? product, bool isEdit = false}) {
+  void _showCreateProductDialog({BuildContext? context, Product? product, bool isEdit = false}) {
     final _formKey = GlobalKey<FormState>();
     String _productName = '';
-    String? _selectedCategory = _categories.isNotEmpty
-        ? _categories.firstWhere((c) => c != 'All', orElse: () => 'All')
-        : null;
+    String? _selectedCategory = _categories.isNotEmpty ? _categories.firstWhere((c) => c != 'All', orElse: () => 'All') : null;
     String _description = '';
     String _price = '';
     final List<Map<String, TextEditingController>> _variantControllers = [];
@@ -224,48 +224,60 @@ class _ProductPageState extends State<ProductPage> {
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'General Information',
-                            style: TextStyle(color: Colors.grey),
+                            'GENERAL INFORMATION',
+                            style: TextStyle(color: Color.fromARGB(255, 66, 66, 66),
+                            fontSize: 16,fontWeight: FontWeight.bold),
                           ),
                         ),
                         const Divider(color: Colors.grey, thickness: 1),
                         const SizedBox(height: 10),
-
+                        
                         // Product Name
                         TextFormField(
                           decoration: const InputDecoration(
                             labelText: 'Product Name',
                             border: OutlineInputBorder(),
                           ),
-                          validator: (value) =>
-                              value?.isEmpty ?? true ? 'Required' : null,
+                          validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                           onSaved: (value) => _productName = value!,
                           initialValue: isEdit ? product?.name : null,
                         ),
                         const SizedBox(height: 16),
-
+                        
                         // Category Dropdown
-                        DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: 'Category',
-                            border: OutlineInputBorder(),
-                          ),
-                          value: _selectedCategory,
-                          items: _categories
-                              .where((c) => c != 'All')
-                              .map((category) {
-                            return DropdownMenuItem(
-                              value: category,
-                              child: Text(category),
+                        FutureBuilder<CategoryResponse>(
+                          future: fetchCategories(widget.token, widget.outletId),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
+                              return const Text('No categories available');
+                            }
+                            final categories = snapshot.data!.data;
+                            final categoryNames = categories.map((c) => c.category_name).toList();
+                            // Ensure _selectedCategory is either null or in the list
+                            final dropdownValue = (categoryNames.contains(_selectedCategory)) ? _selectedCategory : null;
+                            return DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Category',
+                                border: OutlineInputBorder(),
+                              ),
+                              value: dropdownValue,
+                              items: categories.map((category) {
+                                return DropdownMenuItem(
+                                  value: category.category_name,
+                                  child: Text(category.category_name),
+                                );
+                              }).toList(),
+                              onChanged: (value) => setStateDialog(() => _selectedCategory = value),
+                              validator: (value) => value == null ? 'Select a category' : null,
                             );
-                          }).toList(),
-                          onChanged: (value) =>
-                              setStateDialog(() => _selectedCategory = value),
-                          validator: (value) =>
-                              value == null ? 'Select a category' : null,
+                          },
                         ),
                         const SizedBox(height: 16),
-
+                        
                         // Description
                         TextFormField(
                           decoration: const InputDecoration(
@@ -277,18 +289,19 @@ class _ProductPageState extends State<ProductPage> {
                           initialValue: isEdit ? product?.description : null,
                         ),
                         const SizedBox(height: 16),
-
+                        
                         // Pricing Section
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Pricing',
-                            style: TextStyle(color: Colors.grey),
+                            'PRICING',
+                            style: TextStyle(color: Color.fromARGB(255, 66, 66, 66),
+                            fontSize: 16,fontWeight: FontWeight.bold),
                           ),
                         ),
                         const Divider(color: Colors.grey, thickness: 1),
                         const SizedBox(height: 10),
-
+                        
                         // Single Price or Variants
                         if (_showSinglePrice)
                           TextFormField(
@@ -298,18 +311,14 @@ class _ProductPageState extends State<ProductPage> {
                               prefixText: 'Rp ',
                               border: OutlineInputBorder(),
                             ),
-                            validator: (value) =>
-                                value?.isEmpty ?? true ? 'Required' : null,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
-                            ],
+                            validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             onSaved: (value) => _price = value!,
-                            initialValue: isEdit &&
-                                    (product?.variants.isNotEmpty ?? false)
+                            initialValue: isEdit && (product?.variants.isNotEmpty ?? false)
                                 ? product!.variants.first.price.toString()
                                 : null,
                           ),
-
+                        
                         if (!_showSinglePrice)
                           Column(
                             children: _variantControllers.map((controller) {
@@ -325,10 +334,7 @@ class _ProductPageState extends State<ProductPage> {
                                           labelText: 'Variant Name',
                                           border: OutlineInputBorder(),
                                         ),
-                                        validator: (value) =>
-                                            value?.isEmpty ?? true
-                                                ? 'Required'
-                                                : null,
+                                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -342,22 +348,15 @@ class _ProductPageState extends State<ProductPage> {
                                           prefixText: 'Rp ',
                                           border: OutlineInputBorder(),
                                         ),
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter.digitsOnly
-                                        ],
-                                        validator: (value) =>
-                                            value?.isEmpty ?? true
-                                                ? 'Required'
-                                                : null,
+                                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.close,
-                                          color: Colors.red),
+                                      icon: const Icon(Icons.close, color: Colors.red),
                                       onPressed: () {
                                         setStateDialog(() {
-                                          _variantControllers
-                                              .remove(controller);
+                                          _variantControllers.remove(controller);
                                           if (_variantControllers.isEmpty) {
                                             _showSinglePrice = true;
                                           }
@@ -369,7 +368,7 @@ class _ProductPageState extends State<ProductPage> {
                               );
                             }).toList(),
                           ),
-
+                        
                         // Add Variant Button
                         SizedBox(
                           width: double.infinity,
@@ -391,56 +390,57 @@ class _ProductPageState extends State<ProductPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-
+                        
                         // Modifiers Section
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Modifiers',
-                            style: TextStyle(color: Colors.grey),
+                            'MODIFIERS',
+                            style: TextStyle(color: Color.fromARGB(255, 68, 68, 68),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
                           ),
                         ),
                         const Divider(color: Colors.grey, thickness: 1),
-
+                        
                         // Modifiers List
                         FutureBuilder<ModifierResponse>(
                           future: fetchModifiers(widget.token, widget.outletId),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
-                            } else if (!snapshot.hasData ||
-                                snapshot.data!.data.isEmpty) {
+                            } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
                               return const Text('No modifiers available');
                             }
-
+                            
                             if (_selectedModifiers.isEmpty) {
                               for (var mod in snapshot.data!.data) {
                                 _selectedModifiers[mod.id] = false;
                               }
                             }
-
+                            
                             return Column(
-                              children: snapshot.data!.data.map((modifier) {
-                                return CheckboxListTile(
-                                  title: Text(modifier.name),
-                                  value:
-                                      _selectedModifiers[modifier.id] ?? false,
-                                  onChanged: (bool? value) {
-                                    setStateDialog(() {
-                                      _selectedModifiers[modifier.id] =
-                                          value ?? false;
-                                    });
-                                  },
-                                  controlAffinity:
-                                      ListTileControlAffinity.leading,
-                                  dense: true,
-                                );
-                              }).toList(),
-                            );
+  children: snapshot.data!.data.map((modifier) {
+    return CheckboxListTile(
+      title: Text(
+        modifier.name,
+        style: const TextStyle(fontSize: 14),
+      ),
+      value: _selectedModifiers[modifier.id] ?? false,
+      onChanged: (bool? value) {
+        setStateDialog(() {
+          _selectedModifiers[modifier.id] = value ?? false;
+        });
+      },
+      controlAffinity: ListTileControlAffinity.leading,
+      dense: true, 
+      contentPadding: EdgeInsets.zero, // Remove all padding
+      visualDensity: VisualDensity(horizontal: -4, vertical: -4), // Make it more compact
+    );
+  }).toList(),
+);
                           },
                         ),
                       ],
@@ -455,89 +455,99 @@ class _ProductPageState extends State<ProductPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
+  if (_formKey.currentState!.validate()) {
+    _formKey.currentState!.save();
+    
+    final modifier_ids = _selectedModifiers.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+    
+    final variants = _variantControllers.map((c) {
+      return {
+        'name': c['name']!.text,
+        'price': int.parse(c['price']!.text),
+      };
+    }).toList();
+    
+    if (isEdit) {
+      // Update product
+      try {
+        final url = Uri.parse('$baseUrl/api/product/${product!.id}');
+        
+        // Ambil category_id dari data kategori, bukan dari produk
+        final categoryResponse = await fetchCategories(widget.token, widget.outletId);
+        final categoryData = categoryResponse.data.firstWhere(
+          (cat) => cat.category_name.trim().toLowerCase() == _selectedCategory!.trim().toLowerCase(),
+          orElse: () => categoryResponse.data.first,
+        );
+        
+        // Gunakan id dari kategori yang dipilih
+        final category_id = categoryData?.id;
+        
+        if (category_id == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to determine category ID')),
+          );
+          return;
+        }
 
-                      final modifier_ids = _selectedModifiers.entries
-                          .where((e) => e.value)
-                          .map((e) => e.key)
-                          .toList();
+        final response = await http.put(
+          url,
+          headers: {
+            'Authorization': 'Bearer ${widget.token}',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'name': _productName,
+            'category_id': category_id, // Gunakan category_id dari kategori yang dipilih
+            'description': _description,
+            'price': _showSinglePrice ? int.tryParse(_price) : null,
+            'is_active': 1,
+            'outlet_id': product.outlet_id,
+            if (variants.isNotEmpty) 'variants': variants,
+            if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
+            'updated_at': DateTime.now().toIso8601String(),
+          }),
+        );
 
-                      final variants = _variantControllers.map((c) {
-                        return {
-                          'name': c['name']!.text,
-                          'price': int.parse(c['price']!.text),
-                        };
-                      }).toList();
-
-                      if (isEdit) {
-                        // Update product
-                        try {
-                          final url =
-                              Uri.parse('$baseUrl/api/product/${product!.id}');
-                          final response = await http.put(
-                            url,
-                            headers: {
-                              'Authorization': 'Bearer ${widget.token}',
-                              'Content-Type': 'application/json',
-                            },
-                            body: jsonEncode({
-                              'name': _productName,
-                              'category_id': product.category_id,
-                              'description': _description,
-                              'price': _showSinglePrice
-                                  ? int.tryParse(_price)
-                                  : null,
-                              'is_active': 1,
-                              'outlet_id': product.outlet_id,
-                              if (variants.isNotEmpty) 'variants': variants,
-                              if (modifier_ids.isNotEmpty)
-                                'modifiers': modifier_ids,
-                              'updated_at': DateTime.now().toIso8601String(),
-                            }),
-                          );
-
-                          if (response.statusCode == 200) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Product updated successfully!')),
-                            );
-                            setState(() {
-                              _productFuture = fetchAllProduct(
-                                  widget.token, widget.outletId);
-                            });
-                          } else {
-                            final error = jsonDecode(response.body);
-                            final errorMsg = error['message'] ??
-                                error['error'] ??
-                                response.body;
-                            throw Exception('Server responded with: $errorMsg');
-                          }
-                        } catch (e) {
-                          print('Update error: $e');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text('Update failed: ${e.toString()}')),
-                          );
-                        }
-                      } else {
-                        // Create new product
-                        await _createProduct(
-                          name: _productName,
-                          category_name: _selectedCategory!,
-                          description: _description,
-                          price: _showSinglePrice ? int.tryParse(_price) : null,
-                          variants: variants,
-                          modifier_ids: modifier_ids,
-                        );
-                      }
-
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: const Text('Create'),
+        print('Update response status: ${response.statusCode}');
+        print('Update response body: ${response.body}');
+        
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Product updated successfully!')),
+          );
+          setState(() {
+            _productFuture = fetchAllProduct(widget.token, widget.outletId);
+          });
+        } else {
+          final error = jsonDecode(response.body);
+          final errorMsg = error['message'] ?? error['error'] ?? response.body;
+          throw Exception('Server responded with: $errorMsg');
+        }
+      } catch (e) {
+        print('Update error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Update failed: ${e.toString()}')),
+        );
+      }
+    } else {
+      // Create new product
+      await _createProduct(
+        name: _productName,
+        category_name: _selectedCategory!,
+        description: _description,
+        price: _showSinglePrice ? _price : '',
+        variants: variants,
+        modifier_ids: modifier_ids,
+      );
+    }
+    
+    Navigator.of(context).pop();
+  }
+},
+                  child: const Text('Save'),
                 ),
               ],
             );
@@ -588,11 +598,9 @@ class _ProductPageState extends State<ProductPage> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         elevation: 6,
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 8),
+                        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -604,15 +612,14 @@ class _ProductPageState extends State<ProductPage> {
                                     Text(
                                       product.name,
                                       style: const TextStyle(
-                                        fontSize: 25,
+                                        fontSize:25,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
                                       product.variants.isNotEmpty
-                                          ? formatPrice(
-                                              product.variants.first.price)
+                                          ? formatPrice(product.variants.first.price)
                                           : '-',
                                       style: const TextStyle(
                                         fontSize: 16,
@@ -634,90 +641,62 @@ class _ProductPageState extends State<ProductPage> {
                                         onPressed: () {
                                           _showCreateProductDialog(
                                             context: context,
-                                            product:
-                                                product, // kirim data produk yang akan diedit
-                                            isEdit:
-                                                true, // tambahkan parameter untuk mode edit
+                                            product: product, // kirim data produk yang akan diedit
+                                            isEdit: true,     // tambahkan parameter untuk mode edit
                                           );
                                         },
                                       ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete,
-                                            size: 28, color: Colors.red),
+                                        IconButton(
+                                        icon: const Icon(Icons.delete, size: 28, color: Colors.red),
                                         onPressed: () async {
-                                          final confirm =
-                                              await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title:
-                                                  const Text('Delete Product'),
-                                              content: const Text(
-                                                  'Are you sure you want to delete this product?'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(false),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                ElevatedButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(true),
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    backgroundColor: Colors.red,
-                                                    foregroundColor:
-                                                        Colors.white,
-                                                  ),
-                                                  child: const Text('Delete'),
-                                                ),
-                                              ],
+                                          final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                          title: const Text('Delete Product'),
+                                          content: const Text('Apakah anda yakin ingin menghapus produk ini?'),
+                                          actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () => Navigator.of(context).pop(true),
+                                            style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red,
+                                            foregroundColor: Colors.white,
                                             ),
+                                            child: const Text('Delete'),
+                                          ),
+                                          ],
+                                          ),
                                           );
                                           if (confirm == true) {
-                                            try {
-                                              final url = Uri.parse(
-                                                  '$baseUrl/api/product/${product.id}');
-                                              final response =
-                                                  await http.delete(
-                                                url,
-                                                headers: {
-                                                  'Authorization':
-                                                      'Bearer ${widget.token}',
-                                                  'Content-Type':
-                                                      'application/json',
-                                                },
-                                              );
-                                              if (response.statusCode == 200 ||
-                                                  response.statusCode == 204) {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  const SnackBar(
-                                                      content: Text(
-                                                          'Product deleted successfully!')),
-                                                );
-                                                setState(() {
-                                                  _productFuture =
-                                                      fetchAllProduct(
-                                                          widget.token,
-                                                          widget.outletId);
-                                                });
-                                              } else {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                      content: Text(
-                                                          'Failed to delete product: ${response.body}')),
-                                                );
-                                              }
-                                            } catch (e) {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                    content: Text('Error: $e')),
-                                              );
-                                            }
+                                          try {
+                                          final url = Uri.parse('$baseUrl/api/product/${product.id}');
+                                          final response = await http.delete(
+                                          url,
+                                          headers: {
+                                            'Authorization': 'Bearer ${widget.token}',
+                                            'Content-Type': 'application/json',
+                                          },
+                                          );
+                                          if (response.statusCode == 200 || response.statusCode == 204) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Product deleted successfully!')),
+                                          );
+                                          setState(() {
+                                            _productFuture = fetchAllProduct(widget.token, widget.outletId);
+                                          });
+                                          } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Failed to delete product: ${response.body}')),
+                                          );
+                                          }
+                                          } catch (e) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Error: $e')),
+                                          );
+                                          }
                                           }
                                         },
                                       ),
@@ -725,12 +704,10 @@ class _ProductPageState extends State<ProductPage> {
                                   ),
                                   const SizedBox(height: 10),
                                   Switch(
-                                    value: _productActiveStatus[product.id] ??
-                                        false,
+                                    value: _productActiveStatus[product.id] ?? false,
                                     onChanged: (value) async {
                                       setState(() {
-                                        _productActiveStatus[product.id] =
-                                            value;
+                                        _productActiveStatus[product.id] = value;
                                       });
                                       try {
                                         await updateProductStatus(
@@ -738,22 +715,15 @@ class _ProductPageState extends State<ProductPage> {
                                           product: product,
                                           isActive: value,
                                         );
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                              content: Text(
-                                                  'Status produk berhasil diubah')),
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Status produk berhasil diubah')),
                                         );
                                       } catch (e) {
                                         setState(() {
-                                          _productActiveStatus[product.id] =
-                                              !value;
+                                          _productActiveStatus[product.id] = !value;
                                         });
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                              content: Text(
-                                                  'Gagal mengubah status produk')),
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Gagal mengubah status produk')),
                                         );
                                       }
                                     },
@@ -775,13 +745,13 @@ class _ProductPageState extends State<ProductPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showCreateProductDialog(context: context, isEdit: false);
-        },
-        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-        child: const Icon(Icons.add, color: Colors.white),
-        tooltip: 'Create Product',
-      ),
+  onPressed: () {
+    _showCreateProductDialog(context: context, isEdit: false);
+  },
+  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+  child: const Icon(Icons.add, color: Colors.white),
+  tooltip: 'Create Product',
+),
     );
   }
 
@@ -818,5 +788,20 @@ class _ProductPageState extends State<ProductPage> {
   @override
   void dispose() {
     super.dispose();
+  }
+}
+
+Future<CategoryResponse> fetchCategories(String token, String outletId) async {
+  final url = Uri.parse('$baseUrl/api/category'); // Ganti sesuai endpoint yang benar
+  final response = await http.get(url, headers: {
+    'Authorization': 'Bearer $token',
+    'Content-Type': 'application/json',
+  });
+  print('Category API status: ${response.statusCode}');
+  print('Category API body: ${response.body}');
+  if (response.statusCode == 200) {
+    return CategoryResponse.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load categories');
   }
 }
