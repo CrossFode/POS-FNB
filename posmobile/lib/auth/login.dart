@@ -48,8 +48,8 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => ModifierPage(),
-              ));
+                builder: (context) => HomePageSuperAdmin(token: data['token']))
+              );
         } else if (data['data']['role_name'] == 'Staff') {
           Navigator.pushReplacement(
               context,

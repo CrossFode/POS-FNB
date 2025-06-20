@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
       CreateOrderPage(token: widget.token, outletId: widget.outletId),
       CategoryPage(),
       ModifierPage(token: widget.token, outletId: widget.outletId)
-=======
+    ];
 
   }
 

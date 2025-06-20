@@ -77,7 +77,20 @@ class _ProductPageState extends State<ProductPage> {
     }
   }
   
-
+Future<CategoryResponse> fetchCategories(String token, String outletId) async {
+  final url = Uri.parse('$baseUrl/api/category'); // Ganti sesuai endpoint yang benar
+  final response = await http.get(url, headers: {
+    'Authorization': 'Bearer $token',
+    'Content-Type': 'application/json',
+  });
+  print('Category API status: ${response.statusCode}');
+  print('Category API body: ${response.body}');
+  if (response.statusCode == 200) {
+    return CategoryResponse.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load categories');
+  }
+}
  Future<void> _createProduct({
   required String category_name,
   required String name,
@@ -791,17 +804,4 @@ class _ProductPageState extends State<ProductPage> {
   }
 }
 
-Future<CategoryResponse> fetchCategories(String token, String outletId) async {
-  final url = Uri.parse('$baseUrl/api/category'); // Ganti sesuai endpoint yang benar
-  final response = await http.get(url, headers: {
-    'Authorization': 'Bearer $token',
-    'Content-Type': 'application/json',
-  });
-  print('Category API status: ${response.statusCode}');
-  print('Category API body: ${response.body}');
-  if (response.statusCode == 200) {
-    return CategoryResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load categories');
-  }
-}
+
