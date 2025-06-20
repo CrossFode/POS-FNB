@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:posmobile/Components/NavbarSuperAdmin.dart';
+// import 'package:posmobile/Components/NavbarSuperAdmin.dart';
 import 'package:posmobile/Pages/Pages.dart';
 
 import '../Model/Model.dart';
@@ -49,7 +49,7 @@ final String baseUrl = 'http://10.0.2.2:8000';
     super.initState();
     _outletFuture = fetchOutletByLogin(widget.token);
     _pages = [
-      UserPage(),
+      // UserPage(), // Pass empty string for outletId
       // ManagerUserPage(token: widget.token, outletId: widget.outletId),
       // StatisticsPage(token: widget.token, outletId: widget.outletId),
       // You can add OutletPage to _pages if needed, but not as a Future
@@ -68,13 +68,13 @@ final String baseUrl = 'http://10.0.2.2:8000';
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min, // Don't take all vertical space
+          mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
               padding: EdgeInsets.all(16),
               child: Center(
                 child: Text(
-                  'Choose Outlet',
+                  'Main Menu',
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
@@ -84,80 +84,81 @@ final String baseUrl = 'http://10.0.2.2:8000';
               ),
             ),
             SizedBox(
-              height: 400,
-              child: FutureBuilder<OutletResponse>(
-                future: _outletFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return GridView.builder(
-                      padding: EdgeInsets.all(16),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, // 2 columns
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 3 / 3, // Adjust card aspect ratio
-                      ),
-                      itemCount: snapshot.data!.data.length,
-                      itemBuilder: (context, index) {
-                        final outlet = snapshot.data!.data[index];
-                        return InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OutletPage(
-                                  token: widget.token,
-                                  outletId: outlet.id,
-                                ),
-                              ),
-                            );
-                            // Handle outlet selection
-                          },
-                          child: Card(
-                            elevation: 6,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    outlet.image != null
-                                        ? Image(
-                                            width: 110,
-                                            height: 110,
-                                            image: NetworkImage(
-                                                '${baseUrl}/storage/${outlet.image}'),
-                                          )
-                                        : Icon(Icons.store, size: 40),
-                                    SizedBox(height: 8),
-                                    // Text(
-                                    //   outlet.outlet_name,
-                                    //   textAlign: TextAlign.center,
-                                    //   style: TextStyle(
-                                    //     fontSize: 16,
-                                    //     fontWeight: FontWeight.w600,
-                                    //   ),
-                                    // ),
-                                  ],
-                                ),
-                              ),
-                            ),
+              height: 300,
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                shrinkWrap: true,
+                children: [
+                  // Tombol ke OutletPage
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OutletPage(
+                            token: widget.token,
+                            outletId: '', // Isi sesuai kebutuhan
                           ),
-                        );
-                      },
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Error: ${snapshot.error}'),
-                    );
-                  }
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                },
+                        ),
+                      );
+                    },
+                    child: Card(
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.store, size: 40),
+                            SizedBox(height: 8),
+                            Text(
+                              'Outlet',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Tombol ke UserPage
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserPage(
+                            token: widget.token,
+                            outletId: '',
+                          )
+                        ),
+                      );
+                    },
+                    child: Card(
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.person, size: 40),
+                            SizedBox(height: 8),
+                            Text(
+                              'User',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Tambahkan tombol menu lain di sini sesuai kebutuhan
+                ],
               ),
             ),
           ],

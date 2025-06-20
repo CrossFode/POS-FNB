@@ -6,3 +6,4 @@ export 'OrderDescription.dart';
 export 'ProductPage.dart';
 export 'UserPage.dart';
 export 'OutletPage.dart';
+export 'DiscountPage.dart';
