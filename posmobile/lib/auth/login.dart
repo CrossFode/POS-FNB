@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import 'package:posmobile/Dashboard/HomeSuperAdmin.dart';
+
 import 'package:posmobile/Pages/Pages.dart';
+
 import 'dart:convert';
 import '../Dashboard/Admin.dart';
 
@@ -33,11 +37,12 @@ class _LoginPageState extends State<LoginPage> {
         final data = jsonDecode(response.body);
         print(data['token']);
         // Navigate to the Admin page
+
         if (data['data']['role_name'] == 'Admin') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => AdminPage(token: data['token'])),
+                builder: (context) => HomePageSuperAdmin(token: data['token'])),
           );
         } else if (data['data']['role_name'] == 'Manager') {
           Navigator.pushReplacement(
