@@ -25,9 +25,9 @@ class _HomePageState extends State<HomePage> {
       HistoryPage(token: widget.token, outletId: widget.outletId),
       CreateOrderPage(token: widget.token, outletId: widget.outletId),
       CategoryPage(),
-      ModifierPage(),
-      //DiscountPage(token: widget.token, userRoleId: 1),
-    ];
+      ModifierPage(token: widget.token, outletId: widget.outletId)
+=======
+
   }
 
   @override

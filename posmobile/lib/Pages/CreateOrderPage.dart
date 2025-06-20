@@ -659,249 +659,255 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               left: 16,
               right: 16,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("CANCEL",
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                    Text(
-                      product.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-
-                        // Buat item baru yang akan ditambahkan
-                        int price = selectedVariants[0]['price'];
-                        int totalPrice = _calculateTotalPriceWithModifiers(
-                            price, selectedModifiers, quantity);
-
-                        Map<String, dynamic> newItem = {
-                          'product_id': product.id,
-                          'name': product.name,
-                          'modifier': List.from(selectedModifiers),
-                          'quantity': quantity,
-                          'notes': noteController.text,
-                          'variants': List<dynamic>.from(selectedVariants),
-                          'variant_price': selectedVariants[0]['price'],
-                          'total_price': totalPrice
-                        };
-
-                        setState(() {
-                          bool itemExists = false;
-
-                          // Cari item yang sama di cart
-                          for (int i = 0; i < _cartItems.length; i++) {
-                            var item = _cartItems[i];
-
-                            if (item['product_id'] == newItem['product_id'] &&
-                                _areVariantsEqual(
-                                    item['variants'], newItem['variants']) &&
-                                _areModifiersEqual(
-                                    item['modifier'], newItem['modifier']) &&
-                                item['notes'] == newItem['notes']) {
-                              // Jika ditemukan, update quantity dan total price
-                              _cartItems[i]['quantity'] += newItem['quantity'];
-                              _cartItems[i]['total_price'] +=
-                                  newItem['total_price'];
-                              itemExists = true;
-                              break;
-                            }
-                          }
-
-                          // Jika tidak ditemukan, tambahkan sebagai item baru
-                          if (!itemExists) {
-                            _cartItems.add(newItem);
-                          }
-                        });
-                        print(_cartItems);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("CANCEL",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold)),
                       ),
-                      child: const Text("Save",
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-                const Divider(),
+                      Text(
+                        product.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
 
-                // Modifier
-                if (product.modifiers.isNotEmpty) ...[
-                  ...product.modifiers.map(
-                    (modifier) => Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "${modifier.name}${modifier.is_required == 1 ? ' (Required) ' : ''}",
-                          ),
+                          // Buat item baru yang akan ditambahkan
+                          int price = selectedVariants[0]['price'];
+                          int totalPrice = _calculateTotalPriceWithModifiers(
+                              price, selectedModifiers, quantity);
+
+                          Map<String, dynamic> newItem = {
+                            'product_id': product.id,
+                            'name': product.name,
+                            'modifier': List.from(selectedModifiers),
+                            'quantity': quantity,
+                            'notes': noteController.text,
+                            'variants': List<dynamic>.from(selectedVariants),
+                            'variant_price': selectedVariants[0]['price'],
+                            'total_price': totalPrice
+                          };
+
+                          setState(() {
+                            bool itemExists = false;
+
+                            // Cari item yang sama di cart
+                            for (int i = 0; i < _cartItems.length; i++) {
+                              var item = _cartItems[i];
+
+                              if (item['product_id'] == newItem['product_id'] &&
+                                  _areVariantsEqual(
+                                      item['variants'], newItem['variants']) &&
+                                  _areModifiersEqual(
+                                      item['modifier'], newItem['modifier']) &&
+                                  item['notes'] == newItem['notes']) {
+                                // Jika ditemukan, update quantity dan total price
+                                _cartItems[i]['quantity'] +=
+                                    newItem['quantity'];
+                                _cartItems[i]['total_price'] +=
+                                    newItem['total_price'];
+                                itemExists = true;
+                                break;
+                              }
+                            }
+
+                            // Jika tidak ditemukan, tambahkan sebagai item baru
+                            if (!itemExists) {
+                              _cartItems.add(newItem);
+                            }
+                          });
+                          print(_cartItems);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
                         ),
-                        const SizedBox(height: 8),
-                        if (modifier.modifier_options.isNotEmpty)
+                        child: const Text("Save",
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+
+                  // Modifier
+                  if (product.modifiers.isNotEmpty) ...[
+                    ...product.modifiers.map(
+                      (modifier) => Column(
+                        children: [
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              crossAxisAlignment: WrapCrossAlignment.start,
-                              children: modifier.modifier_options.map((option) {
-                                final isSelected = selectedModifiers.any((m) =>
-                                    m['id'] == modifier.id &&
-                                    m['modifier_options']['id'] == option.id);
-
-                                return ChoiceChip(
-                                  label: Text(
-                                    "${option.name}${option.price! > 0 ? ' (+${option.price})' : ''}",
-                                  ),
-                                  selected: isSelected,
-                                  onSelected: (selected) {
-                                    setModalState(() {
-                                      _handleModifierSelection(
-                                        selected: selected,
-                                        modifier: modifier,
-                                        option: option,
-                                      );
-                                    });
-                                  },
-                                  selectedColor: Colors.black,
-                                  checkmarkColor: Colors.white,
-                                  labelStyle: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    side: BorderSide(color: Colors.black),
-                                  ),
-                                );
-                              }).toList(),
+                            child: Text(
+                              "${modifier.name}${modifier.is_required == 1 ? ' (Required) ' : ''}",
                             ),
-                          )
-                        else
-                          Text(
-                            "No options available",
-                            style: TextStyle(color: Colors.grey),
                           ),
-                        const SizedBox(height: 16),
-                      ],
+                          const SizedBox(height: 8),
+                          if (modifier.modifier_options.isNotEmpty)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                crossAxisAlignment: WrapCrossAlignment.start,
+                                children:
+                                    modifier.modifier_options.map((option) {
+                                  final isSelected = selectedModifiers.any(
+                                      (m) =>
+                                          m['id'] == modifier.id &&
+                                          m['modifier_options']['id'] ==
+                                              option.id);
+
+                                  return ChoiceChip(
+                                    label: Text(
+                                      "${option.name}${option.price! > 0 ? ' (+${option.price})' : ''}",
+                                    ),
+                                    selected: isSelected,
+                                    onSelected: (selected) {
+                                      setModalState(() {
+                                        _handleModifierSelection(
+                                          selected: selected,
+                                          modifier: modifier,
+                                          option: option,
+                                        );
+                                      });
+                                    },
+                                    selectedColor: Colors.black,
+                                    checkmarkColor: Colors.white,
+                                    labelStyle: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: BorderSide(color: Colors.black),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            )
+                          else
+                            Text(
+                              "No options available",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     ),
-                  ),
-                ] else
-                  Text(
-                    "No options available",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                const SizedBox(height: 8),
-                // Variants
-                if (product.variants.isNotEmpty) ...[
-                  Align(
+                  ] else
+                    Text(
+                      "No options available",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  const SizedBox(height: 8),
+                  // Variants
+                  if (product.variants.isNotEmpty) ...[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Variants",
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.start,
+                        children: product.variants.map((variants) {
+                          final isSelected = selectedVariants.any((v) =>
+                              v['id'] == variants.id &&
+                              v['product_id'] == product.id);
+
+                          return ChoiceChip(
+                            label: Text(
+                              "${variants.name}${variants.price > 0 ? ' ${variants.price}' : ''}",
+                            ),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setModalState(() {
+                                _handlerVariantsSelection(
+                                    selected: selected,
+                                    variants: variants,
+                                    max_selected: 1);
+                              });
+                            },
+                            selectedColor: Colors.black,
+                            checkmarkColor: Colors.white,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(color: Colors.black),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    )
+                  ] else
+                    Text(
+                      "No options available",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+
+                  const SizedBox(height: 16),
+
+                  // Quantity
+                  const Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Variants",
-                    ),
+                    child: Text("Quantity",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 8),
-                  Align(
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          if (quantity > 1) setModalState(() => quantity--);
+                        },
+                        icon: const Icon(Icons.remove),
+                      ),
+                      Text('$quantity', style: const TextStyle(fontSize: 18)),
+                      IconButton(
+                        onPressed: () => setModalState(() => quantity++),
+                        icon: const Icon(Icons.add),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Notes
+                  const Align(
                     alignment: Alignment.centerLeft,
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.start,
-                      children: product.variants.map((variants) {
-                        final isSelected = selectedVariants.any((v) =>
-                            v['id'] == variants.id &&
-                            v['product_id'] == product.id);
-
-                        return ChoiceChip(
-                          label: Text(
-                            "${variants.name}${variants.price > 0 ? ' ${variants.price}' : ''}",
-                          ),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setModalState(() {
-                              _handlerVariantsSelection(
-                                  selected: selected,
-                                  variants: variants,
-                                  max_selected: 1);
-                            });
-                          },
-                          selectedColor: Colors.black,
-                          checkmarkColor: Colors.white,
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(color: Colors.black),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  )
-                ] else
-                  Text(
-                    "No options available",
-                    style: TextStyle(color: Colors.grey),
+                    child: Text("Notes",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-
-                const SizedBox(height: 16),
-
-                // Quantity
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text("Quantity",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        if (quantity > 1) setModalState(() => quantity--);
-                      },
-                      icon: const Icon(Icons.remove),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: noteController,
+                    decoration: const InputDecoration(
+                      hintText: 'Add notes here',
+                      border: OutlineInputBorder(),
                     ),
-                    Text('$quantity', style: const TextStyle(fontSize: 18)),
-                    IconButton(
-                      onPressed: () => setModalState(() => quantity++),
-                      icon: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Notes
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text("Notes",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: noteController,
-                  decoration: const InputDecoration(
-                    hintText: 'Add notes here',
-                    border: OutlineInputBorder(),
+                    maxLines: 3,
                   ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-              ],
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           );
         });
@@ -970,24 +976,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               ],
                             )),
                         SizedBox(height: 12),
-                        // if (_orderType.toLowerCase() == 'dinein')
-                        //   Align(
-                        //       alignment: Alignment.topLeft,
-                        //       child: Column(
-                        //         crossAxisAlignment: CrossAxisAlignment.start,
-                        //         children: [
-                        //           Text("Table Number",
-                        //               style: TextStyle(
-                        //                   fontWeight: FontWeight.bold)),
-                        //           TextField(
-                        //             decoration: InputDecoration(
-                        //                 border: OutlineInputBorder(),
-                        //                 hintText: "Enter table number"),
-                        //             controller: _tableNumberController,
-                        //           )
-                        //         ],
-                        //       )),
-                        // const SizedBox(height: 4),
                         Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1158,6 +1146,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     int _finalTotalWithDiscount = 0;
     String? _referralCode;
     int _referralDiscount = 0;
+    int? _besarDiskon = 0;
     // Tambahkan variabel untuk selected payment method
     _cachedCheckoutData =
         Future.wait([_diskonFuture, _paymentFuture, _outletFuture]);
@@ -1292,6 +1281,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                                           response
                                                               .data.discount) ~/
                                                       100;
+                                              _besarDiskon = response
+                                                  .data.discount
+                                                  .toInt();
                                               _finalTotalWithDiscount -=
                                                   _referralDiscount;
                                             });
@@ -1402,10 +1394,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                               subtotal: int.tryParse(
                                                       order.order_totals) ??
                                                   0,
-                                              discount:
+                                              discountVoucher:
                                                   (_selectedDiskon?.amount ??
-                                                          0) +
-                                                      _referralDiscount,
+                                                      0),
+                                              discountRef: (_besarDiskon ?? 0),
                                               total: _finalTotalWithDiscount,
                                               paymentMethod:
                                                   _selectedPaymentMethod
@@ -1430,7 +1422,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       order_details: order.order_details,
                                     ),
                                   );
-
+                                  if (mounted) return;
                                   if (result['success'] == true) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -1441,10 +1433,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                     setState(() => _cartItems.clear());
                                   }
                                 } catch (e) {
+                                  if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content: Text(
-                                            'Failed to load outlet data: $e')),
+                                        content:
+                                            Text('Failed to  outlet data: $e')),
                                   );
                                 }
                               },
