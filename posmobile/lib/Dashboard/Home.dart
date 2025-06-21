@@ -2,20 +2,21 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:posmobile/Dashboard/HomeAdmin.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posmobile/Pages/CreateOrderPage.dart';
 
 import 'package:posmobile/Model/Model.dart';
 
-class AdminPage extends StatefulWidget {
+class Home extends StatefulWidget {
   final String token;
-  const AdminPage({Key? key, required this.token}) : super(key: key);
+  final bool isManager;
+  const Home({Key? key, required this.token, required this.isManager})
+      : super(key: key);
   @override
   _AdminScreenState createState() => _AdminScreenState();
 }
 
-class _AdminScreenState extends State<AdminPage> {
+class _AdminScreenState extends State<Home> {
   late Future<OutletResponse> _outletFuture;
   @override
   void initState() {
@@ -23,8 +24,7 @@ class _AdminScreenState extends State<AdminPage> {
     _outletFuture = fetchOutletByLogin(widget.token);
   }
 
-  final String baseUrl = dotenv.env['API_BASE_URL'] ??
-      ''; // final String baseUrl = 'https://pos.lakesidefnb.group';
+  final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
   Future<OutletResponse> fetchOutletByLogin(String token) async {
     final url = Uri.parse('$baseUrl/api/outlet/current/user');
 
@@ -94,6 +94,7 @@ class _AdminScreenState extends State<AdminPage> {
                                 builder: (context) => CreateOrderPage(
                                   token: widget.token,
                                   outletId: outlet.id,
+                                  isManager: widget.isManager,
                                 ),
                               ),
                             );

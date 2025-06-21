@@ -6,9 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:posmobile/Model/Modifier.dart';
 import 'package:posmobile/Model/Category.dart';
 import 'package:posmobile/Components/Navbar.dart';
-
-
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posmobile/Pages/CategoryPage.dart';
 import 'package:posmobile/Pages/CreateOrderPage.dart';
@@ -27,174 +24,88 @@ String formatPrice(int price) {
 class ProductPage extends StatefulWidget {
   final String token;
   final String outletId;
+  final int navIndex;
+  final Function(int)? onNavItemTap;
+  final bool isManager;
 
-  ProductPage({Key? key, required this.token, required this.outletId})
-      : super(key: key);
+  const ProductPage({
+    Key? key,
+    required this.token,
+    required this.outletId,
+    this.navIndex = 0,
+    this.onNavItemTap,
+    required this.isManager,
+  }) : super(key: key);
 
   @override
   State<ProductPage> createState() => _ProductPageState();
 }
 
-  class _ProductPageState extends State<ProductPage> {
-    final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
-    // final List<Map<String, dynamic>> _cartItems = [];
-    late Future<ProductResponse> _productFuture;
-    List<String> _categories = ['All']; // Default to 'All'
-    Map<String, bool> productStatus = {};
-    // Tambahkan Map untuk menyimpan status aktif produk di dalam State class
-    Map<int, bool> _productActiveStatus = {};
+class _ProductPageState extends State<ProductPage> {
+  final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
+  late Future<ProductResponse> _productFuture;
+  List<String> _categories = ['All'];
+  Map<String, bool> productStatus = {};
+  Map<int, bool> _productActiveStatus = {};
+  bool _isLoading = true;
 
-    @override
-    void initState() {
-      super.initState();
-      _productFuture = fetchAllProduct(widget.token, widget.outletId);
-      _productFuture.then((productResponse) {
-        final categories = productResponse.data
-            .map((product) => product.category_name)
-            .toSet()
-            .toList();
-        setState(() {
-          _categories = ['All', ...categories];
-          for (var product in productResponse.data) {
-            _productActiveStatus[product.id] = product.is_active == 1;
-          }
-        });
+  @override
+  void initState() {
+    super.initState();
+    _productFuture = fetchAllProduct(widget.token, widget.outletId);
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    try {
+      setState(() => _isLoading = true);
+      final productResponse = await fetchAllProduct(widget.token, widget.outletId);
+      
+      final categories = productResponse.data
+          .map((product) => product.category_name)
+          .toSet()
+          .toList();
+          
+      final statusMap = <int, bool>{};
+      for (var product in productResponse.data) {
+        statusMap[product.id] = product.is_active == 1;
+        productStatus[product.id.toString()] = true;
+      }
+
+      setState(() {
+        _categories = ['All', ...categories];
+        _productActiveStatus = statusMap;
+        _isLoading = false;
       });
-    }
-
-  Future<CategoryResponse> fetchCategories(
-      String token, String outletId) async {
-    final url =
-        Uri.parse('$baseUrl/api/category'); // Ganti sesuai endpoint yang benar
-    final response = await http.get(url, headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    });
-    print('Category API status: ${response.statusCode}');
-    print('Category API body: ${response.body}');
-    if (response.statusCode == 200) {
-      return CategoryResponse.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load categories');
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load products: $e')),
+      );
     }
   }
 
-  Future<ProductResponse> fetchAllProduct(token, outletId) async {
-    final url = Uri.parse('$baseUrl/api/product/ext/outlet/${outletId}');
+  Future<ProductResponse> fetchAllProduct(String token, String outletId) async {
+    final url = Uri.parse('$baseUrl/api/product/ext/outlet/$outletId');
     try {
       final response = await http.get(url, headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       });
+
       if (response.statusCode == 200) {
-        final data = ProductResponse.fromJson(jsonDecode(response.body));
-        for (var product in data.data) {
-          productStatus[product.id.toString()] = true;
-        }
-        return data;
+        return ProductResponse.fromJson(jsonDecode(response.body));
       } else {
-        throw Exception('Failed to load outlet: ${response.statusCode}');
+        throw Exception('Failed to load products: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Failed to load product: $e');
+      debugPrint('Error fetching products: $e');
+      rethrow;
     }
   }
 
-  Future<void> _createProduct({
-    required String category_name,
-    required String name,
-    required String description,
-    required String price,
-    required List<Map<String, dynamic>> variants,
-    required List<int> modifier_ids,
-  }) async {
-    final url = Uri.parse('$baseUrl/api/product');
+  // Removed duplicate build method to resolve 'The name 'build' is already defined.' error.
 
-    // Fetch categories instead of products
-    final categoryResponse =
-        await fetchCategories(widget.token, widget.outletId);
-
-    // Debug print untuk melihat data kategori
-    print(
-        'Available categories: ${categoryResponse.data.map((c) => '${c.id}:${c.category_name}').toList()}');
-    print('Selected category: $category_name');
-
-    // Find category_id from categories data
-    final categoryList = categoryResponse.data
-        .where(
-          (cat) =>
-              cat.category_name.trim().toLowerCase() ==
-              category_name.trim().toLowerCase(),
-        )
-        .toList();
-    final categoryData = categoryList.isNotEmpty ? categoryList.first : null;
-
-    final category_id = categoryData?.id;
-
-    if (category_id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to determine category ID.')),
-      );
-      return;
-    }
-
-    // Create product data
-    final productData = {
-      'name': name,
-      'category_id': category_id, // Use category_id from categories
-      'description': description,
-      'price': int.tryParse(price),
-      'is_active': 1,
-      'outlet_id': widget.outletId,
-      if (variants.isNotEmpty) 'variants': variants,
-      if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
-    };
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(productData),
-      );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product created successfully!')),
-        );
-        setState(() {
-          _productFuture = fetchAllProduct(widget.token, widget.outletId);
-        });
-      } else {
-        final error = jsonDecode(response.body);
-        final errorMsg = error['message'] ?? error['error'] ?? response.body;
-        throw Exception('Server responded with: $errorMsg');
-      }
-    } catch (e) {
-      print('Creation error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Creation failed: ${e.toString()}')),
-      );
-    }
-  }
-
-  Future<ModifierResponse> fetchModifiers(String token, String outletId) async {
-    final url = Uri.parse('$baseUrl/api/modifier/ext/outlet/$outletId');
-    final response = await http.get(url, headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    });
-    if (response.statusCode == 200) {
-      return ModifierResponse.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load modifiers');
-    }
-  }
 
   void _showCreateProductDialog(
       {BuildContext? context, Product? product, bool isEdit = false}) {
@@ -568,16 +479,9 @@ class ProductPage extends StatefulWidget {
                           );
 
                           // Gunakan id dari kategori yang dipilih
-                          final category_id = categoryData?.id;
+                          final category_id = categoryData.id;
 
-                          if (category_id == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Failed to determine category ID')),
-                            );
-                            return;
-                          }
+                          // category_id is guaranteed to be non-null, so no need to check for null
 
                           final response = await http.put(
                             url,
@@ -885,48 +789,201 @@ class ProductPage extends StatefulWidget {
         child: const Icon(Icons.add, color: Colors.white),
         tooltip: 'Create Product',
       ),
-      bottomNavigationBar: Navbar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          // Handle navigation here
-          if (index != _currentIndex) {
-            // Example navigation logic - adjust as needed
-            if (index == 1) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => HistoryPage(
-                        token: widget.token, outletId: widget.outletId)),
-              );
-            } else if (index == 2) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => CreateOrderPage(
-                        token: widget.token, outletId: widget.outletId)),
-              );
-            } else if (index == 3) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => CategoryPage()
-                        ),
-              );
-            } else if (index == 4) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ModifierPage(
-                        token: widget.token, outletId: widget.outletId)),
-              );
-            }
-            // And so on for other indices
+       bottomNavigationBar: _buildNavbar());
+  }
+
+  Widget _buildNavbar() {
+    return FlexibleNavbar(
+      currentIndex: widget.navIndex,
+      isManager: widget.isManager,
+      onTap: (index) {
+        if (index != widget.navIndex) {
+          if (widget.onNavItemTap != null) {
+            widget.onNavItemTap!(index);
+          } else {
+            _handleNavigation(index);
           }
-        },
-      ),
+        }
+      },
+      onMorePressed: () {
+        _showMoreOptions(context);
+      },
     );
   }
 
+  void _showMoreOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(  
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildMenuOption(
+                icon: Icons.settings,
+                label: 'Modifier',
+                onTap: () => _navigateTo(ModifierPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.card_giftcard,
+                label: 'Referral Code',
+                onTap: () => _navigateTo(ModifierPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.discount,
+                label: 'Discount',
+                onTap: () => _navigateTo(ModifierPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.history,
+                label: 'History',
+                onTap: () => _navigateTo(HistoryPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                )),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMenuOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      onTap: () {
+        Navigator.pop(context);
+        onTap();
+      },
+    );
+  }
+
+  void _navigateTo(Widget page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
+  }
+
+  void _handleNavigation(int index) {
+    if (widget.isManager == true) {
+      if (index == 0) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: 0, // <-- set navIndex here!
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: 1, // <-- set navIndex here!
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: 2, // <-- add this if required by CategoryPage
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 3) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ModifierPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                navIndex: 3, // <-- add this if required by ModifierPage
+                isManager: widget.isManager),
+          ),
+        );
+      }
+    } else {
+      if (index == 0) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 3) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ModifierPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                isManager: widget.isManager),
+          ),
+        );
+      }
+    }
+  }
   Future<void> updateProductStatus({
     required String token,
     required Product product,
@@ -954,6 +1011,104 @@ class ProductPage extends StatefulWidget {
     print('Response body: ${response.body}');
     if (response.statusCode != 200) {
       throw Exception('Failed to update product status');
+    }
+  }
+
+
+
+  Future<CategoryResponse> fetchCategories(String token, String outletId) async {
+    final url = Uri.parse('$baseUrl/api/category/outlet/$outletId');
+    try {
+      final response = await http.get(url, headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      });
+
+      if (response.statusCode == 200) {
+        return CategoryResponse.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load categories: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching categories: $e');
+      rethrow;
+    }
+  }
+
+  Future<ModifierResponse> fetchModifiers(String token, String outletId) async {
+    final url = Uri.parse('$baseUrl/api/modifier/outlet/$outletId');
+    try {
+      final response = await http.get(url, headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      });
+
+      if (response.statusCode == 200) {
+        return ModifierResponse.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load modifiers: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching modifiers: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _createProduct({
+    required String name,
+    required String category_name,
+    required String description,
+    required String price,
+    required List<Map<String, dynamic>> variants,
+    required List<int> modifier_ids,
+  }) async {
+    try {
+      // Fetch category_id from category_name
+      final categoryResponse = await fetchCategories(widget.token, widget.outletId);
+      final categoryData = categoryResponse.data.firstWhere(
+        (cat) => cat.category_name.trim().toLowerCase() == category_name.trim().toLowerCase(),
+        orElse: () => categoryResponse.data.first,
+      );
+      final category_id = categoryData.id;
+
+      final url = Uri.parse('$baseUrl/api/product');
+      final body = {
+        'name': name,
+        'category_id': category_id,
+        'description': description,
+        'price': variants.isEmpty ? int.tryParse(price) : null,
+        'is_active': 1,
+        'outlet_id': widget.outletId,
+        if (variants.isNotEmpty) 'variants': variants,
+        if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product created successfully!')),
+        );
+        setState(() {
+          _productFuture = fetchAllProduct(widget.token, widget.outletId);
+        });
+      } else {
+        final error = jsonDecode(response.body);
+        final errorMsg = error['message'] ?? error['error'] ?? response.body;
+        throw Exception('Server responded with: $errorMsg');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Create failed: $e')),
+      );
     }
   }
 
