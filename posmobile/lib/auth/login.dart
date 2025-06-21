@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => ModifierPage(),
+                builder: (context) => ModifierPage(token: data['token'], outletId: data['data']['outlet_id']),
               ));
         } else if (data['data']['role_name'] == 'Staff') {
           Navigator.pushReplacement(

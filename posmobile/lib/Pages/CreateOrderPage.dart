@@ -525,6 +525,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                     builder: (context) => HistoryPage(
                         token: widget.token, outletId: widget.outletId)),
               );
+            }else if (index == 4) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ModifierPage(
+                        token: widget.token, outletId: widget.outletId)),
+              );
             }
             // And so on for other indices
           }
