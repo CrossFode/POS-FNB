@@ -5,8 +5,8 @@ import 'package:posmobile/Model/Model.dart';
 import 'package:flutter/services.dart';
 import 'package:posmobile/Model/Modifier.dart';
 import 'package:posmobile/Model/Category.dart';
-
-
+import 'package:posmobile/Components/Navbar.dart';
+import 'package:posmobile/Pages/Pages.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Fungsi format harga agar seperti "20.0K" dan "5.5K" tanpa "Rp" dan underline
@@ -21,8 +21,16 @@ String formatPrice(int price) {
 class ProductPage extends StatefulWidget {
   final String token;
   final String outletId;
-
-  ProductPage({Key? key, required this.token, required this.outletId})
+  final int navIndex; // Index navbar saat ini
+  final Function(int)? onNavItemTap; // Callback untuk navigasi
+  final bool isManager;
+  ProductPage(
+      {Key? key,
+      required this.token,
+      required this.outletId,
+      this.navIndex = 0, // Default index
+      this.onNavItemTap,
+      required this.isManager})
       : super(key: key);
 
   @override
@@ -76,97 +84,106 @@ class _ProductPageState extends State<ProductPage> {
       throw Exception('Failed to load product: $e');
     }
   }
-  
-Future<CategoryResponse> fetchCategories(String token, String outletId) async {
-  final url = Uri.parse('$baseUrl/api/category'); // Ganti sesuai endpoint yang benar
-  final response = await http.get(url, headers: {
-    'Authorization': 'Bearer $token',
-    'Content-Type': 'application/json',
-  });
-  print('Category API status: ${response.statusCode}');
-  print('Category API body: ${response.body}');
-  if (response.statusCode == 200) {
-    return CategoryResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load categories');
-  }
-}
- Future<void> _createProduct({
-  required String category_name,
-  required String name,
-  required String description,
-  required String price,
-  required List<Map<String, dynamic>> variants,
-  required List<int> modifier_ids,
-}) async {
-  final url = Uri.parse('$baseUrl/api/product');
 
-  // Fetch categories instead of products
-  final categoryResponse = await fetchCategories(widget.token, widget.outletId);
-  
-  // Debug print untuk melihat data kategori
-  print('Available categories: ${categoryResponse.data.map((c) => '${c.id}:${c.category_name}').toList()}');
-  print('Selected category: $category_name');
-
-  // Find category_id from categories data
-  final categoryList = categoryResponse.data.where(
-    (cat) => cat.category_name.trim().toLowerCase() == category_name.trim().toLowerCase(),
-  ).toList();
-  final categoryData = categoryList.isNotEmpty ? categoryList.first : null;
-  
-  final category_id = categoryData?.id;
-
-  if (category_id == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Failed to determine category ID.')),
-    );
-    return;
-  }
-
-  // Create product data
-  final productData = {
-    'name': name,
-    'category_id': category_id, // Use category_id from categories
-    'description': description,
-    'price': int.tryParse(price),
-    'is_active': 1,
-    'outlet_id': widget.outletId,
-    if (variants.isNotEmpty) 'variants': variants,
-    if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
-  };
-
-  try {
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer ${widget.token}',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(productData),
-    );
-
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Product created successfully!')),
-      );
-      setState(() {
-        _productFuture = fetchAllProduct(widget.token, widget.outletId);
-      });
+  Future<CategoryResponse> fetchCategories(
+      String token, String outletId) async {
+    final url =
+        Uri.parse('$baseUrl/api/category'); // Ganti sesuai endpoint yang benar
+    final response = await http.get(url, headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    });
+    print('Category API status: ${response.statusCode}');
+    print('Category API body: ${response.body}');
+    if (response.statusCode == 200) {
+      return CategoryResponse.fromJson(jsonDecode(response.body));
     } else {
-      final error = jsonDecode(response.body);
-      final errorMsg = error['message'] ?? error['error'] ?? response.body;
-      throw Exception('Server responded with: $errorMsg');
+      throw Exception('Failed to load categories');
     }
-  } catch (e) {
-    print('Creation error: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Creation failed: ${e.toString()}')),
-    );
   }
-}
+
+  Future<void> _createProduct({
+    required String category_name,
+    required String name,
+    required String description,
+    required String price,
+    required List<Map<String, dynamic>> variants,
+    required List<int> modifier_ids,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/product');
+
+    // Fetch categories instead of products
+    final categoryResponse =
+        await fetchCategories(widget.token, widget.outletId);
+
+    // Debug print untuk melihat data kategori
+    print(
+        'Available categories: ${categoryResponse.data.map((c) => '${c.id}:${c.category_name}').toList()}');
+    print('Selected category: $category_name');
+
+    // Find category_id from categories data
+    final categoryList = categoryResponse.data
+        .where(
+          (cat) =>
+              cat.category_name.trim().toLowerCase() ==
+              category_name.trim().toLowerCase(),
+        )
+        .toList();
+    final categoryData = categoryList.isNotEmpty ? categoryList.first : null;
+
+    final category_id = categoryData?.id;
+
+    if (category_id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to determine category ID.')),
+      );
+      return;
+    }
+
+    // Create product data
+    final productData = {
+      'name': name,
+      'category_id': category_id, // Use category_id from categories
+      'description': description,
+      'price': int.tryParse(price),
+      'is_active': 1,
+      'outlet_id': widget.outletId,
+      if (variants.isNotEmpty) 'variants': variants,
+      if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(productData),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product created successfully!')),
+        );
+        setState(() {
+          _productFuture = fetchAllProduct(widget.token, widget.outletId);
+        });
+      } else {
+        final error = jsonDecode(response.body);
+        final errorMsg = error['message'] ?? error['error'] ?? response.body;
+        throw Exception('Server responded with: $errorMsg');
+      }
+    } catch (e) {
+      print('Creation error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Creation failed: ${e.toString()}')),
+      );
+    }
+  }
 
   Future<ModifierResponse> fetchModifiers(String token, String outletId) async {
     final url = Uri.parse('$baseUrl/api/modifier/ext/outlet/$outletId');
@@ -180,12 +197,14 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
       throw Exception('Failed to load modifiers');
     }
   }
-  
 
-  void _showCreateProductDialog({BuildContext? context, Product? product, bool isEdit = false}) {
+  void _showCreateProductDialog(
+      {BuildContext? context, Product? product, bool isEdit = false}) {
     final _formKey = GlobalKey<FormState>();
     String _productName = '';
-    String? _selectedCategory = _categories.isNotEmpty ? _categories.firstWhere((c) => c != 'All', orElse: () => 'All') : null;
+    String? _selectedCategory = _categories.isNotEmpty
+        ? _categories.firstWhere((c) => c != 'All', orElse: () => 'All')
+        : null;
     String _description = '';
     String _price = '';
     final List<Map<String, TextEditingController>> _variantControllers = [];
@@ -238,40 +257,51 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             'GENERAL INFORMATION',
-                            style: TextStyle(color: Color.fromARGB(255, 66, 66, 66),
-                            fontSize: 16,fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 66, 66, 66),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                         const Divider(color: Colors.grey, thickness: 1),
                         const SizedBox(height: 10),
-                        
+
                         // Product Name
                         TextFormField(
                           decoration: const InputDecoration(
                             labelText: 'Product Name',
                             border: OutlineInputBorder(),
                           ),
-                          validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                          validator: (value) =>
+                              value?.isEmpty ?? true ? 'Required' : null,
                           onSaved: (value) => _productName = value!,
                           initialValue: isEdit ? product?.name : null,
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Category Dropdown
                         FutureBuilder<CategoryResponse>(
-                          future: fetchCategories(widget.token, widget.outletId),
+                          future:
+                              fetchCategories(widget.token, widget.outletId),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
-                            } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.data.isEmpty) {
                               return const Text('No categories available');
                             }
                             final categories = snapshot.data!.data;
-                            final categoryNames = categories.map((c) => c.category_name).toList();
+                            final categoryNames =
+                                categories.map((c) => c.category_name).toList();
                             // Ensure _selectedCategory is either null or in the list
-                            final dropdownValue = (categoryNames.contains(_selectedCategory)) ? _selectedCategory : null;
+                            final dropdownValue =
+                                (categoryNames.contains(_selectedCategory))
+                                    ? _selectedCategory
+                                    : null;
                             return DropdownButtonFormField<String>(
                               decoration: const InputDecoration(
                                 labelText: 'Category',
@@ -284,13 +314,15 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
                                   child: Text(category.category_name),
                                 );
                               }).toList(),
-                              onChanged: (value) => setStateDialog(() => _selectedCategory = value),
-                              validator: (value) => value == null ? 'Select a category' : null,
+                              onChanged: (value) => setStateDialog(
+                                  () => _selectedCategory = value),
+                              validator: (value) =>
+                                  value == null ? 'Select a category' : null,
                             );
                           },
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Description
                         TextFormField(
                           decoration: const InputDecoration(
@@ -302,19 +334,21 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
                           initialValue: isEdit ? product?.description : null,
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Pricing Section
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             'PRICING',
-                            style: TextStyle(color: Color.fromARGB(255, 66, 66, 66),
-                            fontSize: 16,fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 66, 66, 66),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                         const Divider(color: Colors.grey, thickness: 1),
                         const SizedBox(height: 10),
-                        
+
                         // Single Price or Variants
                         if (_showSinglePrice)
                           TextFormField(
@@ -324,14 +358,18 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
                               prefixText: 'Rp ',
                               border: OutlineInputBorder(),
                             ),
-                            validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            validator: (value) =>
+                                value?.isEmpty ?? true ? 'Required' : null,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
                             onSaved: (value) => _price = value!,
-                            initialValue: isEdit && (product?.variants.isNotEmpty ?? false)
+                            initialValue: isEdit &&
+                                    (product?.variants.isNotEmpty ?? false)
                                 ? product!.variants.first.price.toString()
                                 : null,
                           ),
-                        
+
                         if (!_showSinglePrice)
                           Column(
                             children: _variantControllers.map((controller) {
@@ -347,7 +385,10 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
                                           labelText: 'Variant Name',
                                           border: OutlineInputBorder(),
                                         ),
-                                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                                        validator: (value) =>
+                                            value?.isEmpty ?? true
+                                                ? 'Required'
+                                                : null,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -361,15 +402,22 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
                                           prefixText: 'Rp ',
                                           border: OutlineInputBorder(),
                                         ),
-                                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.digitsOnly
+                                        ],
+                                        validator: (value) =>
+                                            value?.isEmpty ?? true
+                                                ? 'Required'
+                                                : null,
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.close, color: Colors.red),
+                                      icon: const Icon(Icons.close,
+                                          color: Colors.red),
                                       onPressed: () {
                                         setStateDialog(() {
-                                          _variantControllers.remove(controller);
+                                          _variantControllers
+                                              .remove(controller);
                                           if (_variantControllers.isEmpty) {
                                             _showSinglePrice = true;
                                           }
@@ -381,7 +429,7 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
                               );
                             }).toList(),
                           ),
-                        
+
                         // Add Variant Button
                         SizedBox(
                           width: double.infinity,
@@ -403,57 +451,67 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Modifiers Section
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             'MODIFIERS',
-                            style: TextStyle(color: Color.fromARGB(255, 68, 68, 68),
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 68, 68, 68),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                         const Divider(color: Colors.grey, thickness: 1),
-                        
+
                         // Modifiers List
                         FutureBuilder<ModifierResponse>(
                           future: fetchModifiers(widget.token, widget.outletId),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
-                            } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.data.isEmpty) {
                               return const Text('No modifiers available');
                             }
-                            
+
                             if (_selectedModifiers.isEmpty) {
                               for (var mod in snapshot.data!.data) {
                                 _selectedModifiers[mod.id] = false;
                               }
                             }
-                            
+
                             return Column(
-  children: snapshot.data!.data.map((modifier) {
-    return CheckboxListTile(
-      title: Text(
-        modifier.name,
-        style: const TextStyle(fontSize: 14),
-      ),
-      value: _selectedModifiers[modifier.id] ?? false,
-      onChanged: (bool? value) {
-        setStateDialog(() {
-          _selectedModifiers[modifier.id] = value ?? false;
-        });
-      },
-      controlAffinity: ListTileControlAffinity.leading,
-      dense: true, 
-      contentPadding: EdgeInsets.zero, // Remove all padding
-      visualDensity: VisualDensity(horizontal: -4, vertical: -4), // Make it more compact
-    );
-  }).toList(),
-);
+                              children: snapshot.data!.data.map((modifier) {
+                                return CheckboxListTile(
+                                  title: Text(
+                                    modifier.name,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  value:
+                                      _selectedModifiers[modifier.id] ?? false,
+                                  onChanged: (bool? value) {
+                                    setStateDialog(() {
+                                      _selectedModifiers[modifier.id] =
+                                          value ?? false;
+                                    });
+                                  },
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
+                                  dense: true,
+                                  contentPadding:
+                                      EdgeInsets.zero, // Remove all padding
+                                  visualDensity: VisualDensity(
+                                      horizontal: -4,
+                                      vertical: -4), // Make it more compact
+                                );
+                              }).toList(),
+                            );
                           },
                         ),
                       ],
@@ -468,98 +526,116 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-  if (_formKey.currentState!.validate()) {
-    _formKey.currentState!.save();
-    
-    final modifier_ids = _selectedModifiers.entries
-        .where((e) => e.value)
-        .map((e) => e.key)
-        .toList();
-    
-    final variants = _variantControllers.map((c) {
-      return {
-        'name': c['name']!.text,
-        'price': int.parse(c['price']!.text),
-      };
-    }).toList();
-    
-    if (isEdit) {
-      // Update product
-      try {
-        final url = Uri.parse('$baseUrl/api/product/${product!.id}');
-        
-        // Ambil category_id dari data kategori, bukan dari produk
-        final categoryResponse = await fetchCategories(widget.token, widget.outletId);
-        final categoryData = categoryResponse.data.firstWhere(
-          (cat) => cat.category_name.trim().toLowerCase() == _selectedCategory!.trim().toLowerCase(),
-          orElse: () => categoryResponse.data.first,
-        );
-        
-        // Gunakan id dari kategori yang dipilih
-        final category_id = categoryData?.id;
-        
-        if (category_id == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to determine category ID')),
-          );
-          return;
-        }
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
 
-        final response = await http.put(
-          url,
-          headers: {
-            'Authorization': 'Bearer ${widget.token}',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'name': _productName,
-            'category_id': category_id, // Gunakan category_id dari kategori yang dipilih
-            'description': _description,
-            'price': _showSinglePrice ? int.tryParse(_price) : null,
-            'is_active': 1,
-            'outlet_id': product.outlet_id,
-            if (variants.isNotEmpty) 'variants': variants,
-            if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
-            'updated_at': DateTime.now().toIso8601String(),
-          }),
-        );
+                      final modifier_ids = _selectedModifiers.entries
+                          .where((e) => e.value)
+                          .map((e) => e.key)
+                          .toList();
 
-        print('Update response status: ${response.statusCode}');
-        print('Update response body: ${response.body}');
-        
-        if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Product updated successfully!')),
-          );
-          setState(() {
-            _productFuture = fetchAllProduct(widget.token, widget.outletId);
-          });
-        } else {
-          final error = jsonDecode(response.body);
-          final errorMsg = error['message'] ?? error['error'] ?? response.body;
-          throw Exception('Server responded with: $errorMsg');
-        }
-      } catch (e) {
-        print('Update error: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Update failed: ${e.toString()}')),
-        );
-      }
-    } else {
-      // Create new product
-      await _createProduct(
-        name: _productName,
-        category_name: _selectedCategory!,
-        description: _description,
-        price: _showSinglePrice ? _price : '',
-        variants: variants,
-        modifier_ids: modifier_ids,
-      );
-    }
-    
-    Navigator.of(context).pop();
-  }
-},
+                      final variants = _variantControllers.map((c) {
+                        return {
+                          'name': c['name']!.text,
+                          'price': int.parse(c['price']!.text),
+                        };
+                      }).toList();
+
+                      if (isEdit) {
+                        // Update product
+                        try {
+                          final url =
+                              Uri.parse('$baseUrl/api/product/${product!.id}');
+
+                          // Ambil category_id dari data kategori, bukan dari produk
+                          final categoryResponse = await fetchCategories(
+                              widget.token, widget.outletId);
+                          final categoryData = categoryResponse.data.firstWhere(
+                            (cat) =>
+                                cat.category_name.trim().toLowerCase() ==
+                                _selectedCategory!.trim().toLowerCase(),
+                            orElse: () => categoryResponse.data.first,
+                          );
+
+                          // Gunakan id dari kategori yang dipilih
+                          final category_id = categoryData?.id;
+
+                          if (category_id == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Failed to determine category ID')),
+                            );
+                            return;
+                          }
+
+                          final response = await http.put(
+                            url,
+                            headers: {
+                              'Authorization': 'Bearer ${widget.token}',
+                              'Content-Type': 'application/json',
+                            },
+                            body: jsonEncode({
+                              'name': _productName,
+                              'category_id':
+                                  category_id, // Gunakan category_id dari kategori yang dipilih
+                              'description': _description,
+                              'price': _showSinglePrice
+                                  ? int.tryParse(_price)
+                                  : null,
+                              'is_active': 1,
+                              'outlet_id': product.outlet_id,
+                              if (variants.isNotEmpty) 'variants': variants,
+                              if (modifier_ids.isNotEmpty)
+                                'modifiers': modifier_ids,
+                              'updated_at': DateTime.now().toIso8601String(),
+                            }),
+                          );
+
+                          print(
+                              'Update response status: ${response.statusCode}');
+                          print('Update response body: ${response.body}');
+
+                          if (response.statusCode == 200) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Product updated successfully!')),
+                            );
+                            setState(() {
+                              _productFuture = fetchAllProduct(
+                                  widget.token, widget.outletId);
+                            });
+                          } else {
+                            final error = jsonDecode(response.body);
+                            final errorMsg = error['message'] ??
+                                error['error'] ??
+                                response.body;
+                            throw Exception('Server responded with: $errorMsg');
+                          }
+                        } catch (e) {
+                          print('Update error: $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content:
+                                    Text('Update failed: ${e.toString()}')),
+                          );
+                        }
+                      } else {
+                        // Create new product
+                        await _createProduct(
+                          name: _productName,
+                          category_name: _selectedCategory!,
+                          description: _description,
+                          price: _showSinglePrice ? _price : '',
+                          variants: variants,
+                          modifier_ids: modifier_ids,
+                        );
+                      }
+
+                      Navigator.of(context).pop();
+                    }
+                  },
                   child: const Text('Save'),
                 ),
               ],
@@ -573,199 +649,442 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(8),
-              child: Center(
-                child: Text(
-                  "Menu",
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Poppins',
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: Center(
+                  child: Text(
+                    "Menu",
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                    ),
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              child: FutureBuilder<ProductResponse>(
-                future: _productFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
-                    return const Center(child: Text('No products available'));
-                  }
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: snapshot.data!.data.length,
-                    itemBuilder: (context, index) {
-                      final product = snapshot.data!.data[index];
-                      return Card(
-                        color: const Color.fromARGB(255, 255, 255, 255),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        elevation: 6,
-                        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Left: Product info
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      product.name,
-                                      style: const TextStyle(
-                                        fontSize:25,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      product.variants.isNotEmpty
-                                          ? formatPrice(product.variants.first.price)
-                                          : '-',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Color(0xFF6B7A8F),
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Right: Actions
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
+              Expanded(
+                child: FutureBuilder<ProductResponse>(
+                  future: _productFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData ||
+                        snapshot.data!.data.isEmpty) {
+                      return const Center(child: Text('No products available'));
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: snapshot.data!.data.length,
+                      itemBuilder: (context, index) {
+                        final product = snapshot.data!.data[index];
+                        return Card(
+                          color: const Color.fromARGB(255, 255, 255, 255),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          elevation: 6,
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 20),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Left: Product info
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, size: 28),
-                                        onPressed: () {
-                                          _showCreateProductDialog(
-                                            context: context,
-                                            product: product, // kirim data produk yang akan diedit
-                                            isEdit: true,     // tambahkan parameter untuk mode edit
-                                          );
-                                        },
+                                      Text(
+                                        product.name,
+                                        style: const TextStyle(
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                        IconButton(
-                                        icon: const Icon(Icons.delete, size: 28, color: Colors.red),
-                                        onPressed: () async {
-                                          final confirm = await showDialog<bool>(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                          title: const Text('Delete Product'),
-                                          content: const Text('Apakah anda yakin ingin menghapus produk ini?'),
-                                          actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.of(context).pop(false),
-                                            child: const Text('Cancel'),
-                                          ),
-                                          ElevatedButton(
-                                            onPressed: () => Navigator.of(context).pop(true),
-                                            style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.red,
-                                            foregroundColor: Colors.white,
-                                            ),
-                                            child: const Text('Delete'),
-                                          ),
-                                          ],
-                                          ),
-                                          );
-                                          if (confirm == true) {
-                                          try {
-                                          final url = Uri.parse('$baseUrl/api/product/${product.id}');
-                                          final response = await http.delete(
-                                          url,
-                                          headers: {
-                                            'Authorization': 'Bearer ${widget.token}',
-                                            'Content-Type': 'application/json',
-                                          },
-                                          );
-                                          if (response.statusCode == 200 || response.statusCode == 204) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Product deleted successfully!')),
-                                          );
-                                          setState(() {
-                                            _productFuture = fetchAllProduct(widget.token, widget.outletId);
-                                          });
-                                          } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Failed to delete product: ${response.body}')),
-                                          );
-                                          }
-                                          } catch (e) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Error: $e')),
-                                          );
-                                          }
-                                          }
-                                        },
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        product.variants.isNotEmpty
+                                            ? formatPrice(
+                                                product.variants.first.price)
+                                            : '-',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Color(0xFF6B7A8F),
+                                          fontWeight: FontWeight.w400,
+                                        ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 10),
-                                  Switch(
-                                    value: _productActiveStatus[product.id] ?? false,
-                                    onChanged: (value) async {
-                                      setState(() {
-                                        _productActiveStatus[product.id] = value;
-                                      });
-                                      try {
-                                        await updateProductStatus(
-                                          token: widget.token,
-                                          product: product,
-                                          isActive: value,
-                                        );
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Status produk berhasil diubah')),
-                                        );
-                                      } catch (e) {
+                                ),
+                                // Right: Actions
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          icon:
+                                              const Icon(Icons.edit, size: 28),
+                                          onPressed: () {
+                                            _showCreateProductDialog(
+                                              context: context,
+                                              product:
+                                                  product, // kirim data produk yang akan diedit
+                                              isEdit:
+                                                  true, // tambahkan parameter untuk mode edit
+                                            );
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete,
+                                              size: 28, color: Colors.red),
+                                          onPressed: () async {
+                                            final confirm =
+                                                await showDialog<bool>(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: const Text(
+                                                    'Delete Product'),
+                                                content: const Text(
+                                                    'Apakah anda yakin ingin menghapus produk ini?'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(context)
+                                                            .pop(false),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(context)
+                                                            .pop(true),
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor:
+                                                          Colors.red,
+                                                      foregroundColor:
+                                                          Colors.white,
+                                                    ),
+                                                    child: const Text('Delete'),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                            if (confirm == true) {
+                                              try {
+                                                final url = Uri.parse(
+                                                    '$baseUrl/api/product/${product.id}');
+                                                final response =
+                                                    await http.delete(
+                                                  url,
+                                                  headers: {
+                                                    'Authorization':
+                                                        'Bearer ${widget.token}',
+                                                    'Content-Type':
+                                                        'application/json',
+                                                  },
+                                                );
+                                                if (response.statusCode ==
+                                                        200 ||
+                                                    response.statusCode ==
+                                                        204) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            'Product deleted successfully!')),
+                                                  );
+                                                  setState(() {
+                                                    _productFuture =
+                                                        fetchAllProduct(
+                                                            widget.token,
+                                                            widget.outletId);
+                                                  });
+                                                } else {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                        content: Text(
+                                                            'Failed to delete product: ${response.body}')),
+                                                  );
+                                                }
+                                              } catch (e) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                      content:
+                                                          Text('Error: $e')),
+                                                );
+                                              }
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Switch(
+                                      value: _productActiveStatus[product.id] ??
+                                          false,
+                                      onChanged: (value) async {
                                         setState(() {
-                                          _productActiveStatus[product.id] = !value;
+                                          _productActiveStatus[product.id] =
+                                              value;
                                         });
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Gagal mengubah status produk')),
-                                        );
-                                      }
-                                    },
-                                    activeColor: Colors.green,
-                                    inactiveThumbColor: Colors.red,
-                                  ),
-                                ],
-                              ),
-                            ],
+                                        try {
+                                          await updateProductStatus(
+                                            token: widget.token,
+                                            product: product,
+                                            isActive: value,
+                                          );
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    'Status produk berhasil diubah')),
+                                          );
+                                        } catch (e) {
+                                          setState(() {
+                                            _productActiveStatus[product.id] =
+                                                !value;
+                                          });
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    'Gagal mengubah status produk')),
+                                          );
+                                        }
+                                      },
+                                      activeColor: Colors.green,
+                                      inactiveThumbColor: Colors.red,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-  onPressed: () {
-    _showCreateProductDialog(context: context, isEdit: false);
-  },
-  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-  child: const Icon(Icons.add, color: Colors.white),
-  tooltip: 'Create Product',
-),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _showCreateProductDialog(context: context, isEdit: false);
+          },
+          backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+          child: const Icon(Icons.add, color: Colors.white),
+          tooltip: 'Create Product',
+        ),
+        bottomNavigationBar: _buildNavbar());
+  }
+
+  Widget _buildNavbar() {
+    // Anda bisa membuat navbar khusus atau menggunakan yang sudah ada
+    // Contoh dengan NavbarManager:
+    return FlexibleNavbar(
+      currentIndex: widget.navIndex,
+      isManager: widget.isManager,
+      onTap: (index) {
+        if (index != widget.navIndex) {
+          if (widget.onNavItemTap != null) {
+            widget.onNavItemTap!(index);
+          } else {
+            // Default navigation behavior
+            _handleNavigation(index);
+          }
+        }
+      },
+      onMorePressed: () {
+        _showMoreOptions(context);
+      },
     );
+  }
+
+  void _showMoreOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildMenuOption(
+                icon: Icons.settings,
+                label: 'Modifier',
+                onTap: () => _navigateTo(ModifierPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.card_giftcard,
+                label: 'Referral Code',
+                onTap: () => _navigateTo(ModifierPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.discount,
+                label: 'Discount',
+                onTap: () => _navigateTo(ModifierPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.history,
+                label: 'History',
+                onTap: () => _navigateTo(HistoryPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  // isManager: widget.isManager,
+                )),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMenuOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      onTap: () {
+        Navigator.pop(context); // Tutup bottom sheet
+        onTap();
+      },
+    );
+  }
+
+  void _navigateTo(Widget page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
+  }
+
+  void _handleNavigation(int index) {
+    // Implementasi navigasi berdasarkan index
+    if (widget.isManager == true) {
+      if (index == 0) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+              // isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 3) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ModifierPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                isManager: widget.isManager),
+          ),
+        );
+      }
+    } else {
+      if (index == 0) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId, isManager: widget.isManager,
+              // isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 3) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ModifierPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                isManager: widget.isManager),
+          ),
+        );
+      }
+    }
+    // Tambahkan case lainnya sesuai kebutuhan
   }
 
   Future<void> updateProductStatus({
@@ -803,5 +1122,3 @@ Future<CategoryResponse> fetchCategories(String token, String outletId) async {
     super.dispose();
   }
 }
-
-

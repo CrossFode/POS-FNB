@@ -989,7 +989,6 @@ class _HistoryPageState extends State<HistoryPage>
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Tambahkan baris ini
         title: const Text(
           'Order History',
           style: TextStyle(
@@ -1383,31 +1382,31 @@ class _HistoryPageState extends State<HistoryPage>
           ),
         ),
       ),
-      bottomNavigationBar: Navbar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          // Handle navigation here
-          if (index != _currentIndex) {
-            // Example navigation logic - adjust as needed
-            if (index == 0) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ProductPage(
-                        token: widget.token, outletId: widget.outletId)),
-              );
-            } else if (index == 2) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => CreateOrderPage(
-                        token: widget.token, outletId: widget.outletId)),
-              );
-            }
-            // And so on for other indices
-          }
-        },
-      ),
+      // bottomNavigationBar: Navbar(
+      //   currentIndex: _currentIndex,
+      //   onTap: (index) {
+      //     // Handle navigation here
+      //     if (index != _currentIndex) {
+      //       // Example navigation logic - adjust as needed
+      //       if (index == 0) {
+      //         Navigator.pushReplacement(
+      //           context,
+      //           MaterialPageRoute(
+      //               builder: (context) => ProductPage(
+      //                   token: widget.token, outletId: widget.outletId)),
+      //         );
+      //       } else if (index == 2) {
+      //         Navigator.pushReplacement(
+      //           context,
+      //           MaterialPageRoute(
+      //               builder: (context) => CreateOrderPage(
+      //                   token: widget.token, outletId: widget.outletId)),
+      //         );
+      //       }
+      //       // And so on for other indices
+      //     }
+      //   },
+      // ),
     );
   }
 }

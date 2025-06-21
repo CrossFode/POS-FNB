@@ -26,14 +26,6 @@ class NavbarSuperAdmin extends StatelessWidget {
           icon: Icon(Icons.people),
           label: 'User',
         ),
-        // BottomNavigationBarItem(
-        //   icon: Icon(Icons.manage_accounts),
-        //   label: 'Manager',
-        // ),
-        // BottomNavigationBarItem(
-        //   icon: Icon(Icons.bar_chart),
-        //   label: 'Statistics',
-        // ),
         BottomNavigationBarItem(
           icon: Icon(Icons.store),
           label: 'Outlet',

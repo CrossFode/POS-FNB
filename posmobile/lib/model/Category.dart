@@ -1,10 +1,3 @@
-// "id": 4,
-//             "category_name": "FOOD",
-//             "outlet_id": "OUT-FRPCTENMO7",
-//             "is_food": 1,
-//             "created_at": "2025-05-30T17:18:36.000000Z",
-//             "updated_at": "2025-05-30T17:18:36.000000Z"
-
 class Category {
   final int id;
   final String category_name;
@@ -31,8 +24,6 @@ class Category {
         updated_at: DateTime.parse(json['updated_at'] as String));
   }
 }
-
-
 
 class CategoryResponse {
   final String message;
