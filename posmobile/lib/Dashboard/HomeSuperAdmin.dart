@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 // import 'package:posmobile/Components/NavbarSuperAdmin.dart';
 import 'package:posmobile/Pages/Pages.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 import '../Model/Model.dart';
 
@@ -24,7 +26,7 @@ class _HomePageSuperAdminState extends State<HomePageSuperAdmin> {
     late Future<OutletResponse> _outletFuture;
 
   late final List<Widget> _pages;
-final String baseUrl = 'http://10.0.2.2:8000';
+final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
   // final String baseUrl = 'https://pos.lakesidefnb.group';
   Future<OutletResponse> fetchOutletByLogin(String token) async {
     final url = Uri.parse('$baseUrl/api/outlet/current/user');
