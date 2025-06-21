@@ -521,6 +521,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
             ],
           ),
         ),
+
         floatingActionButton: _cartItems.isNotEmpty
             ? FloatingActionButton.extended(
                 onPressed: _showCart,
