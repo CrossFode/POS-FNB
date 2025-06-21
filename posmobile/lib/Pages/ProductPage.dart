@@ -562,7 +562,6 @@ class _ProductPageState extends State<ProductPage> {
 
   @override
   Widget build(BuildContext context) {
-    int _currentIndex = 0; // Assuming Create Order is at index 2
 
     return Scaffold(
       body: SafeArea(
@@ -793,23 +792,26 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Widget _buildNavbar() {
-    return FlexibleNavbar(
-      currentIndex: widget.navIndex,
-      isManager: widget.isManager,
-      onTap: (index) {
-        if (index != widget.navIndex) {
-          if (widget.onNavItemTap != null) {
-            widget.onNavItemTap!(index);
-          } else {
-            _handleNavigation(index);
-          }
+  return FlexibleNavbar(
+    currentIndex: widget.navIndex,
+    isManager: widget.isManager,
+    onTap: (index) {
+      if (!mounted) return;
+      if (index != widget.navIndex) {
+        if (widget.onNavItemTap != null) {
+          widget.onNavItemTap!(index);
+        } else {
+          _handleNavigation(index);
         }
-      },
-      onMorePressed: () {
+      }
+    },
+    onMorePressed: () {
+      if (mounted) {
         _showMoreOptions(context);
-      },
-    );
-  }
+      }
+    },
+  );
+}
 
   void _showMoreOptions(BuildContext context) {
     showModalBottomSheet(
@@ -880,110 +882,115 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
-  void _navigateTo(Widget page) {
+ void _navigateTo(Widget page) {
+  try {
+    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => page),
     );
-  }
-
-  void _handleNavigation(int index) {
-    if (widget.isManager == true) {
-      if (index == 0) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              navIndex: 0, // <-- set navIndex here!
-              isManager: widget.isManager,
-            ),
-          ),
-        );
-      } else if (index == 1) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CreateOrderPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              navIndex: 1, // <-- set navIndex here!
-              isManager: widget.isManager,
-            ),
-          ),
-        );
-      } else if (index == 2) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CategoryPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              navIndex: 2, // <-- add this if required by CategoryPage
-              isManager: widget.isManager,
-            ),
-          ),
-        );
-      } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                navIndex: 3, // <-- add this if required by ModifierPage
-                isManager: widget.isManager),
-          ),
-        );
-      }
-    } else {
-      if (index == 0) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              isManager: widget.isManager,
-            ),
-          ),
-        );
-      } else if (index == 1) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CreateOrderPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              isManager: widget.isManager,
-            ),
-          ),
-        );
-      } else if (index == 2) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CategoryPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              isManager: widget.isManager,
-            ),
-          ),
-        );
-      } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
-          ),
-        );
-      }
+  } catch (e) {
+    debugPrint('Navigation error: $e');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Navigation failed: ${e.toString()}')),
+      );
     }
   }
+}
+ void _handleNavigation(int index) {
+  try {
+    if (index == widget.navIndex) return; // Already on this page
+
+    Widget page;
+    if (widget.isManager) {
+      switch (index) {
+        case 0:
+          page = ProductPage(
+            token: widget.token,
+            outletId: widget.outletId,
+            navIndex: index,
+            isManager: widget.isManager,
+          );
+          break;
+        case 1:
+          page = CreateOrderPage(
+            token: widget.token,
+            outletId: widget.outletId,
+            navIndex: index,
+            isManager: widget.isManager,
+          );
+          break;
+        case 2:
+          page = CategoryPage(
+            token: widget.token,
+            outletId: widget.outletId,
+            navIndex: index,
+            isManager: widget.isManager,
+          );
+          break;
+        case 3:
+          page = ModifierPage(
+            token: widget.token,
+            outletId: widget.outletId,
+            navIndex: index,
+            isManager: widget.isManager,
+          );
+          break;
+        default:
+          return;
+      }
+    } else {
+      switch (index) {
+        case 0:
+          page = ProductPage(
+            token: widget.token,
+            outletId: widget.outletId,
+            navIndex: index,
+            isManager: widget.isManager,
+          );
+          break;
+        case 1:
+          page = CreateOrderPage(
+            token: widget.token,
+            outletId: widget.outletId,
+            navIndex: index,
+            isManager: widget.isManager,
+          );
+          break;
+        case 2:
+          page = CategoryPage(
+            token: widget.token,
+            outletId: widget.outletId,
+            navIndex: index,
+            isManager: widget.isManager,
+          );
+          break;
+        case 3:
+          page = ModifierPage(
+            token: widget.token,
+            outletId: widget.outletId,
+            navIndex: index,
+            isManager: widget.isManager,
+          );
+          break;
+        default:
+          return;
+      }
+    }
+
+    // Use pushReplacement only if we're replacing the current page in the stack
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
+  } catch (e) {
+    debugPrint('Navigation error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Navigation failed: ${e.toString()}')),
+    );
+  }
+}
   Future<void> updateProductStatus({
     required String token,
     required Product product,
