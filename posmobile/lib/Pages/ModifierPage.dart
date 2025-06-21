@@ -294,7 +294,7 @@ class _ModifierPageState extends State<ModifierPage> {
                                   });
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
+                                  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
@@ -369,7 +369,7 @@ class _ModifierPageState extends State<ModifierPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        TextButton(
+                        TextButton(style: TextButton.styleFrom(foregroundColor: Colors.black),
                           onPressed: () => Navigator.of(context).pop(),
                           child: const Text('Cancel'),
                         ),
@@ -580,7 +580,7 @@ class _ModifierPageState extends State<ModifierPage> {
                                   });
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
+                                  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
@@ -655,7 +655,7 @@ class _ModifierPageState extends State<ModifierPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        TextButton(
+                        TextButton(style: TextButton.styleFrom(foregroundColor: Colors.black),
                           onPressed: () => Navigator.of(context).pop(),
                           child: const Text('Cancel'),
                         ),
@@ -774,9 +774,13 @@ class _ModifierPageState extends State<ModifierPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Colors.black)),
             ),
             ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 // For each product, update its modifiers
                 for (var product in productResponse.data) {
@@ -894,19 +898,19 @@ class _ModifierPageState extends State<ModifierPage> {
                 ),
               ),
               subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                const SizedBox(height: 4),
-                Text(
-                  'Required: ${modifier.is_required == 1 ? "Yes" : "No"}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                Text(
-                  'Selection: Min ${modifier.min_selected}, Max ${modifier.max_selected}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                ],
-              ),
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    const SizedBox(height: 4),
+    Text(
+      'Required: ${modifier.is_required == 1 ? "Yes" : "No"}',
+      style: const TextStyle(fontSize: 14),
+    ),
+    Text(
+      'Selection: Min ${modifier.min_selected}, Max ${modifier.max_selected}',
+      style: const TextStyle(fontSize: 14),
+    ),
+  ],
+),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -934,13 +938,13 @@ class _ModifierPageState extends State<ModifierPage> {
                     title: const Center(child: Text('Delete Modifier')),
                     content: const Text('Apakah anda yakin ingin menghapus modifier ini?'),
                     actions: [
-                      TextButton(
+                      TextButton(style: TextButton.styleFrom(foregroundColor: Colors.black),
                       onPressed: () => Navigator.of(context).pop(false),
                       child: const Text('Cancel'),
                       ),
-                      TextButton(
+                      TextButton(style: TextButton.styleFrom(backgroundColor: Colors.red),
                       onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                      child: const Text('Delete', style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
                       ),
                     ],
                     ),
@@ -979,26 +983,27 @@ class _ModifierPageState extends State<ModifierPage> {
                 ],
               ),
               children: [
-                ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: modifier.modifier_options.length,
-                itemBuilder: (context, optionIndex) {
-                  final option = modifier.modifier_options[optionIndex];
-                  return ListTile(
-                  dense: true,
-                  title: Text(
-                    option.name ?? '',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  trailing: Text(
-                    'Rp ${option.price ?? 0}',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  );
-                },
-                ),
-              ],
+  ListView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    itemCount: modifier.modifier_options.length,
+    itemBuilder: (context, optionIndex) {
+      final option = modifier.modifier_options[optionIndex];
+      return ListTile(
+        dense: true,
+        visualDensity: const VisualDensity(vertical: -3),
+        title: Text(
+          option.name ?? '',
+          style: const TextStyle(fontSize: 14),
+        ),
+        trailing: Text(
+          'Rp ${option.price ?? 0}',
+          style: const TextStyle(fontSize: 14),
+        ),
+      );
+    },
+  ),
+],
               ),
             );
             },

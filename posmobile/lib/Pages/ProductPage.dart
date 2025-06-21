@@ -433,7 +433,7 @@ class ProductPage extends StatefulWidget {
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                              backgroundColor: const Color.fromARGB(255, 0, 0, 0),
                               foregroundColor: Colors.white,
                             ),
                             onPressed: () {
@@ -519,10 +519,22 @@ class ProductPage extends StatefulWidget {
               ),
               actions: [
                 TextButton(
+                  style: TextButton.styleFrom(
+                    // backgroundColor: const Color.fromARGB(255, 255, 255, 255), // warna hitam
+                    foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                    foregroundColor: Colors.white,
+                  ),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
@@ -754,7 +766,7 @@ class ProductPage extends StatefulWidget {
                                               content: const Text(
                                                   'Apakah anda yakin ingin menghapus produk ini?'),
                                               actions: [
-                                                TextButton(
+                                                TextButton(style: TextButton.styleFrom(foregroundColor: const Color.fromARGB(255, 0, 0, 0),),
                                                   onPressed: () =>
                                                       Navigator.of(context)
                                                           .pop(false),
