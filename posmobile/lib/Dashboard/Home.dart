@@ -120,14 +120,14 @@ class _AdminScreenState extends State<Home> {
                                           )
                                         : Icon(Icons.store, size: 40),
                                     SizedBox(height: 8),
-                                    // Text(
-                                    //   outlet.outlet_name,
-                                    //   textAlign: TextAlign.center,
-                                    //   style: TextStyle(
-                                    //     fontSize: 16,
-                                    //     fontWeight: FontWeight.w600,
-                                    //   ),
-                                    // ),
+                                    Text(
+                                      outlet.outlet_name,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

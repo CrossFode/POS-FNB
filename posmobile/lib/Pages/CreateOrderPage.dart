@@ -587,8 +587,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               _buildMenuOption(
                 icon: Icons.discount,
                 label: 'Discount',
-                onTap: () => _navigateTo(ModifierPage(
+                onTap: () => _navigateTo(DiscountPage(
                   token: widget.token,
+                  userRoleId: 2,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
                 )),
