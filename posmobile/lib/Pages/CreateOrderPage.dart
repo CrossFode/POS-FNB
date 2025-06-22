@@ -115,7 +115,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         _filteredProducts = productResponse.data.where((product) {
           return query.isEmpty ||
               product.name.toLowerCase().contains(query) ||
-              (product.description?.toLowerCase().contains(query) ?? false);
+              (product.description.toLowerCase().contains(query));
         }).toList();
       });
     } catch (e) {
@@ -139,8 +139,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   @override
   Widget build(BuildContext context) {
-    int _currentIndex = 2;
-
     return Scaffold(
         body: SafeArea(
           child: Column(
@@ -429,7 +427,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   }
 
   void _navigateTo(Widget page) {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => page),
     );
@@ -617,20 +615,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         }
       }
       return true;
-    }
-
-    bool _isItemAlreadyInCart(Map<String, dynamic> newItem) {
-      for (var item in _cartItems) {
-        if (item['product_id'] != newItem['product_id']) continue;
-
-        if (!_areVariantsEqual(item['variants'], newItem['variants'])) continue;
-
-        if (!_areModifiersEqual(item['modifier'], newItem['modifier']))
-          continue;
-
-        return true;
-      }
-      return false;
     }
 
     showModalBottomSheet(
@@ -1107,12 +1091,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   late Future<List<dynamic>> _cachedCheckoutData;
 
   void _checkOut(Order order) {
-    String selectedValue = 'Option 1';
     TextEditingController referralCode = TextEditingController();
     String? refCode = null;
     PaymentMethod? _selectedPaymentMethod;
     int _finalTotalWithDiscount = 0;
-    String? _referralCode;
     int _referralDiscount = 0;
     int? _besarDiskon = 0;
 
@@ -1332,38 +1314,35 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               onPressed: () async {
                                 Navigator.pop(context);
 
+                                final outletResponse = await _outletFuture;
+                                final outletName =
+                                    outletResponse.data.outlet_name;
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => Previewbill(
+                                            outletName: outletName,
+                                            orderId:
+                                                'ORDER-${DateTime.now().millisecondsSinceEpoch}',
+                                            customerName: order.customer_name,
+                                            orderType: order.order_type,
+                                            tableNumber: order.order_table ?? 0,
+                                            items: _cartItems,
+                                            subtotal: int.tryParse(
+                                                    order.order_totals) ??
+                                                0,
+                                            discountVoucher:
+                                                (_selectedDiskon?.amount ?? 0),
+                                            discountRef: (_besarDiskon ?? 0),
+                                            total: _finalTotalWithDiscount,
+                                            paymentMethod:
+                                                _selectedPaymentMethod
+                                                        ?.payment_name ??
+                                                    'N/A',
+                                            orderTime: DateTime.now(),
+                                          )),
+                                );
                                 try {
-                                  final outletResponse = await _outletFuture;
-                                  final outletName =
-                                      outletResponse.data.outlet_name;
-
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => Previewbill(
-                                              outletName: outletName,
-                                              orderId:
-                                                  'ORDER-${DateTime.now().millisecondsSinceEpoch}',
-                                              customerName: order.customer_name,
-                                              orderType: order.order_type,
-                                              tableNumber:
-                                                  order.order_table ?? 0,
-                                              items: _cartItems,
-                                              subtotal: int.tryParse(
-                                                      order.order_totals) ??
-                                                  0,
-                                              discountVoucher:
-                                                  (_selectedDiskon?.amount ??
-                                                      0),
-                                              discountRef: (_besarDiskon ?? 0),
-                                              total: _finalTotalWithDiscount,
-                                              paymentMethod:
-                                                  _selectedPaymentMethod
-                                                          ?.payment_name ??
-                                                      'N/A',
-                                              orderTime: DateTime.now(),
-                                            )),
-                                  );
                                   final result = await makeOrder(
                                     token: widget.token,
                                     order: Order(
@@ -1380,7 +1359,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       order_details: order.order_details,
                                     ),
                                   );
-                                  if (mounted) return;
+                                  if (mounted)
+                                    return setState(() {
+                                      _cartItems.clear();
+                                    });
+                                  ;
                                   if (result['success'] == true) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -1388,14 +1371,15 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         backgroundColor: Colors.green,
                                       ),
                                     );
+
                                     setState(() => _cartItems.clear());
                                   }
                                 } catch (e) {
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content:
-                                            Text('Failed to  outlet data: $e')),
+                                        content: Text(
+                                            'Failed to process order: $e')),
                                   );
                                 }
                               },
