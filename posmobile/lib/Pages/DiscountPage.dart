@@ -9,14 +9,14 @@ import '../model/Admin/Outlet.dart';
 
 class DiscountPage extends StatefulWidget {
   final String token;
-  final int userRoleId;
+  final int? userRoleId;
   final String outletId;
   final bool isManager;
 
   const DiscountPage({
     Key? key,
     required this.token,
-    required this.userRoleId,
+    this.userRoleId,
     required this.outletId,
     required this.isManager,
   }) : super(key: key);

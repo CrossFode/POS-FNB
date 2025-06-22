@@ -1,16 +1,13 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:posmobile/Model/Category.dart';
 import 'package:posmobile/Model/Model.dart';
-
 import 'package:posmobile/Pages/Pages.dart';
-import 'package:posmobile/Pages/previewBill.dart';
 import 'package:posmobile/Components/Navbar.dart';
+import 'package:posmobile/Api/CreateOrder.dart';
 
 class CreateOrderPage extends StatefulWidget {
   final String token;
@@ -30,6 +27,43 @@ class CreateOrderPage extends StatefulWidget {
 
   @override
   State<CreateOrderPage> createState() => _CreateOrderPageState();
+}
+
+Future<Map<String, dynamic>> makeOrder(
+    {required String token, required Order order}) async {
+  final url = Uri.parse('$baseUrl/api/order');
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(order.toJson()),
+    );
+
+    print('Request data: ${jsonEncode(order.toJson())}');
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final responseBody = jsonDecode(response.body);
+      return {
+        'success': true,
+        'data': responseBody,
+        'message': responseBody['message'] ?? 'Order created successfully'
+      };
+    } else {
+      final errorResponse = jsonDecode(response.body);
+      return {
+        'success': false,
+        'message': errorResponse['message'] ?? 'Failed to create order'
+      };
+    }
+  } catch (e) {
+    print('Error making order: $e');
+    return {'success': false, 'message': 'Connection error: ${e.toString()}'};
+  }
 }
 
 class _CreateOrderPageState extends State<CreateOrderPage> {
@@ -89,236 +123,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       setState(() {
         _filteredProducts = [];
       });
-    }
-  }
-
-  Future<OutletResponseById> fetchOutletById(token, outletId) async {
-    final url = Uri.parse('$baseUrl/api/outlet/$outletId');
-
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
-
-        print('Outlet Response: $responseBody');
-
-        if (responseBody == null) {
-          throw Exception('Received null response from server');
-        }
-
-        return OutletResponseById.fromJson(responseBody);
-      } else {
-        final errorResponse = jsonDecode(response.body);
-        final errorMessage =
-            errorResponse['message'] ?? 'Failed to load outlet';
-        throw Exception('$errorMessage (Status: ${response.statusCode})');
-      }
-    } on http.ClientException catch (e) {
-      throw Exception('Network error: ${e.message}');
-    } on FormatException catch (e) {
-      throw Exception('Data parsing error: ${e.message}');
-    } catch (e) {
-      throw Exception('Unexpected error: $e');
-    }
-  }
-
-  Future<CategoryResponse> fetchCategoryinOutlet(token, outletId) async {
-    final url = Uri.parse('$baseUrl/api/category/outlet/$outletId');
-
-    try {
-      final response = await http.get(url, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      });
-      if (response.statusCode == 200) {
-        return CategoryResponse.fromJson(jsonDecode(response.body));
-      } else {
-        throw Exception(
-            'Failed to load Payment Method: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load Category: $e');
-    }
-  }
-
-  Future<PaymentMethodResponse> fetchPaymentMethod(token, outletId) async {
-    final url = Uri.parse('$baseUrl/api/payment');
-    try {
-      final response = await http.get(url, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      });
-      if (response.statusCode == 200) {
-        return PaymentMethodResponse.fromJson(jsonDecode(response.body));
-      } else {
-        throw Exception(
-            'Failed to load Payment Method: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load Payment Method: $e');
-    }
-  }
-
-  Future<ProductResponse> fetchAllProduct(token, outletId) async {
-    final url = Uri.parse('$baseUrl/api/product/ext/available');
-    try {
-      final response = await http.get(url, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      });
-      if (response.statusCode == 200) {
-        return ProductResponse.fromJson(jsonDecode(response.body));
-      } else {
-        throw Exception('Failed to load outlet: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load product: $e');
-    }
-  }
-
-  Future<DiskonResponse> fetchDiskonByOutlet(token, outletId) async {
-    final url = Uri.parse('$baseUrl/api/discount/outlet');
-    try {
-      final response = await http.get(url, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      });
-      if (response.statusCode == 200) {
-        return DiskonResponse.fromJson(jsonDecode(response.body));
-      } else {
-        throw Exception('Failed to load discount: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load discount: $e');
-    }
-  }
-
-  Future<ReferralCodeResponse> fetchReferralCodes(
-      String token, String code) async {
-    final url = Uri.parse('$baseUrl/api/referralcode/verified');
-
-    try {
-      final request = http.Request('GET', url);
-      request.headers.addAll({
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      });
-      request.body = jsonEncode({'code': code});
-
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final jsonData = jsonDecode(response.body);
-        print('Sukses menggunakan referral');
-        return ReferralCodeResponse.fromJson(jsonData);
-      } else {
-        final errorResponse = jsonDecode(response.body);
-        throw Exception(
-            errorResponse['message'] ?? 'Failed to verify referral code');
-      }
-    } catch (e) {
-      print('Error verifying referral code: $e');
-      throw Exception('Failed to verify referral code: ${e.toString()}');
-    }
-  }
-
-  Future<void> _processOrder({
-    required BuildContext context,
-    required Order order,
-    required String? refCode,
-    required PaymentMethod? selectedPaymentMethod,
-    required Diskon? selectedDiskon,
-    required int finalTotalWithDiscount,
-  }) async {
-    try {
-      final result = await makeOrder(
-        token: widget.token,
-        order: Order(
-          outlet_id: widget.outletId,
-          customer_name: order.customer_name,
-          phone_number: order.phone_number,
-          order_payment: selectedPaymentMethod!.id,
-          order_table: order.order_table,
-          discount_id: selectedDiskon?.id,
-          referral_code: refCode,
-          order_totals: finalTotalWithDiscount.toString(),
-          order_type: order.order_type,
-          order_details: order.order_details,
-        ),
-      );
-
-      if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.green,
-          ),
-        );
-        setState(() => _cartItems.clear());
-        Navigator.popUntil(context, (route) => route.isFirst);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<Map<String, dynamic>> makeOrder(
-      {required String token, required Order order}) async {
-    final url = Uri.parse('$baseUrl/api/order');
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(order.toJson()),
-      );
-
-      print('Request data: ${jsonEncode(order.toJson())}');
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
-        return {
-          'success': true,
-          'data': responseBody,
-          'message': responseBody['message'] ?? 'Order created successfully'
-        };
-      } else {
-        final errorResponse = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': errorResponse['message'] ?? 'Failed to create order'
-        };
-      }
-    } catch (e) {
-      print('Error making order: $e');
-      return {'success': false, 'message': 'Connection error: ${e.toString()}'};
     }
   }
 
@@ -521,7 +325,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
             ],
           ),
         ),
-
         floatingActionButton: _cartItems.isNotEmpty
             ? FloatingActionButton.extended(
                 onPressed: _showCart,

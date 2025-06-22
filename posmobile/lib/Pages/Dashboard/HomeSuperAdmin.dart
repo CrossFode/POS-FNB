@@ -6,16 +6,13 @@ import 'package:http/http.dart' as http;
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-
-import '../Model/Model.dart';
+import '../../Model/Model.dart';
 
 class HomePageSuperAdmin extends StatefulWidget {
   final String token;
   // final String outletId;
 
-  const HomePageSuperAdmin(
-      {Key? key, required this.token})
-      : super(key: key);
+  const HomePageSuperAdmin({Key? key, required this.token}) : super(key: key);
 
   @override
   State<HomePageSuperAdmin> createState() => _HomePageSuperAdminState();
@@ -23,10 +20,10 @@ class HomePageSuperAdmin extends StatefulWidget {
 
 class _HomePageSuperAdminState extends State<HomePageSuperAdmin> {
   int _currentIndex = 0;
-    late Future<OutletResponse> _outletFuture;
+  late Future<OutletResponse> _outletFuture;
 
   late final List<Widget> _pages;
-final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
+  final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
   // final String baseUrl = 'https://pos.lakesidefnb.group';
   Future<OutletResponse> fetchOutletByLogin(String token) async {
     final url = Uri.parse('$baseUrl/api/outlet/current/user');
@@ -46,6 +43,7 @@ final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
       throw Exception('Failed to load outlet: $e');
     }
   }
+
   @override
   void initState() {
     super.initState();
@@ -57,8 +55,6 @@ final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
       // You can add OutletPage to _pages if needed, but not as a Future
     ];
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +115,8 @@ final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
                             SizedBox(height: 8),
                             Text(
                               'Outlet',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -132,11 +129,10 @@ final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => UserPage(
-                            token: widget.token,
-                            outletId: '',
-                          )
-                        ),
+                            builder: (context) => UserPage(
+                                  token: widget.token,
+                                  outletId: '',
+                                )),
                       );
                     },
                     child: Card(
@@ -152,7 +148,8 @@ final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
                             SizedBox(height: 8),
                             Text(
                               'User',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
