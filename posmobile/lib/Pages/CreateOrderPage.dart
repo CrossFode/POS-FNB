@@ -77,6 +77,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   late Future<OutletResponseById> _outletFuture;
   TextEditingController _searchController = TextEditingController();
   List<Product> _filteredProducts = [];
+  final _formKey = GlobalKey<FormState>();
 
   Diskon? _selectedDiskon;
   final Diskon noDiscountOption = Diskon(
@@ -894,70 +895,86 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               children: [
                 StatefulBuilder(
                   builder: (context, setModalState) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 8),
-                        SizedBox(height: 16),
-                        Align(
-                            alignment: Alignment.topLeft,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Costumer Name",
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                TextField(
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      hintText: "Enter Costumer name"),
-                                  controller: _customerNameController,
-                                )
-                              ],
-                            )),
-                        SizedBox(height: 16),
-                        Align(
-                            alignment: Alignment.topLeft,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Phone Number",
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                TextField(
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      hintText: "Enter Customer Phone Number"),
-                                  controller: _phoneNumberController,
-                                )
-                              ],
-                            )),
-                        SizedBox(height: 12),
-                        Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text("Order Details : ",
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                              ),
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
+                    return Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 8),
+                            SizedBox(height: 16),
+                            Align(
+                                alignment: Alignment.topLeft,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Costumer Name",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    TextFormField(
+                                      decoration: InputDecoration(
+                                          border: OutlineInputBorder(),
+                                          hintText: "Enter Costumer name"),
+                                      controller: _customerNameController,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter the customer name first';
+                                        }
+                                        return null;
+                                      },
+                                    )
+                                  ],
+                                )),
+                            SizedBox(height: 16),
+                            Align(
+                                alignment: Alignment.topLeft,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Phone Number",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    TextFormField(
+                                      decoration: InputDecoration(
+                                          border: OutlineInputBorder(),
+                                          hintText:
+                                              "Enter Customer Phone Number"),
+                                      controller: _phoneNumberController,
+                                    )
+                                  ],
+                                )),
+                            SizedBox(height: 12),
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Order Details : ",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
 
-                                    setState(() {
-                                      _cartItems.clear();
-                                    });
-                                  },
-                                  child: Text(
-                                    "Clear All",
-                                    style: TextStyle(color: Colors.red),
-                                  ))
-                            ]),
-                      ],
-                    );
+                                        setState(() {
+                                          _cartItems.clear();
+                                        });
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                                content: Text(
+                                                    "All of your items has been removed from cart")));
+                                      },
+                                      child: Text(
+                                        "Clear All",
+                                        style: TextStyle(
+                                            color: const Color.fromARGB(
+                                                255, 14, 11, 11)),
+                                      ))
+                                ]),
+                          ],
+                        ));
                   },
                 ),
                 Expanded(
@@ -968,34 +985,156 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                       itemCount: _cartItems.length,
                       itemBuilder: (context, index) {
                         final item = _cartItems[index];
-                        return ListTile(
-                          title: Text('${item['name']} x${item['quantity']}'),
-                          subtitle: Column(
+                        return Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${item['name']}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete_outline,
+                                        color: Colors.red),
+                                    onPressed: () async {
+                                      final itemName = item['name'];
+                                      setState(() {
+                                        _cartItems.removeAt(index);
+                                        Navigator.pop(context);
+                                        _showCart();
+                                      });
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              '$itemName removed from cart'),
+                                          duration: const Duration(seconds: 2),
+                                          action: SnackBarAction(
+                                            label: 'Undo',
+                                            onPressed: () {
+                                              setState(() {
+                                                _cartItems.insert(index, item);
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                      if (_cartItems.isEmpty) {
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
                               if (item['variants'].isNotEmpty)
-                                Text('Variants: ${item['variants'].map((m) {
-                                  return '${m['name']} (Rp.${m['price']})';
-                                }).join(', ')}'),
-                              if (item['modifier'].isNotEmpty)
-                                Text(
-                                  'Modifier: ${item['modifier'].map((m) {
-                                    final options = m['modifier_options'];
-                                    return '${options['name']} (Rp.${options['price']})';
-                                  }).join(', ')}',
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 4),
+                                  child: Text(
+                                    'Variants: ${item['variants'].map((m) => '${m['name']} (Rp.${m['price']})').join(', ')}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
                                 ),
-                              Text(
-                                item['notes'].isNotEmpty
-                                    ? item['notes']
-                                    : 'No notes',
+                              if (item['modifier'].isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 4),
+                                  child: Text(
+                                    'Modifier: ${item['modifier'].map((m) {
+                                      final options = m['modifier_options'];
+                                      return '${options['name']} (Rp.${options['price']})';
+                                    }).join(', ')}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ),
+                              if (item['notes'].isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 8),
+                                  child: Text(
+                                    'Notes: ${item['notes']}',
+                                    style: TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ),
+                              Divider(),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.remove, size: 18),
+                                          onPressed: () {
+                                            if (item['quantity'] > 1) {
+                                              setState(() {
+                                                _cartItems[index]['quantity']--;
+                                                _cartItems[index]
+                                                        ['total_price'] =
+                                                    _calculateTotalPriceWithModifiers(
+                                                        item['variant_price'],
+                                                        item['modifier'],
+                                                        item['quantity']);
+                                                Navigator.pop(context);
+                                                _showCart();
+                                              });
+                                            }
+                                          },
+                                        ),
+                                        Text('${item['quantity']}'),
+                                        IconButton(
+                                          icon: Icon(Icons.add, size: 18),
+                                          onPressed: () {
+                                            setState(() {
+                                              _cartItems[index]['quantity']++;
+                                              _cartItems[index]['total_price'] =
+                                                  _calculateTotalPriceWithModifiers(
+                                                      item['variant_price'],
+                                                      item['modifier'],
+                                                      item['quantity']);
+                                              Navigator.pop(context);
+                                              _showCart();
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    'Rp ${item['total_price'].toString().replaceAllMapped(
+                                          RegExp(
+                                              r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                          (Match m) => '${m[1]}.',
+                                        )}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                          trailing: Text(
-                            'Rp ${item['total_price'].toString().replaceAllMapped(
-                                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                                  (Match m) => '${m[1]}.',
-                                )}',
                           ),
                         );
                       },
@@ -1030,33 +1169,35 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          print('Memulai proses order...');
-                          print('Jumlah item di cart: ${_cartItems.length}');
+                          if (_formKey.currentState!.validate()) {
+                            print('Memulai proses order...');
+                            print('Jumlah item di cart: ${_cartItems.length}');
 
-                          final orderDetails =
-                              _convertCartItemsToOrderDetails(_cartItems);
-                          final orderTotal = _calculateOrderTotal(_cartItems);
-                          final customer_name = _customerNameController.text;
-                          final outlet_id = widget.outletId;
-                          final phone_number = _phoneNumberController.text;
-                          final order_totals = orderTotal.toString();
-                          final order_table = _orderType.toLowerCase() !=
-                                  'takeaway'
-                              ? int.tryParse(_tableNumberController.text) ?? 0
-                              : 1;
+                            final orderDetails =
+                                _convertCartItemsToOrderDetails(_cartItems);
+                            final orderTotal = _calculateOrderTotal(_cartItems);
+                            final customer_name = _customerNameController.text;
+                            final outlet_id = widget.outletId;
+                            final phone_number = _phoneNumberController.text;
+                            final order_totals = orderTotal.toString();
+                            final order_table = _orderType.toLowerCase() !=
+                                    'takeaway'
+                                ? int.tryParse(_tableNumberController.text) ?? 0
+                                : 1;
 
-                          final order_details = orderDetails;
-                          final order = Order(
-                            outlet_id: outlet_id,
-                            customer_name: customer_name,
-                            phone_number: phone_number,
-                            order_totals: order_totals,
-                            order_table: order_table,
-                            order_type: 'takeaway',
-                            order_details: order_details,
-                            order_payment: 0,
-                          );
-                          _checkOut(order);
+                            final order_details = orderDetails;
+                            final order = Order(
+                              outlet_id: outlet_id,
+                              customer_name: customer_name,
+                              phone_number: phone_number,
+                              order_totals: order_totals,
+                              order_table: order_table,
+                              order_type: 'takeaway',
+                              order_details: order_details,
+                              order_payment: 0,
+                            );
+                            _checkOut(order);
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
