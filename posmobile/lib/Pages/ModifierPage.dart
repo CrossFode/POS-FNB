@@ -296,7 +296,8 @@ class _ModifierPageState extends State<ModifierPage> {
                                   });
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 0, 0, 0),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
@@ -371,7 +372,9 @@ class _ModifierPageState extends State<ModifierPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        TextButton(style: TextButton.styleFrom(foregroundColor: Colors.black),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                              foregroundColor: Colors.black),
                           onPressed: () => Navigator.of(context).pop(),
                           child: const Text('Cancel'),
                         ),
@@ -449,7 +452,8 @@ class _ModifierPageState extends State<ModifierPage> {
             })
         .toList();
     List<TextEditingController> _priceControllers = _options
-        .map((opt) => TextEditingController(text: (opt['price'] ?? '').toString()))
+        .map((opt) =>
+            TextEditingController(text: (opt['price'] ?? '').toString()))
         .toList();
 
     showDialog(
@@ -469,7 +473,8 @@ class _ModifierPageState extends State<ModifierPage> {
                   children: [
                     const Text(
                       'Edit Modifier',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                     ),
                     const SizedBox(height: 12),
                     Expanded(
@@ -514,7 +519,8 @@ class _ModifierPageState extends State<ModifierPage> {
                                 int index = entry.key;
                                 var option = entry.value;
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
                                   child: Row(
                                     children: [
                                       Expanded(
@@ -525,7 +531,8 @@ class _ModifierPageState extends State<ModifierPage> {
                                             border: OutlineInputBorder(),
                                           ),
                                           onChanged: (val) {
-                                            setState(() => option['name'] = val);
+                                            setState(
+                                                () => option['name'] = val);
                                           },
                                         ),
                                       ),
@@ -540,7 +547,8 @@ class _ModifierPageState extends State<ModifierPage> {
                                           ),
                                           keyboardType: TextInputType.number,
                                           inputFormatters: [
-                                            FilteringTextInputFormatter.digitsOnly
+                                            FilteringTextInputFormatter
+                                                .digitsOnly
                                           ],
                                           onChanged: (val) {
                                             final cleaned = val.replaceFirst(
@@ -548,9 +556,11 @@ class _ModifierPageState extends State<ModifierPage> {
                                             if (val != cleaned) {
                                               _priceControllers[index].text =
                                                   cleaned;
-                                              _priceControllers[index].selection =
+                                              _priceControllers[index]
+                                                      .selection =
                                                   TextSelection.fromPosition(
-                                                TextPosition(offset: cleaned.length),
+                                                TextPosition(
+                                                    offset: cleaned.length),
                                               );
                                             }
                                             setState(() {
@@ -561,7 +571,8 @@ class _ModifierPageState extends State<ModifierPage> {
                                         ),
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.close, color: Colors.red),
+                                        icon: const Icon(Icons.close,
+                                            color: Colors.red),
                                         onPressed: () {
                                           setState(() {
                                             _options.removeAt(index);
@@ -578,11 +589,13 @@ class _ModifierPageState extends State<ModifierPage> {
                                 onPressed: () {
                                   setState(() {
                                     _options.add({'name': '', 'price': 0});
-                                    _priceControllers.add(TextEditingController(text: ''));
+                                    _priceControllers
+                                        .add(TextEditingController(text: ''));
                                   });
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 0, 0, 0),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
@@ -657,7 +670,9 @@ class _ModifierPageState extends State<ModifierPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        TextButton(style: TextButton.styleFrom(foregroundColor: Colors.black),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                              foregroundColor: Colors.black),
                           onPressed: () => Navigator.of(context).pop(),
                           child: const Text('Cancel'),
                         ),
@@ -667,13 +682,16 @@ class _ModifierPageState extends State<ModifierPage> {
                               _formKey.currentState!.save();
 
                               bool hasInvalidOptions = _options.any((option) =>
-                                  (option['name']?.toString().trim().isEmpty ?? true) ||
-                                  (option['price'] == null || option['price'] < 0));
+                                  (option['name']?.toString().trim().isEmpty ??
+                                      true) ||
+                                  (option['price'] == null ||
+                                      option['price'] < 0));
 
                               if (_options.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                      content: Text('Please add at least one modifier option')),
+                                      content: Text(
+                                          'Please add at least one modifier option')),
                                 );
                                 return;
                               }
@@ -681,7 +699,8 @@ class _ModifierPageState extends State<ModifierPage> {
                               if (hasInvalidOptions) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                      content: Text('Please fill all option names and provide valid prices')),
+                                      content: Text(
+                                          'Please fill all option names and provide valid prices')),
                                 );
                                 return;
                               }
@@ -776,10 +795,11 @@ class _ModifierPageState extends State<ModifierPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+              child:
+                  const Text('Cancel', style: TextStyle(color: Colors.black)),
             ),
             ElevatedButton(
-                style: ElevatedButton.styleFrom(
+              style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
               ),
@@ -787,7 +807,8 @@ class _ModifierPageState extends State<ModifierPage> {
                 // For each product, update its modifiers
                 for (var product in productResponse.data) {
                   final shouldApply = selected[product.id] ?? false;
-                  final hasModifier = product.modifiers.any((m) => m.id == modifier.id);
+                  final hasModifier =
+                      product.modifiers.any((m) => m.id == modifier.id);
 
                   if (shouldApply && !hasModifier) {
                     // Add modifier
@@ -805,7 +826,9 @@ class _ModifierPageState extends State<ModifierPage> {
                         'name': product.name,
                         'category_id': product.category_id,
                         'description': product.description,
-                        'price': product.variants.isNotEmpty ? product.variants.first.price : 0,
+                        'price': product.variants.isNotEmpty
+                            ? product.variants.first.price
+                            : 0,
                         'is_active': product.is_active,
                         'outlet_id': product.outlet_id,
                         'modifiers': updatedModifierIds,
@@ -827,7 +850,9 @@ class _ModifierPageState extends State<ModifierPage> {
                         'name': product.name,
                         'category_id': product.category_id,
                         'description': product.description,
-                        'price': product.variants.isNotEmpty ? product.variants.first.price : 0,
+                        'price': product.variants.isNotEmpty
+                            ? product.variants.first.price
+                            : 0,
                         'is_active': product.is_active,
                         'outlet_id': product.outlet_id,
                         'modifiers': updatedModifierIds,
@@ -850,176 +875,202 @@ class _ModifierPageState extends State<ModifierPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Column(
-      children: [
-        const Padding(
-        padding: EdgeInsets.only(top: 32, left: 16, right: 16, bottom: 8),
-        child: Align(
-          alignment: Alignment.center,
-          child: Text(
-          'Modifiers',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 28,
-            letterSpacing: 1.2,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 32, left: 16, right: 16, bottom: 8),
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                'Modifiers',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 28,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
           ),
-          ),
-        ),
-        ),
-        Expanded(
-        child: FutureBuilder<ModifierResponse>(
-          future: _modifierFuture,
-          builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
-            return const Center(child: Text('No modifiers available'));
-          }
+          Expanded(
+            child: FutureBuilder<ModifierResponse>(
+              future: _modifierFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
+                  return const Center(child: Text('No modifiers available'));
+                }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: snapshot.data!.data.length,
-            itemBuilder: (context, index) {
-            final modifier = snapshot.data!.data[index];
-            return Card(
-              shadowColor: const Color.fromARGB(255, 125, 125, 125),
-              color: Colors.white,
-              elevation: 2,
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ExpansionTile(
-              title: Text(
-                modifier.name,
-                style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 23,
-                ),
-              ),
-              subtitle: Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    const SizedBox(height: 4),
-    Text(
-      'Required: ${modifier.is_required == 1 ? "Yes" : "No"}',
-      style: const TextStyle(fontSize: 14),
-    ),
-    Text(
-      'Selection: Min ${modifier.min_selected}, Max ${modifier.max_selected}',
-      style: const TextStyle(fontSize: 14),
-    ),
-  ],
-),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Color.fromARGB(255, 106, 106, 106)),
-                  tooltip: 'Edit',
-                  onPressed: () {
-                  showEditModifierDialog(modifier);
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add, color: Color.fromARGB(255, 100, 101, 101)),
-                  tooltip: 'Apply to Product',
-                  onPressed: () {
-                  showApplyModifierDialog(modifier);
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  tooltip: 'Delete',
-                  onPressed: () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                    title: const Center(child: Text('Delete Modifier')),
-                    content: const Text('Apakah anda yakin ingin menghapus modifier ini?'),
-                    actions: [
-                      TextButton(style: TextButton.styleFrom(foregroundColor: Colors.black),
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Cancel'),
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: snapshot.data!.data.length,
+                  itemBuilder: (context, index) {
+                    final modifier = snapshot.data!.data[index];
+                    return Card(
+                      shadowColor: const Color.fromARGB(255, 125, 125, 125),
+                      color: Colors.white,
+                      elevation: 2,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ExpansionTile(
+                        title: Text(
+                          modifier.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 23,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text(
+                              'Required: ${modifier.is_required == 1 ? "Yes" : "No"}',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            Text(
+                              'Selection: Min ${modifier.min_selected}, Max ${modifier.max_selected}',
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit,
+                                  color: Color.fromARGB(255, 106, 106, 106)),
+                              tooltip: 'Edit',
+                              onPressed: () {
+                                showEditModifierDialog(modifier);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add,
+                                  color: Color.fromARGB(255, 100, 101, 101)),
+                              tooltip: 'Apply to Product',
+                              onPressed: () {
+                                showApplyModifierDialog(modifier);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              tooltip: 'Delete',
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Center(
+                                        child: Text('Delete Modifier')),
+                                    content: const Text(
+                                        'Apakah anda yakin ingin menghapus modifier ini?'),
+                                    actions: [
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                            foregroundColor: Colors.black),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                            backgroundColor: Colors.red),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: const Text('Delete',
+                                            style: TextStyle(
+                                                color: Color.fromARGB(
+                                                    255, 255, 255, 255))),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true) {
+                                  try {
+                                    final url = Uri.parse(
+                                        '$baseUrl/api/modifier/${modifier.id}');
+                                    final response = await http.delete(
+                                      url,
+                                      headers: {
+                                        'Authorization':
+                                            'Bearer ${widget.token}',
+                                        'Content-Type': 'application/json',
+                                      },
+                                    );
+                                    if (response.statusCode == 200) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Modifier deleted successfully')),
+                                      );
+                                      setState(() {
+                                        _modifierFuture = fetchModifiers();
+                                      });
+                                    } else {
+                                      final errorResponse =
+                                          jsonDecode(response.body);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(errorResponse[
+                                                    'message'] ??
+                                                'Failed to delete modifier')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content:
+                                              Text('Error: ${e.toString()}')),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        children: [
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: modifier.modifier_options.length,
+                            itemBuilder: (context, optionIndex) {
+                              final option =
+                                  modifier.modifier_options[optionIndex];
+                              return ListTile(
+                                dense: true,
+                                visualDensity:
+                                    const VisualDensity(vertical: -3),
+                                title: Text(
+                                  option.name ?? '',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                trailing: Text(
+                                  'Rp ${option.price ?? 0}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                      TextButton(style: TextButton.styleFrom(backgroundColor: Colors.red),
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Delete', style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
-                      ),
-                    ],
-                    ),
-                  );
-                  if (confirm == true) {
-                    try {
-                    final url = Uri.parse('$baseUrl/api/modifier/${modifier.id}');
-                    final response = await http.delete(
-                      url,
-                      headers: {
-                      'Authorization': 'Bearer ${widget.token}',
-                      'Content-Type': 'application/json',
-                      },
                     );
-                    if (response.statusCode == 200) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Modifier deleted successfully')),
-                      );
-                      setState(() {
-                      _modifierFuture = fetchModifiers();
-                      });
-                    } else {
-                      final errorResponse = jsonDecode(response.body);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(errorResponse['message'] ?? 'Failed to delete modifier')),
-                      );
-                    }
-                    } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: ${e.toString()}')),
-                    );
-                    }
-                  }
                   },
-                ),
-                ],
-              ),
-              children: [
-  ListView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: modifier.modifier_options.length,
-    itemBuilder: (context, optionIndex) {
-      final option = modifier.modifier_options[optionIndex];
-      return ListTile(
-        dense: true,
-        visualDensity: const VisualDensity(vertical: -3),
-        title: Text(
-          option.name ?? '',
-          style: const TextStyle(fontSize: 14),
-        ),
-        trailing: Text(
-          'Rp ${option.price ?? 0}',
-          style: const TextStyle(fontSize: 14),
-        ),
-      );
-    },
-  ),
-],
-              ),
-            );
-            },
-          );
-          },
-        ),
-        ),
-      ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        showCreateModifierDialog();
-      },
-      backgroundColor: Colors.black,
-      child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () {
+          showCreateModifierDialog();
+        },
+        backgroundColor: Colors.black,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: _buildNavbar(),
     );
@@ -1079,7 +1130,7 @@ class _ModifierPageState extends State<ModifierPage> {
               _buildMenuOption(
                 icon: Icons.discount,
                 label: 'Discount',
-                onTap: () => _navigateTo(ModifierPage(
+                onTap: () => _navigateTo(DiscountPage(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
@@ -1118,7 +1169,7 @@ class _ModifierPageState extends State<ModifierPage> {
   }
 
   void _navigateTo(Widget page) {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => page),
     );

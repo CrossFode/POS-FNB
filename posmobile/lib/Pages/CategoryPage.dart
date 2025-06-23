@@ -380,7 +380,7 @@ class _CategoryPageState extends State<CategoryPage> {
               _buildMenuOption(
                 icon: Icons.discount,
                 label: 'Discount',
-                onTap: () => _navigateTo(ModifierPage(
+                onTap: () => _navigateTo(DiscountPage(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
