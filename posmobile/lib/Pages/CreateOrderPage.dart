@@ -428,7 +428,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   }
 
   void _navigateTo(Widget page) {
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => page),
     );
@@ -1267,10 +1267,14 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 final diskon = _selectedDiskon == noDiscountOption
                     ? 0
                     : (_selectedDiskon?.amount ?? 0);
-                _finalTotalWithDiscount =
-                    (orderTotal - (orderTotal * diskon) ~/ 100) -
-                        _referralDiscount;
-
+                if (_selectedDiskon?.type == 'fixed') {
+                  _finalTotalWithDiscount =
+                      orderTotal - _selectedDiskon!.amount.toInt();
+                } else {
+                  _finalTotalWithDiscount =
+                      (orderTotal - (orderTotal * diskon) ~/ 100) -
+                          _referralDiscount;
+                }
                 return SingleChildScrollView(
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom,

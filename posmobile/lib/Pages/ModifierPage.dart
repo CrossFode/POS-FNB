@@ -1169,7 +1169,7 @@ class _ModifierPageState extends State<ModifierPage> {
   }
 
   void _navigateTo(Widget page) {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => page),
     );
