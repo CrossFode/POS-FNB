@@ -26,6 +26,7 @@ class _UserPageState extends State<UserPage> {
   List<RoleModel> roleOptions = [];
   bool isOutletLoading = false;
   bool isRoleLoading = false;
+  String? selectedRoleFilter;
 
   @override
   void initState() {
@@ -383,6 +384,84 @@ class _UserPageState extends State<UserPage> {
     );
   }
 
+  void _deleteUser(User user) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        title: Text(
+          'Delete User',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[800],
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete ${user.name}? This action cannot be undone.',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop(); // Tutup dialog sebelum proses
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => Center(child: CircularProgressIndicator()),
+              );
+              try {
+                final response = await http.delete(
+                  Uri.parse('$baseUrl/api/user/${user.id}'),
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ${widget.token}',
+                  },
+                );
+                Navigator.of(context).pop(); // Tutup loading
+                if (response.statusCode == 200) {
+                  fetchUsers(widget.token, widget.outletId);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('User deleted successfully'), backgroundColor: Colors.red),
+                  );
+                } else {
+                  final error = json.decode(response.body);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(error['message'] ?? 'Failed to delete user'), backgroundColor: Colors.red),
+                  );
+                }
+              } catch (e) {
+                Navigator.of(context).pop(); // Tutup loading
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text('Delete'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -395,37 +474,95 @@ class _UserPageState extends State<UserPage> {
           ? Center(child: CircularProgressIndicator())
           : users.isEmpty
               ? Center(child: Text('No users found'))
-              : ListView.builder(
-                  itemCount: users.length,
-                  itemBuilder: (context, idx) {
-                    final user = users[idx];
-                    return Card(
-                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          child: Text(
-                            user.name.isNotEmpty ? user.name[0] : '?',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+              : Column(
+                children: [
+                  // Dropdown filter role
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: Row(
+                      children: [
+                        Text('Filter by Role: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: selectedRoleFilter,
+                            hint: Text('All Roles'),
+                            isExpanded: true,
+                            items: [
+                              DropdownMenuItem<String>(
+                                value: null,
+                                child: Text('All Roles'),
+                              ),
+                              ...roleOptions.map((role) => DropdownMenuItem<String>(
+                                    value: role.label,
+                                    child: Text(role.label),
+                                  )),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                selectedRoleFilter = value;
+                              });
+                            },
                           ),
                         ),
-                        title: Text(user.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(user.email),
-                            Text('Role: ${user.role}', style: TextStyle(fontSize: 12)),
-                            if (user.outlets.isNotEmpty)
-                              Text(
-                                'Outlet: ${user.outlets.first.outletName}',
-                                style: TextStyle(fontSize: 12),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: users
+                          .where((u) => selectedRoleFilter == null || u.role == selectedRoleFilter)
+                          .length,
+                      itemBuilder: (context, idx) {
+                        final filteredUsers = users
+                            .where((u) => selectedRoleFilter == null || u.role == selectedRoleFilter)
+                            .toList();
+                        final user = filteredUsers[idx];
+                        return Card(
+                          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              child: Text(
+                                user.name.isNotEmpty ? user.name[0] : '?',
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                          ],
-                        ),
-                        onTap: () => _showEditUserDialog(user),
-                      ),
-                    );
-                  },
-                ),
+                            ),
+                            title: Text(user.name),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(user.email),
+                                Text('Role: ${user.role}', style: TextStyle(fontSize: 12)),
+                                if (user.outlets.isNotEmpty)
+                                  Text(
+                                    'Outlet: ${user.outlets.first.outletName}',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                              ],
+                            ),
+                            onTap: () => _showEditUserDialog(user),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.edit, color: Colors.blue),
+                                  onPressed: () => _showEditUserDialog(user),
+                                  tooltip: 'Edit',
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _deleteUser(user),
+                                  tooltip: 'Delete',
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateUserDialog,
         backgroundColor: Colors.white,

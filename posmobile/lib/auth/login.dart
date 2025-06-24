@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:posmobile/Dashboard/Dashboard.dart';
+import 'package:posmobile/Pages/Dashboard/Dashboard.dart';
 import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -14,6 +16,44 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _obscureText = true;
   final String apiBaseUrl = dotenv.env['API_BASE_URL'] ?? '';
+  @override
+  void initState() {
+    super.initState();
+    isLogin(); // panggil saat halaman baru dimuat
+  }
+
+  void isLogin() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    String? val = pref.getString("token");
+    String? role = pref.getString("role");
+    print("Token setelah logout: $val");
+    print("Role setelah logout: $role");
+    if (val != null && role != null) {
+      if (role == 'Admin') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePageSuperAdmin(token: val),
+          ),
+        );
+      } else if (role == 'Manager') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(token: val, isManager: true),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(token: val, isManager: false),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -31,7 +71,13 @@ class _LoginPageState extends State<LoginPage> {
         // If the server returns an OK response, parse the JSON
         final data = jsonDecode(response.body);
         print(data['token']);
+
         // Navigate to the Admin page
+        SharedPreferences pref = await SharedPreferences.getInstance();
+        await pref.setString('token', data['token']);
+        await pref.setString('role', data['data']['role_name']); // Simpan role
+        print("Token disimpan: ${data['token']}");
+        print("Role disimpan: ${data['data']['role_name']}");
 
         if (data['data']['role_name'] == 'Admin') {
           Navigator.pushReplacement(
