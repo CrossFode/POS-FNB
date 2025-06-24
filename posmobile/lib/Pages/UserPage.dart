@@ -428,19 +428,23 @@ class _UserPageState extends State<UserPage> {
                     'Authorization': 'Bearer ${widget.token}',
                   },
                 );
+                if (!mounted) return; // Tambahkan ini!
                 Navigator.of(context).pop(); // Tutup loading
                 if (response.statusCode == 200) {
                   fetchUsers(widget.token, widget.outletId);
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('User deleted successfully'), backgroundColor: Colors.red),
                   );
                 } else {
                   final error = json.decode(response.body);
+                  if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(error['message'] ?? 'Failed to delete user'), backgroundColor: Colors.red),
                   );
                 }
               } catch (e) {
+                if (!mounted) return;
                 Navigator.of(context).pop(); // Tutup loading
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),

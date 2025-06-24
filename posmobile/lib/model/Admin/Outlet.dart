@@ -3,12 +3,16 @@ class Outlet {
   final String outlet_name;
   final String email;
   final String? image;
+  final String? longitude; // Tambahkan field longitude (opsional)
+  final String? latitude;  // Tambahkan field latitude (opsional)
 
   Outlet({
     required this.id,
     required this.outlet_name,
     required this.email,
     this.image,
+    this.longitude, // Tambahkan di constructor
+    this.latitude,  // Tambahkan di constructor
   });
 
   factory Outlet.fromJson(Map<String, dynamic> json) {
@@ -17,6 +21,8 @@ class Outlet {
       outlet_name: json['outlet_name'] ?? '',
       email: json['email'] ?? '',
       image: json['image'],
+      longitude: json['longitude']?.toString(), // Ambil dari json jika ada
+      latitude: json['latitude']?.toString(),   // Ambil dari json jika ada
     );
   }
 }

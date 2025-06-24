@@ -169,10 +169,11 @@ class _OutletPageState extends State<OutletPage> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController nameController = TextEditingController(text: outlet.outlet_name);
   TextEditingController emailController = TextEditingController(text: outlet.email);
-
-  // bool isDineIn = outlet.is_dinein == 1;
-  // bool isLabel = outlet.is_label == 1;
-  // bool isKitchen = outlet.is_kitchen == 1;
+  TextEditingController longitudeController = TextEditingController(text: outlet.longitude ?? '');
+  TextEditingController latitudeController = TextEditingController(text: outlet.latitude ?? '');
+  // bool isDineIn = outlet.isDineIn ?? false;
+  // bool isLabel = outlet.isLabel ?? false;
+  // bool isKitchen = outlet.isKitchen ?? false;
   File? imageFile;
   bool isSubmitting = false;
 
@@ -231,6 +232,18 @@ class _OutletPageState extends State<OutletPage> {
                     decoration: InputDecoration(labelText: 'Email'),
                     validator: (value) => value == null || value.isEmpty ? 'Required' : null,
                   ),
+                  // Tambahkan field longitude (opsional)
+                  TextFormField(
+                    controller: longitudeController,
+                    decoration: InputDecoration(labelText: 'Longitude (optional)'),
+                    keyboardType: TextInputType.numberWithOptions(decimal: true, signed: true),
+                  ),
+                  // Tambahkan field latitude (opsional)
+                  TextFormField(
+                    controller: latitudeController,
+                    decoration: InputDecoration(labelText: 'Latitude (optional)'),
+                    keyboardType: TextInputType.numberWithOptions(decimal: true, signed: true),
+                  ),
                   SizedBox(height: 16),
                   // CheckboxListTile(
                   //   title: Text('DINE IN'),
@@ -264,19 +277,25 @@ class _OutletPageState extends State<OutletPage> {
                         setState(() => isSubmitting = true);
                         try {
                           var request = http.MultipartRequest(
-                            'POST', // Laravel FormData update biasanya pakai POST + _method=PUT
-                            Uri.parse('$baseUrl/api/outlet/${outlet.id}'),
+                            'POST',
+                            Uri.parse('$baseUrl/api/outlet/update/${outlet.id}'),
                           );
                           request.headers.addAll({
                             'Authorization': 'Bearer ${widget.token}',
                             'Accept': 'application/json',
                           });
-                          request.fields['_method'] = 'PUT';
                           request.fields['outlet_name'] = nameController.text;
                           request.fields['email'] = emailController.text;
                           // request.fields['is_dinein'] = isDineIn ? '1' : '0';
                           // request.fields['is_label'] = isLabel ? '1' : '0';
                           // request.fields['is_kitchen'] = isKitchen ? '1' : '0';
+                          // Tambahkan longitude dan latitude jika diisi
+                          if (longitudeController.text.isNotEmpty) {
+                            request.fields['longitude'] = longitudeController.text;
+                          }
+                          if (latitudeController.text.isNotEmpty) {
+                            request.fields['latitude'] = latitudeController.text;
+                          }
                           if (imageFile != null) {
                             request.files.add(await http.MultipartFile.fromPath('image', imageFile!.path));
                           }
@@ -305,7 +324,7 @@ class _OutletPageState extends State<OutletPage> {
                     },
               child: isSubmitting
                   ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : Text('Save'),
+                  : Text('Update'),
             ),
           ],
         ),
@@ -379,6 +398,8 @@ class _OutletPageState extends State<OutletPage> {
     final _formKey = GlobalKey<FormState>();
     TextEditingController nameController = TextEditingController();
     TextEditingController emailController = TextEditingController();
+    TextEditingController longitudeController = TextEditingController(); // Tambahan
+    TextEditingController latitudeController = TextEditingController();  // Tambahan
     bool isDineIn = false;
     bool isLabel = false;
     bool isKitchen = false;
@@ -435,6 +456,18 @@ class _OutletPageState extends State<OutletPage> {
                       decoration: InputDecoration(labelText: 'Email'),
                       validator: (value) => value == null || value.isEmpty ? 'Required' : null,
                     ),
+                    // Tambahkan field longitude (opsional)
+                    TextFormField(
+                      controller: longitudeController,
+                      decoration: InputDecoration(labelText: 'Longitude (optional)'),
+                      keyboardType: TextInputType.numberWithOptions(decimal: true, signed: true),
+                    ),
+                    // Tambahkan field latitude (opsional)
+                    TextFormField(
+                      controller: latitudeController,
+                      decoration: InputDecoration(labelText: 'Latitude (optional)'),
+                      keyboardType: TextInputType.numberWithOptions(decimal: true, signed: true),
+                    ),
                     SizedBox(height: 16),
                     CheckboxListTile(
                       title: Text('DINE IN'),
@@ -480,6 +513,13 @@ class _OutletPageState extends State<OutletPage> {
                             request.fields['is_dinein'] = isDineIn ? '1' : '0';
                             request.fields['is_label'] = isLabel ? '1' : '0';
                             request.fields['is_kitchen'] = isKitchen ? '1' : '0';
+                            // Tambahkan longitude dan latitude jika diisi
+                            if (longitudeController.text.isNotEmpty) {
+                              request.fields['longitude'] = longitudeController.text;
+                            }
+                            if (latitudeController.text.isNotEmpty) {
+                              request.fields['latitude'] = latitudeController.text;
+                            }
                             if (imageFile != null) {
                               request.files.add(await http.MultipartFile.fromPath('image', imageFile!.path));
                             }
