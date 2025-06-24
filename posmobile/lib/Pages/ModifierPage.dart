@@ -1110,17 +1110,13 @@ class _ModifierPageState extends State<ModifierPage> {
               _buildMenuOption(
                 icon: Icons.settings,
                 label: 'Modifier',
-                onTap: () => _navigateTo(ModifierPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                onTap: () {},
               ),
               Divider(),
               _buildMenuOption(
                 icon: Icons.card_giftcard,
                 label: 'Referral Code',
-                onTap: () => _navigateTo(ModifierPage(
+                onTap: () => _navigateTo(ReferralCodePage(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
@@ -1143,6 +1139,7 @@ class _ModifierPageState extends State<ModifierPage> {
                 onTap: () => _navigateTo(HistoryPage(
                   token: widget.token,
                   outletId: widget.outletId,
+                  isManager: widget.isManager,
                   // isManager: widget.isManager,
                 )),
               ),
