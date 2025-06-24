@@ -8,6 +8,7 @@ import 'package:posmobile/Model/Model.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Components/Navbar.dart';
 import 'package:posmobile/Api/CreateOrder.dart';
+import 'package:posmobile/Pages/ReferralPage.dart';
 
 class CreateOrderPage extends StatefulWidget {
   final String token;
@@ -379,7 +380,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               _buildMenuOption(
                 icon: Icons.card_giftcard,
                 label: 'Referral Code',
-                onTap: () => _navigateTo(ModifierPage(
+                onTap: () => _navigateTo(ReferralCodePage(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
