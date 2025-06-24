@@ -404,6 +404,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 onTap: () => _navigateTo(HistoryPage(
                   token: widget.token,
                   outletId: widget.outletId,
+                  isManager: widget.isManager,
                 )),
               ),
             ],

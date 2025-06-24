@@ -370,7 +370,7 @@ class _CategoryPageState extends State<CategoryPage> {
               _buildMenuOption(
                 icon: Icons.card_giftcard,
                 label: 'Referral Code',
-                onTap: () => _navigateTo(ModifierPage(
+                onTap: () => _navigateTo(ReferralCodePage(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
@@ -393,7 +393,7 @@ class _CategoryPageState extends State<CategoryPage> {
                 onTap: () => _navigateTo(HistoryPage(
                   token: widget.token,
                   outletId: widget.outletId,
-                  // isManager: widget.isManager,
+                  isManager: widget.isManager,
                 )),
               ),
             ],

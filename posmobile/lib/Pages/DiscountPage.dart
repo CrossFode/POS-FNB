@@ -4,20 +4,25 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../model/Diskon.dart';
-import '../model/Admin/Outlet.dart';
+import 'package:posmobile/Components/Navbar.dart';
+import 'package:posmobile/model/model.dart';
+import 'package:posmobile/Pages/Pages.dart';
 
 class DiscountPage extends StatefulWidget {
   final String token;
   final int? userRoleId;
   final String outletId;
   final bool isManager;
+  final int navIndex;
+  final Function(int)? onNavItemTap;
 
   const DiscountPage({
     Key? key,
     required this.token,
-    this.userRoleId,
     required this.outletId,
+    this.userRoleId,
+    this.navIndex = 3, // Default ke tab History (index 3)
+    this.onNavItemTap,
     required this.isManager,
   }) : super(key: key);
 
@@ -439,143 +444,338 @@ class _DiscountPageState extends State<DiscountPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Discount'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
-      resizeToAvoidBottomInset: false, // Prevent resizing when keyboard appears
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search discounts...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text('Discount'),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+        ),
+        resizeToAvoidBottomInset:
+            false, // Prevent resizing when keyboard appears
+        body: Column(
+          children: [
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search discounts...',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 ),
-                filled: true,
-                fillColor: Colors.grey[200],
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                onChanged: (value) {
+                  setState(() => _searchQuery = value);
+                },
               ),
-              onChanged: (value) {
-                setState(() => _searchQuery = value);
-              },
             ),
-          ),
 
-          // Discounts ListView
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredDiscounts.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.percent_outlined,
-                                size: 64, color: Colors.grey[400]),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'No discounts found',
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(8),
-                        itemCount: _filteredDiscounts.length,
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final discount = _filteredDiscounts[index];
-                          return Card(
-                            elevation: 2,
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 4, horizontal: 2),
-                            child: ListTile(
-                              title: Text(
-                                discount.name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
+            // Discounts ListView
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredDiscounts.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.percent_outlined,
+                                  size: 64, color: Colors.grey[400]),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'No discounts found',
+                                style:
+                                    TextStyle(fontSize: 16, color: Colors.grey),
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    discount.type == 'percent'
-                                        ? '${discount.amount}% off'
-                                        : 'Rp ${NumberFormat('#,###').format(discount.amount)} off',
-                                    style: TextStyle(
-                                      color: Colors.green[700],
-                                      fontWeight: FontWeight.w500,
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(8),
+                          itemCount: _filteredDiscounts.length,
+                          separatorBuilder: (context, index) =>
+                              const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final discount = _filteredDiscounts[index];
+                            return Card(
+                              elevation: 2,
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 2),
+                              child: ListTile(
+                                title: Text(
+                                  discount.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      discount.type == 'percent'
+                                          ? '${discount.amount}% off'
+                                          : 'Rp ${NumberFormat('#,###').format(discount.amount)} off',
+                                      style: TextStyle(
+                                        color: Colors.green[700],
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    discount.created_at != null
-                                        ? 'Created: ${DateFormat('dd/MM/yyyy').format(discount.created_at!)}'
-                                        : '',
-                                    style: TextStyle(
-                                        fontSize: 12, color: Colors.grey[600]),
-                                  ),
-                                ],
+                                    Text(
+                                      discount.created_at != null
+                                          ? 'Created: ${DateFormat('dd/MM/yyyy').format(discount.created_at!)}'
+                                          : '',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.edit,
+                                          color: Colors.blue[700]),
+                                      onPressed: () =>
+                                          _showEditDialog(discount),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.delete,
+                                          color: Colors.red[700]),
+                                      onPressed: () =>
+                                          _showDeleteDialog(discount),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.edit,
-                                        color: Colors.blue[700]),
-                                    onPressed: () => _showEditDialog(discount),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete,
-                                        color: Colors.red[700]),
-                                    onPressed: () =>
-                                        _showDeleteDialog(discount),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-          ),
-        ],
-      ),
-      floatingActionButton: Container(
-        height: 60,
-        width: 60,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.green.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+                            );
+                          },
+                        ),
             ),
           ],
         ),
-        child: FloatingActionButton(
-          onPressed: _showCreateDialog,
-          backgroundColor: Colors.green,
-          elevation: 0,
-          shape: const CircleBorder(),
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-            size: 28,
+        floatingActionButton: Container(
+          height: 60,
+          width: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.green.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: FloatingActionButton(
+            onPressed: _showCreateDialog,
+            backgroundColor: Colors.green,
+            elevation: 0,
+            shape: const CircleBorder(),
+            child: const Icon(
+              Icons.add,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
         ),
-      ),
+        bottomNavigationBar: _buildNavbar());
+  }
+
+  Widget _buildNavbar() {
+    // Anda bisa membuat navbar khusus atau menggunakan yang sudah ada
+    // Contoh dengan NavbarManager:
+    return FlexibleNavbar(
+      currentIndex: widget.navIndex,
+      isManager: widget.isManager,
+      onTap: (index) {
+        if (index != widget.navIndex) {
+          if (widget.onNavItemTap != null) {
+            widget.onNavItemTap!(index);
+          } else {
+            // Default navigation behavior
+            _handleNavigation(index);
+          }
+        }
+      },
+      onMorePressed: () {
+        _showMoreOptions(context);
+      },
     );
+  }
+
+  void _showMoreOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildMenuOption(
+                icon: Icons.settings,
+                label: 'Modifier',
+                onTap: () => _navigateTo(ModifierPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.card_giftcard,
+                label: 'Referral Code',
+                onTap: () => _navigateTo(ReferralCodePage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.discount,
+                label: 'Discount',
+                onTap: () {},
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.history,
+                label: 'History',
+                onTap: () => _navigateTo(HistoryPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMenuOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      onTap: () {
+        Navigator.pop(context); // Tutup bottom sheet
+        onTap();
+      },
+    );
+  }
+
+  void _navigateTo(Widget page) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
+  }
+
+  void _handleNavigation(int index) {
+    // Implementasi navigasi berdasarkan index
+    if (widget.isManager == true) {
+      if (index == 0) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+              // isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 3) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ModifierPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                isManager: widget.isManager),
+          ),
+        );
+      }
+    } else {
+      if (index == 0) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                isManager: widget.isManager),
+          ),
+        );
+      } else if (index == 3) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ModifierPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                isManager: widget.isManager),
+          ),
+        );
+      }
+    }
+    // Tambahkan case lainnya sesuai kebutuhan
   }
 }
 
