@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:posmobile/Components/Navbar.dart';
-import 'package:flutter/material.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Model/Model.dart';
 
@@ -381,7 +380,7 @@ class _CategoryPageState extends State<CategoryPage> {
               _buildMenuOption(
                 icon: Icons.discount,
                 label: 'Discount',
-                onTap: () => _navigateTo(ModifierPage(
+                onTap: () => _navigateTo(DiscountPage(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
