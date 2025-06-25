@@ -217,7 +217,7 @@ class _LoginPageState extends State<LoginPage> {
                             image: AssetImage('assets/images/FixGaSihV2.png'),
                             fit: BoxFit.fill,
                             // alignment: Alignment.center, // Mengisi seluruh area
-                            opacity: 0.15,
+                            opacity: 0.16,
                           ),
                         ),
                       ),
