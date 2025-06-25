@@ -9,6 +9,7 @@ import 'package:posmobile/Components/Navbar.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posmobile/Pages/CategoryPage.dart';
 import 'package:posmobile/Pages/CreateOrderPage.dart';
+import 'package:posmobile/Pages/DiscountPage.dart';
 import 'package:posmobile/Pages/HistoryPage.dart';
 import 'package:posmobile/Pages/ModifierPage.dart';
 
@@ -147,6 +148,7 @@ class _ProductPageState extends State<ProductPage> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
+              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
               title: Center(
                 child: Text(
                   isEdit ? 'Edit Product' : 'Create Product',
@@ -217,6 +219,8 @@ class _ProductPageState extends State<ProductPage> {
                                 border: OutlineInputBorder(),
                               ),
                               value: dropdownValue,
+                              dropdownColor: Color.fromARGB(255, 255, 255, 255), // <-- Ubah warna background dropdown di sini
+ 
                               items: categories.map((category) {
                                 return DropdownMenuItem(
                                   value: category.category_name,
@@ -344,7 +348,7 @@ class _ProductPageState extends State<ProductPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                              backgroundColor: const Color.fromARGB(255, 53, 150, 105),
                               foregroundColor: Colors.white,
                             ),
                             onPressed: () {
@@ -356,7 +360,7 @@ class _ProductPageState extends State<ProductPage> {
                                 _showSinglePrice = false;
                               });
                             },
-                            child: const Text('ADD VARIANT'),
+                            child: Text('ADD VARIANT', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -417,7 +421,9 @@ class _ProductPageState extends State<ProductPage> {
                                       EdgeInsets.zero, // Remove all padding
                                   visualDensity: VisualDensity(
                                       horizontal: -4,
-                                      vertical: -4), // Make it more compact
+                                      vertical: -4), 
+                                       activeColor: Color.fromARGB(255, 53, 150, 105), // Checkbox background when checked
+  checkColor: Colors.white,// Make it more compact
                                 );
                               }).toList(),
                             );
@@ -443,8 +449,8 @@ class _ProductPageState extends State<ProductPage> {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-                    foregroundColor: Colors.white,
+                    backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                    foregroundColor: const Color.fromARGB(255, 255, 255, 255),
                   ),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
@@ -562,24 +568,37 @@ class _ProductPageState extends State<ProductPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
+      appBar: AppBar(
+  automaticallyImplyLeading: false,
+  title: Padding(
+    padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
+    child: Text(
+      "Menu",
+      style: TextStyle(
+        fontSize: 30,
+        fontWeight: FontWeight.bold,
+        color: Color.fromARGB(255, 0, 0, 0),
+      ),
+    ),
+  ),
+  backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+  elevation: 0,
+  centerTitle: false,
+  foregroundColor: Colors.black,
+  shape: const Border(
+    bottom: BorderSide(
+      color: Color.fromARGB(255, 102, 105, 108), // Outline color
+      width: 0.5, // Outline thickness
+    ),
+  ),
+),
+
+      //APP BACKGROUND COLOR
+      backgroundColor: const Color.fromARGB(255, 245, 244, 244),
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: EdgeInsets.all(8),
-              child: Center(
-                child: Text(
-                  "Menu",
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-              ),
-            ),
             Expanded(
               child: FutureBuilder<ProductResponse>(
                 future: _productFuture,
@@ -597,10 +616,13 @@ class _ProductPageState extends State<ProductPage> {
                     itemBuilder: (context, index) {
                       final product = snapshot.data!.data[index];
                       return Card(
-                        shadowColor: const Color.fromARGB(255, 136, 155, 205),
-                        color: const Color.fromARGB(255, 255, 255, 255),
+                        shadowColor: const Color.fromARGB(255, 0, 0, 0),
+                        color: const Color.fromARGB(255, 255, 254, 254),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
+      //                     side: const BorderSide(
+      // color: Color.fromARGB(255, 0, 0, 0), // Outline color
+      // width: 1.5,)
                         ),
                         elevation: 6,
                         margin: const EdgeInsets.symmetric(
@@ -763,7 +785,7 @@ class _ProductPageState extends State<ProductPage> {
       );
     }
   },
-  activeColor: Colors.blueGrey,
+  activeColor: const Color.fromARGB(255, 53, 150, 105),
   inactiveThumbColor: Colors.red,
 ),
                                 ],
@@ -784,7 +806,7 @@ class _ProductPageState extends State<ProductPage> {
         onPressed: () {
           _showCreateProductDialog(context: context, isEdit: false);
         },
-        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+        backgroundColor: const Color.fromARGB(255, 53, 150, 105),
         child: const Icon(Icons.add, color: Colors.white),
         tooltip: 'Create Product',
       ),
@@ -845,8 +867,9 @@ class _ProductPageState extends State<ProductPage> {
               _buildMenuOption(
                 icon: Icons.discount,
                 label: 'Discount',
-                onTap: () => _navigateTo(ModifierPage(
+                onTap: () => _navigateTo(DiscountPage(
                   token: widget.token,
+                  userRoleId: 2,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
                 )),
@@ -1043,23 +1066,24 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Future<ModifierResponse> fetchModifiers(String token, String outletId) async {
-    final url = Uri.parse('$baseUrl/api/modifier/outlet/$outletId');
-    try {
-      final response = await http.get(url, headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      });
+  final url = Uri.parse('$baseUrl/api/modifier/ext/outlet/$outletId'); // <-- perbaiki di sini
+  try {
+    final response = await http.get(url, headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    });
 
-      if (response.statusCode == 200) {
-        return ModifierResponse.fromJson(jsonDecode(response.body));
-      } else {
-        throw Exception('Failed to load modifiers: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('Error fetching modifiers: $e');
-      rethrow;
+    if (response.statusCode == 200) {
+      return ModifierResponse.fromJson(jsonDecode(response.body));
+      print(response.body);
+    } else {
+      throw Exception('Failed to load modifiers: ${response.statusCode}');
     }
+  } catch (e) {
+    debugPrint('Error fetching modifiers: $e');
+    rethrow;
   }
+}
 
   Future<void> _createProduct({
     required String name,
