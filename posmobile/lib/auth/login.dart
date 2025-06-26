@@ -342,7 +342,24 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
+<<<<<<< Fauzan
+                ),
+              ),
+            ),
+          ),
+
+          Positioned(
+            bottom: -25,
+            left: 0,
+            right: 0,
+            child: Opacity(
+              opacity: 0.5, // Nilai 0.0 (transparan) hingga 1.0 (solid)
+              child: Image.asset(
+                'assets/images/LogoBawah.png',
+                height: 50,
+=======
                 ],
+>>>>>>> main
               ),
             ),
           ),

@@ -164,6 +164,7 @@ class _ModifierPageState extends State<ModifierPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
+              backgroundColor: Colors.white ,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -297,7 +298,8 @@ class _ModifierPageState extends State<ModifierPage> {
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      const Color.fromARGB(255, 0, 0, 0),
+                                      const Color.fromARGB(255, 53, 150, 105
+),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
@@ -342,6 +344,7 @@ class _ModifierPageState extends State<ModifierPage> {
                                                 _isRequired = true;
                                               });
                                             },
+                                            activeColor: Color.fromARGB(255, 53, 150, 105), // <-- Green color
                                           ),
                                           const Text('Yes'),
                                         ],
@@ -356,6 +359,7 @@ class _ModifierPageState extends State<ModifierPage> {
                                                 _isRequired = false;
                                               });
                                             },
+                                            activeColor: Color.fromARGB(255, 53, 150, 105), // <-- Green color
                                           ),
                                           const Text('No'),
                                         ],
@@ -374,7 +378,8 @@ class _ModifierPageState extends State<ModifierPage> {
                       children: [
                         TextButton(
                           style: TextButton.styleFrom(
-                              foregroundColor: Colors.black),
+                              foregroundColor: const Color.fromARGB(255, 53, 150, 105
+)),
                           onPressed: () => Navigator.of(context).pop(),
                           child: const Text('Cancel'),
                         ),
@@ -421,7 +426,8 @@ class _ModifierPageState extends State<ModifierPage> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
+                            backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
                           ),
                           child: const Text(
                             'Create',
@@ -462,6 +468,7 @@ class _ModifierPageState extends State<ModifierPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -595,7 +602,8 @@ class _ModifierPageState extends State<ModifierPage> {
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
-                                      const Color.fromARGB(255, 0, 0, 0),
+                                      const Color.fromARGB(255, 53, 150, 105
+),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
@@ -640,6 +648,7 @@ class _ModifierPageState extends State<ModifierPage> {
                                                 _isRequired = true;
                                               });
                                             },
+                                            activeColor: Color.fromARGB(255, 53, 150, 105), // <-- Green color
                                           ),
                                           const Text('Yes'),
                                         ],
@@ -654,6 +663,7 @@ class _ModifierPageState extends State<ModifierPage> {
                                                 _isRequired = false;
                                               });
                                             },
+                                            activeColor: Color.fromARGB(255, 53, 150, 105), // <-- Green color
                                           ),
                                           const Text('No'),
                                         ],
@@ -672,9 +682,10 @@ class _ModifierPageState extends State<ModifierPage> {
                       children: [
                         TextButton(
                           style: TextButton.styleFrom(
-                              foregroundColor: Colors.black),
+                              foregroundColor: const Color.fromARGB(255, 53, 150, 105
+)),
                           onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Cancel'),
+                          child: const Text('Cancel', ),
                         ),
                         ElevatedButton(
                           onPressed: () async {
@@ -719,7 +730,8 @@ class _ModifierPageState extends State<ModifierPage> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
+                            backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
                           ),
                           child: const Text(
                             'Save',
@@ -775,6 +787,7 @@ class _ModifierPageState extends State<ModifierPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: Colors.white,
           title: Text("Apply \"${modifier.name}\" to Products"),
           content: SizedBox(
             width: 350,
@@ -784,6 +797,7 @@ class _ModifierPageState extends State<ModifierPage> {
                 return CheckboxListTile(
                   value: selected[product.id] ?? false,
                   title: Text(product.name),
+                  activeColor: Color.fromARGB(255, 53, 150, 105), // <-- Green color
                   onChanged: (val) {
                     selected[product.id] = val ?? false;
                     (context as Element).markNeedsBuild();
@@ -796,11 +810,13 @@ class _ModifierPageState extends State<ModifierPage> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child:
-                  const Text('Cancel', style: TextStyle(color: Colors.black)),
+                  const Text('Cancel', style: TextStyle(color: Color.fromARGB(255, 53, 150, 105
+))),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
+                backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
@@ -876,22 +892,37 @@ class _ModifierPageState extends State<ModifierPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+  automaticallyImplyLeading: false,
+  title: Padding(
+    padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
+    child: Text(
+      "Modifiers",
+      style: TextStyle(
+        fontSize: 30,
+        fontWeight: FontWeight.bold,
+        color: Color.fromARGB(255, 255, 255, 255),
+      ),
+    ),
+  ),
+  backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
+  elevation: 0,
+  centerTitle: false,
+  foregroundColor: Colors.black,
+  shape: const Border(
+    bottom: BorderSide(
+      color: Color.fromARGB(255, 102, 105, 108), // Outline color
+      width: 0.5, // Outline thickness
+    ),
+  ),
+),
+
+      backgroundColor: const Color.fromARGB(255, 245, 244, 244),
+
       body: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 32, left: 16, right: 16, bottom: 8),
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(
-                'Modifiers',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 28,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-          ),
+          
           Expanded(
             child: FutureBuilder<ModifierResponse>(
               future: _modifierFuture,
@@ -962,6 +993,7 @@ class _ModifierPageState extends State<ModifierPage> {
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
+                                    backgroundColor: Colors.white,
                                     title: const Center(
                                         child: Text('Delete Modifier')),
                                     content: const Text(
@@ -1069,7 +1101,8 @@ class _ModifierPageState extends State<ModifierPage> {
         onPressed: () {
           showCreateModifierDialog();
         },
-        backgroundColor: Colors.black,
+        backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
         child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: _buildNavbar(),

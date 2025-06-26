@@ -142,22 +142,35 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+         appBar: AppBar(
+  automaticallyImplyLeading: false,
+  title: Padding(
+    padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
+    child: Text(
+      "Menu",
+      style: TextStyle(
+        fontSize: 30,
+        fontWeight: FontWeight.bold,
+        color: Color.fromARGB(255, 255, 255, 255),
+      ),
+    ),
+  ),
+  backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
+  elevation: 0,
+  centerTitle: false,
+  foregroundColor: Colors.black,
+  shape: const Border(
+    bottom: BorderSide(
+      color: Color.fromARGB(255, 102, 105, 108), // Outline color
+      width: 0.5, // Outline thickness
+    ),
+  ),
+),
+        backgroundColor: const Color.fromARGB(255, 245, 244, 244),
         body: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.all(8),
-                child: Center(
-                  child: Text(
-                    "Menu",
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ),
-              ),
               Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 8.0),
@@ -188,22 +201,35 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               .map((category) => category.category_name)
                               .toList();
 
-                      return Row(
+                        return Row(
                         children: categoryNames.map((category) {
+                          final isSelected = selectedCategory == category;
                           return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: ChoiceChip(
-                              label: Text(category),
-                              selected: selectedCategory == category,
-                              onSelected: (selected) {
-                                setState(() {
-                                  selectedCategory = category;
-                                });
-                              },
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: ChoiceChip(
+                            label: Text(
+                            category,
+                            style: TextStyle(
+                              color: isSelected
+                                ? Colors.white
+                                : const Color.fromARGB(255, 53, 150, 105
+), // Selected: white, Unselected: black
                             ),
+                            ),
+                            selected: isSelected,
+                            selectedColor:
+                              const Color.fromARGB(255, 53, 150, 105),
+                            backgroundColor:
+                              const Color.fromARGB(255, 255, 255, 255),
+                            onSelected: (selected) {
+                            setState(() {
+                              selectedCategory = category;
+                            });
+                            },
+                          ),
                           );
                         }).toList(),
-                      );
+                        );
                     } else if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
                     }
@@ -252,6 +278,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                         final price = product.variants[0].price;
                         return InkWell(
                           child: Card(
+                            color: Colors.white,
                             elevation: 6,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -271,7 +298,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         product.name,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          fontSize: 20,
+                                          fontSize: 15,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -294,7 +321,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         _showOrderOptions(context, product);
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.black,
+                                        backgroundColor: const Color.fromARGB(255, 53, 150, 105),
                                         shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.all(
                                                 Radius.circular(40))),
@@ -328,7 +355,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         floatingActionButton: _cartItems.isNotEmpty
             ? FloatingActionButton.extended(
                 onPressed: _showCart,
-                backgroundColor: Colors.black,
+                backgroundColor: const Color.fromARGB(255, 53, 150, 105), // Change color here
                 icon: const Icon(Icons.shopping_cart, color: Colors.white),
                 label: Text(
                   '${_cartItems.length} item(s)',
@@ -623,10 +650,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+        backgroundColor: const Color.fromARGB(255, 255, 254, 254), 
+
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return StatefulBuilder(builder: (context, setModalState) {
+          
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -635,6 +665,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               right: 16,
             ),
             child: SingleChildScrollView(
+              
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -645,7 +676,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                         onPressed: () => Navigator.pop(context),
                         child: const Text("CANCEL",
                             style: TextStyle(
-                                color: Colors.black,
+                                color: Color.fromARGB(255, 53, 150, 105
+),
                                 fontWeight: FontWeight.bold)),
                       ),
                       Text(
@@ -699,9 +731,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           print(_cartItems);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
+                          backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
+                              borderRadius: BorderRadius.circular(50)),
                         ),
                         child: const Text("Save",
                             style: TextStyle(color: Colors.white)),
@@ -735,6 +768,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                           m['modifier_options']['id'] ==
                                               option.id);
 
+                                  // --- Modifier ChoiceChip ---
                                   return ChoiceChip(
                                     label: Text(
                                       "${option.name}${option.price! > 0 ? ' (+${option.price})' : ''}",
@@ -749,16 +783,15 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         );
                                       });
                                     },
-                                    selectedColor: Colors.black,
+                                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                                    selectedColor: Color.fromARGB(255, 53, 150, 105), // <-- Green when selected
                                     checkmarkColor: Colors.white,
                                     labelStyle: TextStyle(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.black,
+                                      color: isSelected ? Colors.white : Colors.black,
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      side: BorderSide(color: Colors.black),
+                                      side: BorderSide(color: const Color.fromARGB(255, 187, 187, 187)),
                                     ),
                                   );
                                 }).toList(),
@@ -798,6 +831,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               v['id'] == variants.id &&
                               v['product_id'] == product.id);
 
+                          // --- Variant ChoiceChip ---
                           return ChoiceChip(
                             label: Text(
                               "${variants.name}${variants.price > 0 ? ' ${variants.price}' : ''}",
@@ -811,14 +845,15 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                     max_selected: 1);
                               });
                             },
-                            selectedColor: Colors.black,
+                            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                            selectedColor: Color.fromARGB(255, 53, 150, 105), // <-- Green when selected
                             checkmarkColor: Colors.white,
                             labelStyle: TextStyle(
                               color: isSelected ? Colors.white : Colors.black,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
-                              side: BorderSide(color: Colors.black),
+                              side: BorderSide(color: const Color.fromARGB(255, 187, 187, 187)),
                             ),
                           );
                         }).toList(),
@@ -888,6 +923,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+        backgroundColor: Color.fromARGB(255, 255, 254, 254
+), // <-- Set your desired color here
+
       builder: (BuildContext context) {
         return SafeArea(
           child: Container(
@@ -909,13 +947,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("Costumer Name",
+                                    Text("Customer Name",
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold)),
                                     TextFormField(
                                       decoration: InputDecoration(
                                           border: OutlineInputBorder(),
-                                          hintText: "Enter Costumer name"),
+                                          hintText: "Enter Customerr name"),
                                       controller: _customerNameController,
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
@@ -1202,7 +1240,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
+                          backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 32,
                             vertical: 16,

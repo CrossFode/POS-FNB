@@ -27,8 +27,11 @@ class FlexibleNavbar extends StatelessWidget {
         }
       },
       type: BottomNavigationBarType.fixed,
-      items: isManager ? _buildManagerItems() : _buildStaffItems(),
-    );
+    backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Navbar background
+    selectedItemColor: Color.fromARGB(255, 53, 150, 105), // Selected icon/text color
+    unselectedItemColor: const Color.fromARGB(179, 67, 67, 67), // Unselected icon/text color
+    items: isManager ? _buildManagerItems() : _buildStaffItems(),
+ );
   }
 
   List<BottomNavigationBarItem> _buildManagerItems() {

@@ -258,7 +258,8 @@ class _DiscountPageState extends State<DiscountPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
       ),
     );
   }
@@ -446,12 +447,15 @@ class _DiscountPageState extends State<DiscountPage> {
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text('Discount'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          title: const Text("Discount", style: TextStyle(fontSize: 30)),
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
+          foregroundColor: const Color.fromARGB(255, 255, 255, 255),
         ),
         resizeToAvoidBottomInset:
-            false, // Prevent resizing when keyboard appears
+            false,
+                  backgroundColor: const Color.fromARGB(255, 245, 244, 244),
+ // Prevent resizing when keyboard appears
         body: Column(
           children: [
             // Search bar
@@ -503,6 +507,8 @@ class _DiscountPageState extends State<DiscountPage> {
                           itemBuilder: (context, index) {
                             final discount = _filteredDiscounts[index];
                             return Card(
+                                                      color: const Color.fromARGB(255, 255, 254, 254),
+
                               elevation: 2,
                               margin: const EdgeInsets.symmetric(
                                   vertical: 4, horizontal: 2),
@@ -520,7 +526,8 @@ class _DiscountPageState extends State<DiscountPage> {
                                           ? '${discount.amount}% off'
                                           : 'Rp ${NumberFormat('#,###').format(discount.amount)} off',
                                       style: TextStyle(
-                                        color: Colors.green[700],
+                                        color: const Color.fromARGB(255, 53, 150, 105
+),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -539,7 +546,7 @@ class _DiscountPageState extends State<DiscountPage> {
                                   children: [
                                     IconButton(
                                       icon: Icon(Icons.edit,
-                                          color: Colors.blue[700]),
+                                          color: const Color.fromARGB(255, 61, 63, 65)),
                                       onPressed: () =>
                                           _showEditDialog(discount),
                                     ),
@@ -565,7 +572,8 @@ class _DiscountPageState extends State<DiscountPage> {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.green.withOpacity(0.3),
+                color: const Color.fromARGB(255, 53, 150, 105
+).withOpacity(0.3),
                 spreadRadius: 2,
                 blurRadius: 8,
                 offset: const Offset(0, 3),
@@ -574,9 +582,10 @@ class _DiscountPageState extends State<DiscountPage> {
           ),
           child: FloatingActionButton(
             onPressed: _showCreateDialog,
-            backgroundColor: Colors.green,
+            backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
             elevation: 0,
-            shape: const CircleBorder(),
+            // shape: const CircleBorder(),
             child: const Icon(
               Icons.add,
               color: Colors.white,
@@ -890,7 +899,8 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: const Color.fromARGB(255, 53, 150, 105
+),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
@@ -940,10 +950,12 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide:
-                                  BorderSide(color: Colors.green, width: 2),
+                                  BorderSide(color: const Color.fromARGB(255, 53, 150, 105
+), width: 2),
                             ),
                             prefixIcon:
-                                Icon(Icons.discount, color: Colors.green),
+                                Icon(Icons.discount, color: const Color.fromARGB(255, 53, 150, 105
+)),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -1016,13 +1028,15 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide:
-                                  BorderSide(color: Colors.green, width: 2),
+                                  BorderSide(color: const Color.fromARGB(255, 53, 150, 105
+), width: 2),
                             ),
                             prefixIcon: Icon(
                               _selectedType == 'fixed'
                                   ? Icons.attach_money
                                   : Icons.percent,
-                              color: Colors.green,
+                              color: const Color.fromARGB(255, 53, 150, 105
+),
                             ),
                             suffixText: _selectedType == 'percent' ? '%' : '',
                             prefixText: _selectedType == 'fixed' ? 'Rp ' : '',
@@ -1111,7 +1125,8 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
                                             }
                                           });
                                         },
-                                        activeColor: Colors.green,
+                                        activeColor: const Color.fromARGB(255, 53, 150, 105
+),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(4),
@@ -1179,7 +1194,8 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
                         onPressed: _isSubmitting ? null : _handleSubmit,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: Colors.green,
+                          backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -1223,7 +1239,8 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.green : Colors.transparent,
+          color: isSelected ? const Color.fromARGB(255, 53, 150, 105
+) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

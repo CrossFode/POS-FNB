@@ -219,8 +219,9 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text('Referral Code'),
-          backgroundColor: Colors.blue[600],
+          title: const Text("Referal Code",style: TextStyle(fontSize: 30),),
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
           foregroundColor: Colors.white,
           elevation: 2,
         ),
@@ -246,11 +247,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Colors.blue[50]!, Colors.white],
-                        ),
+                        color: Colors.grey[50]!,
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -261,7 +258,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue[600],
+                                  color: const Color.fromARGB(255, 172, 175, 177),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
@@ -307,8 +304,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                     controller: codeController,
                                     decoration: InputDecoration(
                                       labelText: 'Referral Code',
-                                      prefixIcon: const Icon(Icons.code,
-                                          color: Colors.blue),
+                                      
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide.none,
@@ -339,8 +335,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                     maxLines: 2,
                                     decoration: InputDecoration(
                                       labelText: 'Description',
-                                      prefixIcon: const Icon(Icons.description,
-                                          color: Colors.green),
+                                      
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide.none,
@@ -376,9 +371,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
                                             labelText: 'Discount (%)',
-                                            prefixIcon: const Icon(
-                                                Icons.percent,
-                                                color: Colors.orange),
+                                            
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(12),
@@ -412,8 +405,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
                                             labelText: 'Quotas',
-                                            prefixIcon: const Icon(Icons.people,
-                                                color: Colors.purple),
+                                            
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(12),
@@ -475,8 +467,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(Icons.calendar_today,
-                                            color: Colors.red[400]),
+                                        
                                         const SizedBox(width: 12),
                                         Text(
                                           expiredDate != null
@@ -518,7 +509,8 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.grey,
+                                      color: Color.fromARGB(255, 53, 150, 105
+),
                                     ),
                                   ),
                                 ),
@@ -546,7 +538,8 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[600],
+                                    backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 16),
                                     shape: RoundedRectangleBorder(
@@ -573,7 +566,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
               },
             );
           },
-          backgroundColor: Colors.blue[600],
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           child: const Icon(Icons.add, color: Colors.white),
         ),
         body: isLoading
@@ -610,7 +603,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.edit,
-                                        color: Colors.blue),
+                                        ),
                                     onPressed: () {
                                       showDialog(
                                         context: context,
@@ -668,8 +661,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                                                   .all(12),
                                                           decoration:
                                                               BoxDecoration(
-                                                            color: Colors
-                                                                .orange[600],
+                                                            color: const Color.fromARGB(255, 115, 113, 111),
                                                             borderRadius:
                                                                 BorderRadius
                                                                     .circular(
@@ -736,10 +728,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                                                   InputDecoration(
                                                                 labelText:
                                                                     'Referral Code',
-                                                                prefixIcon: const Icon(
-                                                                    Icons.code,
-                                                                    color: Colors
-                                                                        .blue),
+                                                                
                                                                 border:
                                                                     OutlineInputBorder(
                                                                   borderRadius:
@@ -793,11 +782,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                                                   InputDecoration(
                                                                 labelText:
                                                                     'Description',
-                                                                prefixIcon: const Icon(
-                                                                    Icons
-                                                                        .description,
-                                                                    color: Colors
-                                                                        .green),
+                                                                
                                                                 border:
                                                                     OutlineInputBorder(
                                                                   borderRadius:
@@ -857,11 +842,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                                                         InputDecoration(
                                                                       labelText:
                                                                           'Discount (%)',
-                                                                      prefixIcon: const Icon(
-                                                                          Icons
-                                                                              .percent,
-                                                                          color:
-                                                                              Colors.orange),
+                                                                      
                                                                       border:
                                                                           OutlineInputBorder(
                                                                         borderRadius:
@@ -916,11 +897,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                                                         InputDecoration(
                                                                       labelText:
                                                                           'Quotas',
-                                                                      prefixIcon: const Icon(
-                                                                          Icons
-                                                                              .people,
-                                                                          color:
-                                                                              Colors.purple),
+                                                                      
                                                                       border:
                                                                           OutlineInputBorder(
                                                                         borderRadius:
@@ -1021,12 +998,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                                               ),
                                                               child: Row(
                                                                 children: [
-                                                                  Icon(
-                                                                      Icons
-                                                                          .calendar_today,
-                                                                      color: Colors
-                                                                              .red[
-                                                                          400]),
+                                                                  
                                                                   const SizedBox(
                                                                       width:
                                                                           12),
@@ -1084,7 +1056,8 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                                                     FontWeight
                                                                         .w600,
                                                                 color:
-                                                                    Colors.grey,
+                                                                    Color.fromARGB(255, 53, 150, 105
+),
                                                               ),
                                                             ),
                                                           ),
@@ -1120,12 +1093,8 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                                                 ElevatedButton
                                                                     .styleFrom(
                                                               backgroundColor:
-                                                                  const Color
-                                                                      .fromARGB(
-                                                                      255,
-                                                                      92,
-                                                                      89,
-                                                                      85),
+                                                                  const Color.fromARGB(255, 53, 150, 105
+),
                                                               padding:
                                                                   const EdgeInsets
                                                                       .symmetric(

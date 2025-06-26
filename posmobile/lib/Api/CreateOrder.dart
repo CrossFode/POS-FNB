@@ -35,7 +35,7 @@ Future<OutletResponseById> fetchOutletById(token, outletId) async {
   } on http.ClientException catch (e) {
     throw Exception('Network error: ${e.message}');
   } on FormatException catch (e) {
-    throw Exception('Data parsing error: ${e.message}');
+   throw Exception('Data parsing error: ${e.message}');
   } catch (e) {
     throw Exception('Unexpected error: $e');
   }

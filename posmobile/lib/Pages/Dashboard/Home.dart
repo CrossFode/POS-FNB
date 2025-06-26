@@ -67,24 +67,35 @@ class _AdminScreenState extends State<Home> {
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.end, // Tetap di kanan
               children: [
-                TextButton(
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 24, top: 8, right: 16), // padding kiri, atas, kanan
+                  child: ElevatedButton(
                     onPressed: () async {
-                      SharedPreferences pref =
-                          await SharedPreferences.getInstance();
+                      SharedPreferences pref = await SharedPreferences.getInstance();
                       pref.remove('token');
-
                       pref.remove('role');
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => LoginPage()));
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
                       print("Token dihapus");
                       print("Role dihapus");
                     },
-                    child: Text(
-                      "Logout",
-                      style: TextStyle(color: Colors.red, fontSize: 16),
-                    ))
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      textStyle: const TextStyle(fontSize: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text("Logout"),
+                  ),
+                ),
               ],
             ),
             Center(

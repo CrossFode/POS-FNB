@@ -997,19 +997,19 @@ class _HistoryPageState extends State<HistoryPage>
         appBar: AppBar(
           automaticallyImplyLeading: false,
           title: const Text(
-            'Order History',
+            "Order History",
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 30,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: Color.fromARGB(255, 255, 255, 255),
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           elevation: 0,
           shadowColor: Colors.black12,
           actions: [
             IconButton(
-              icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+              icon: const Icon(Icons.refresh, color: Color.fromARGB(255, 255, 255, 255)),
               onPressed: () {
                 _fetchOrdersFromApi();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1022,7 +1022,7 @@ class _HistoryPageState extends State<HistoryPage>
               },
             ),
             IconButton(
-              icon: const Icon(Icons.download, color: Color(0xFF64748B)),
+              icon: const Icon(Icons.download, color: Color.fromARGB(255, 255, 255, 255)),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
