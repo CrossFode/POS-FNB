@@ -855,11 +855,13 @@ class _UserPageState extends State<UserPage> {
                         SizedBox(width: 12),
                         Expanded(
                           child: DropdownButton<String>(
+                             dropdownColor: Colors.white,
                             value: selectedRoleFilter,
                             hint: Text('All Roles'),
                             isExpanded: true,
                             items: [
                               DropdownMenuItem<String>(
+                                
                                 value: null,
                                 child: Text('All Roles'),
                               ),

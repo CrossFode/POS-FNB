@@ -1136,7 +1136,8 @@ class _ModifierPageState extends State<ModifierPage> {
                                         title: const Center(
                                             child: Text('Delete Modifier')),
                                         content: const Text(
-                                            'Apakah anda yakin ingin menghapus modifier ini?'),
+                                            'Apakah anda yakin ingin menghapus modifier ini?',          textAlign: TextAlign.center,
+),
                                         actionsPadding:
                                             const EdgeInsets.symmetric(
                                                 horizontal: 16, vertical: 16),

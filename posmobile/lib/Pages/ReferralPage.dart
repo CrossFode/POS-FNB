@@ -580,6 +580,9 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
           backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           child: const Icon(Icons.add, color: Colors.white),
         ),
+
+                backgroundColor: const Color.fromARGB(255, 245, 244, 244),
+
         body: Stack(
           children: [
             // Background image dengan opacity 0.5

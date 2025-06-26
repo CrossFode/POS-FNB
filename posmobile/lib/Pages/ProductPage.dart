@@ -766,10 +766,15 @@ class _ProductPageState extends State<ProductPage> {
                                                     backgroundColor:
                                                         const Color.fromARGB(
                                                             255, 255, 255, 255),
-                                                    title: const Text(
-                                                        'Delete Product'),
+                                                     title: const Center( // <-- Add Center here
+    child: Text(
+      'Delete Product',
+      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+    ),
+  ),
                                                     content: const Text(
-                                                        'Apakah anda yakin ingin menghapus produk ini?'),
+                                                        'Apakah anda yakin ingin menghapus produk ini?',          textAlign: TextAlign.center,
+),
                                                     actions: [
                                                       Row(
                                                         children: [
