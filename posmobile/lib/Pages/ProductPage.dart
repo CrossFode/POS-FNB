@@ -60,13 +60,14 @@ class _ProductPageState extends State<ProductPage> {
   Future<void> _loadProducts() async {
     try {
       setState(() => _isLoading = true);
-      final productResponse = await fetchAllProduct(widget.token, widget.outletId);
-      
+      final productResponse =
+          await fetchAllProduct(widget.token, widget.outletId);
+
       final categories = productResponse.data
           .map((product) => product.category_name)
           .toSet()
           .toList();
-          
+
       final statusMap = <int, bool>{};
       for (var product in productResponse.data) {
         statusMap[product.id] = product.is_active == 1;
@@ -106,7 +107,6 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   // Removed duplicate build method to resolve 'The name 'build' is already defined.' error.
-
 
   void _showCreateProductDialog(
       {BuildContext? context, Product? product, bool isEdit = false}) {
@@ -219,8 +219,9 @@ class _ProductPageState extends State<ProductPage> {
                                 border: OutlineInputBorder(),
                               ),
                               value: dropdownValue,
-                              dropdownColor: Color.fromARGB(255, 255, 255, 255), // <-- Ubah warna background dropdown di sini
- 
+                              dropdownColor: Color.fromARGB(255, 255, 255,
+                                  255), // <-- Ubah warna background dropdown di sini
+
                               items: categories.map((category) {
                                 return DropdownMenuItem(
                                   value: category.category_name,
@@ -348,7 +349,8 @@ class _ProductPageState extends State<ProductPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 53, 150, 105),
                               foregroundColor: Colors.white,
                             ),
                             onPressed: () {
@@ -360,7 +362,8 @@ class _ProductPageState extends State<ProductPage> {
                                 _showSinglePrice = false;
                               });
                             },
-                            child: Text('ADD VARIANT', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text('ADD VARIANT',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -420,10 +423,11 @@ class _ProductPageState extends State<ProductPage> {
                                   contentPadding:
                                       EdgeInsets.zero, // Remove all padding
                                   visualDensity: VisualDensity(
-                                      horizontal: -4,
-                                      vertical: -4), 
-                                       activeColor: Color.fromARGB(255, 53, 150, 105), // Checkbox background when checked
-  checkColor: Colors.white,// Make it more compact
+                                      horizontal: -4, vertical: -4),
+                                  activeColor: Color.fromARGB(255, 53, 150,
+                                      105), // Checkbox background when checked
+                                  checkColor:
+                                      Colors.white, // Make it more compact
                                 );
                               }).toList(),
                             );
@@ -437,20 +441,23 @@ class _ProductPageState extends State<ProductPage> {
               actions: [
                 TextButton(
                   style: TextButton.styleFrom(
-                  foregroundColor: const Color.fromARGB(255, 0, 0, 0),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    side: const BorderSide(
-                    color: Color.fromARGB(255, 53, 150, 105
-), // Outline color
-                    width: 1.5, // Outline thickness
+                    foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      side: const BorderSide(
+                        color:
+                            Color.fromARGB(255, 53, 150, 105), // Outline color
+                        width: 1.5, // Outline thickness
+                      ),
                     ),
                   ),
-                  ),
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel',style: TextStyle(color: Color.fromARGB(255, 53, 150, 105
-)),),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Color.fromARGB(255, 53, 150, 105)),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -574,273 +581,332 @@ class _ProductPageState extends State<ProductPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-  automaticallyImplyLeading: false,
-  title: Padding(
-    padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
-    child: Text(
-      "Menu",
-      style: TextStyle(
-        fontSize: 30,
-        fontWeight: FontWeight.bold,
-        color: Color.fromARGB(255, 255, 255, 255),
-      ),
-    ),
-  ),
-  backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
-  elevation: 0,
-  centerTitle: false,
-  foregroundColor: Colors.black,
-  shape: const Border(
-    bottom: BorderSide(
-      color: Color.fromARGB(255, 102, 105, 108), // Outline color
-      width: 0.5, // Outline thickness
-    ),
-  ),
-),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Padding(
+            padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
+            child: Text(
+              "Menu",
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 255, 255, 255),
+              ),
+            ),
+          ),
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+          elevation: 0,
+          centerTitle: false,
+          foregroundColor: Colors.black,
+          shape: const Border(
+            bottom: BorderSide(
+              color: Color.fromARGB(255, 102, 105, 108), // Outline color
+              width: 0.5, // Outline thickness
+            ),
+          ),
+        ),
 
-      //APP BACKGROUND COLOR
-      backgroundColor: const Color.fromARGB(255, 245, 244, 244),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: FutureBuilder<ProductResponse>(
-                future: _productFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
-                    return const Center(child: Text('No products available'));
-                  }
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: snapshot.data!.data.length,
-                    itemBuilder: (context, index) {
-                      final product = snapshot.data!.data[index];
-                      return Card(
-                        shadowColor: const Color.fromARGB(255, 0, 0, 0),
-                        color: const Color.fromARGB(255, 255, 254, 254),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-      //                     side: const BorderSide(
-      // color: Color.fromARGB(255, 0, 0, 0), // Outline color
-      // width: 1.5,)
-                        ),
-                        elevation: 6,
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 20),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Left: Product info
-                              Expanded(
-                                child: Column(
+        //APP BACKGROUND COLOR
+        backgroundColor: const Color.fromARGB(255, 245, 244, 244),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Background image - paling bawah dalam Stack
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/FixGaSihV2.png'),
+                      fit: BoxFit.cover,
+                      opacity: 0.1,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Konten asli tetap di sini
+              Column(
+                children: [
+                  Expanded(
+                    child: FutureBuilder<ProductResponse>(
+                      future: _productFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.data.isEmpty) {
+                          return const Center(
+                              child: Text('No products available'));
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: snapshot.data!.data.length,
+                          itemBuilder: (context, index) {
+                            final product = snapshot.data!.data[index];
+                            return Card(
+                              shadowColor: const Color.fromARGB(255, 0, 0, 0),
+                              color: const Color.fromARGB(255, 255, 254, 254),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                //                     side: const BorderSide(
+                                // color: Color.fromARGB(255, 0, 0, 0), // Outline color
+                                // width: 1.5,)
+                              ),
+                              elevation: 6,
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 20),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      product.name,
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
+                                    // Left: Product info
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            product.name,
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            product.variants.isNotEmpty
+                                                ? formatPrice(product
+                                                    .variants.first.price)
+                                                : '-',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: Color(0xFF6B7A8F),
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      product.variants.isNotEmpty
-                                          ? formatPrice(
-                                              product.variants.first.price)
-                                          : '-',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Color(0xFF6B7A8F),
-                                        fontWeight: FontWeight.w400,
-                                      ),
+                                    // Right: Actions
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(Icons.edit,
+                                                  size: 28),
+                                              onPressed: () {
+                                                _showCreateProductDialog(
+                                                  context: context,
+                                                  product:
+                                                      product, // kirim data produk yang akan diedit
+                                                  isEdit:
+                                                      true, // tambahkan parameter untuk mode edit
+                                                );
+                                              },
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.delete,
+                                                  size: 28, color: Colors.red),
+                                              onPressed: () async {
+                                                final confirm =
+                                                    await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      AlertDialog(
+                                                    backgroundColor:
+                                                        const Color.fromARGB(
+                                                            255, 255, 255, 255),
+                                                    title: const Text(
+                                                        'Delete Product'),
+                                                    content: const Text(
+                                                        'Apakah anda yakin ingin menghapus produk ini?'),
+                                                    actions: [
+                                                      TextButton(
+                                                        style: TextButton
+                                                            .styleFrom(
+                                                          foregroundColor:
+                                                              const Color
+                                                                  .fromARGB(
+                                                                  255, 0, 0, 0),
+                                                        ),
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(false),
+                                                        child: const Text(
+                                                            'Cancel'),
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(true),
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          backgroundColor:
+                                                              Colors.red,
+                                                          foregroundColor:
+                                                              Colors.white,
+                                                        ),
+                                                        child: const Text(
+                                                            'Delete'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                                if (confirm == true) {
+                                                  try {
+                                                    final url = Uri.parse(
+                                                        '$baseUrl/api/product/${product.id}');
+                                                    final response =
+                                                        await http.delete(
+                                                      url,
+                                                      headers: {
+                                                        'Authorization':
+                                                            'Bearer ${widget.token}',
+                                                        'Content-Type':
+                                                            'application/json',
+                                                      },
+                                                    );
+                                                    if (response.statusCode ==
+                                                            200 ||
+                                                        response.statusCode ==
+                                                            204) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        const SnackBar(
+                                                            content: Text(
+                                                                'Product deleted successfully!')),
+                                                      );
+                                                      setState(() {
+                                                        _productFuture =
+                                                            fetchAllProduct(
+                                                                widget.token,
+                                                                widget
+                                                                    .outletId);
+                                                      });
+                                                    } else {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                            content: Text(
+                                                                'Failed to delete product: ${response.body}')),
+                                                      );
+                                                    }
+                                                  } catch (e) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                          content: Text(
+                                                              'Error: $e')),
+                                                    );
+                                                  }
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 1),
+                                        Switch(
+                                          value: _productActiveStatus[
+                                                  product.id] ??
+                                              false, // Fallback to false if null
+                                          onChanged: (value) async {
+                                            setState(() {
+                                              _productActiveStatus[product.id] =
+                                                  value; // Update state
+                                            });
+                                            try {
+                                              await updateProductStatus(
+                                                token: widget.token,
+                                                product: product,
+                                                isActive: value,
+                                              );
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                    content: Text(
+                                                        'Status updated successfully!')),
+                                              );
+                                            } catch (e) {
+                                              setState(() {
+                                                _productActiveStatus[
+                                                        product.id] =
+                                                    !value; // Revert on error
+                                              });
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                    content: Text(
+                                                        'Failed to update status')),
+                                              );
+                                            }
+                                          },
+                                          activeColor: const Color.fromARGB(
+                                              255, 53, 150, 105),
+                                          inactiveThumbColor: Colors.red,
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                              // Right: Actions
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, size: 28),
-                                        onPressed: () {
-                                          _showCreateProductDialog(
-                                            context: context,
-                                            product:
-                                                product, // kirim data produk yang akan diedit
-                                            isEdit:
-                                                true, // tambahkan parameter untuk mode edit
-                                          );
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete,
-                                            size: 28, color: Colors.red),
-                                        onPressed: () async {
-                                          final confirm =
-                                              await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                                              title:
-                                                  const Text('Delete Product'),
-                                              content: const Text(
-                                                  'Apakah anda yakin ingin menghapus produk ini?'),
-                                              actions: [
-                                                TextButton(style: TextButton.styleFrom(foregroundColor: const Color.fromARGB(255, 0, 0, 0),),
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(false),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                ElevatedButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(true),
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    backgroundColor: Colors.red,
-                                                    foregroundColor:
-                                                        Colors.white,
-                                                  ),
-                                                  child: const Text('Delete'),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                          if (confirm == true) {
-                                            try {
-                                              final url = Uri.parse(
-                                                  '$baseUrl/api/product/${product.id}');
-                                              final response =
-                                                  await http.delete(
-                                                url,
-                                                headers: {
-                                                  'Authorization':
-                                                      'Bearer ${widget.token}',
-                                                  'Content-Type':
-                                                      'application/json',
-                                                },
-                                              );
-                                              if (response.statusCode == 200 ||
-                                                  response.statusCode == 204) {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  const SnackBar(
-                                                      content: Text(
-                                                          'Product deleted successfully!')),
-                                                );
-                                                setState(() {
-                                                  _productFuture =
-                                                      fetchAllProduct(
-                                                          widget.token,
-                                                          widget.outletId);
-                                                });
-                                              } else {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                      content: Text(
-                                                          'Failed to delete product: ${response.body}')),
-                                                );
-                                              }
-                                            } catch (e) {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                    content: Text('Error: $e')),
-                                              );
-                                            }
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 1),
-                                  Switch(
-  value: _productActiveStatus[product.id] ?? false, // Fallback to false if null
-  onChanged: (value) async {
-    setState(() {
-      _productActiveStatus[product.id] = value; // Update state
-    });
-    try {
-      await updateProductStatus(
-        token: widget.token,
-        product: product,
-        isActive: value,
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Status updated successfully!')),
-      );
-    } catch (e) {
-      setState(() {
-        _productActiveStatus[product.id] = !value; // Revert on error
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update status')),
-      );
-    }
-  },
-  activeColor: const Color.fromARGB(255, 53, 150, 105),
-  inactiveThumbColor: Colors.red,
-),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showCreateProductDialog(context: context, isEdit: false);
-        },
-        backgroundColor: const Color.fromARGB(255, 53, 150, 105),
-        child: const Icon(Icons.add, color: Colors.white),
-        tooltip: 'Create Product',
-      ),
-       bottomNavigationBar: _buildNavbar());
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _showCreateProductDialog(context: context, isEdit: false);
+          },
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+          child: const Icon(Icons.add, color: Colors.white),
+          tooltip: 'Create Product',
+        ),
+        bottomNavigationBar: _buildNavbar());
   }
 
   Widget _buildNavbar() {
-  return FlexibleNavbar(
-    currentIndex: widget.navIndex,
-    isManager: widget.isManager,
-    onTap: (index) {
-      if (!mounted) return;
-      if (index != widget.navIndex) {
-        if (widget.onNavItemTap != null) {
-          widget.onNavItemTap!(index);
-        } else {
-          _handleNavigation(index);
+    return FlexibleNavbar(
+      currentIndex: widget.navIndex,
+      isManager: widget.isManager,
+      onTap: (index) {
+        if (!mounted) return;
+        if (index != widget.navIndex) {
+          if (widget.onNavItemTap != null) {
+            widget.onNavItemTap!(index);
+          } else {
+            _handleNavigation(index);
+          }
         }
-      }
-    },
-    onMorePressed: () {
-      if (mounted) {
-        _showMoreOptions(context);
-      }
-    },
-  );
-}
+      },
+      onMorePressed: () {
+        if (mounted) {
+          _showMoreOptions(context);
+        }
+      },
+    );
+  }
 
   void _showMoreOptions(BuildContext context) {
     showModalBottomSheet(
@@ -848,7 +914,7 @@ class _ProductPageState extends State<ProductPage> {
       builder: (context) {
         return Container(
           padding: EdgeInsets.all(16),
-          child: Column(  
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildMenuOption(
@@ -913,115 +979,117 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
- void _navigateTo(Widget page) {
-  try {
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
-  } catch (e) {
-    debugPrint('Navigation error: $e');
-    if (mounted) {
+  void _navigateTo(Widget page) {
+    try {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => page),
+      );
+    } catch (e) {
+      debugPrint('Navigation error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Navigation failed: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  void _handleNavigation(int index) {
+    try {
+      if (index == widget.navIndex) return; // Already on this page
+
+      Widget page;
+      if (widget.isManager) {
+        switch (index) {
+          case 0:
+            page = ProductPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: index,
+              isManager: widget.isManager,
+            );
+            break;
+          case 1:
+            page = CreateOrderPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: index,
+              isManager: widget.isManager,
+            );
+            break;
+          case 2:
+            page = CategoryPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: index,
+              isManager: widget.isManager,
+            );
+            break;
+          case 3:
+            page = ModifierPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: index,
+              isManager: widget.isManager,
+            );
+            break;
+          default:
+            return;
+        }
+      } else {
+        switch (index) {
+          case 0:
+            page = ProductPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: index,
+              isManager: widget.isManager,
+            );
+            break;
+          case 1:
+            page = CreateOrderPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: index,
+              isManager: widget.isManager,
+            );
+            break;
+          case 2:
+            page = CategoryPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: index,
+              isManager: widget.isManager,
+            );
+            break;
+          case 3:
+            page = ModifierPage(
+              token: widget.token,
+              outletId: widget.outletId,
+              navIndex: index,
+              isManager: widget.isManager,
+            );
+            break;
+          default:
+            return;
+        }
+      }
+
+      // Use pushReplacement only if we're replacing the current page in the stack
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => page),
+      );
+    } catch (e) {
+      debugPrint('Navigation error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Navigation failed: ${e.toString()}')),
       );
     }
   }
-}
- void _handleNavigation(int index) {
-  try {
-    if (index == widget.navIndex) return; // Already on this page
 
-    Widget page;
-    if (widget.isManager) {
-      switch (index) {
-        case 0:
-          page = ProductPage(
-            token: widget.token,
-            outletId: widget.outletId,
-            navIndex: index,
-            isManager: widget.isManager,
-          );
-          break;
-        case 1:
-          page = CreateOrderPage(
-            token: widget.token,
-            outletId: widget.outletId,
-            navIndex: index,
-            isManager: widget.isManager,
-          );
-          break;
-        case 2:
-          page = CategoryPage(
-            token: widget.token,
-            outletId: widget.outletId,
-            navIndex: index,
-            isManager: widget.isManager,
-          );
-          break;
-        case 3:
-          page = ModifierPage(
-            token: widget.token,
-            outletId: widget.outletId,
-            navIndex: index,
-            isManager: widget.isManager,
-          );
-          break;
-        default:
-          return;
-      }
-    } else {
-      switch (index) {
-        case 0:
-          page = ProductPage(
-            token: widget.token,
-            outletId: widget.outletId,
-            navIndex: index,
-            isManager: widget.isManager,
-          );
-          break;
-        case 1:
-          page = CreateOrderPage(
-            token: widget.token,
-            outletId: widget.outletId,
-            navIndex: index,
-            isManager: widget.isManager,
-          );
-          break;
-        case 2:
-          page = CategoryPage(
-            token: widget.token,
-            outletId: widget.outletId,
-            navIndex: index,
-            isManager: widget.isManager,
-          );
-          break;
-        case 3:
-          page = ModifierPage(
-            token: widget.token,
-            outletId: widget.outletId,
-            navIndex: index,
-            isManager: widget.isManager,
-          );
-          break;
-        default:
-          return;
-      }
-    }
-
-    // Use pushReplacement only if we're replacing the current page in the stack
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
-  } catch (e) {
-    debugPrint('Navigation error: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navigation failed: ${e.toString()}')),
-    );
-  }
-}
   Future<void> updateProductStatus({
     required String token,
     required Product product,
@@ -1052,9 +1120,8 @@ class _ProductPageState extends State<ProductPage> {
     }
   }
 
-
-
-  Future<CategoryResponse> fetchCategories(String token, String outletId) async {
+  Future<CategoryResponse> fetchCategories(
+      String token, String outletId) async {
     final url = Uri.parse('$baseUrl/api/category/outlet/$outletId');
     try {
       final response = await http.get(url, headers: {
@@ -1074,24 +1141,25 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Future<ModifierResponse> fetchModifiers(String token, String outletId) async {
-  final url = Uri.parse('$baseUrl/api/modifier/ext/outlet/$outletId'); // <-- perbaiki di sini
-  try {
-    final response = await http.get(url, headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    });
+    final url = Uri.parse(
+        '$baseUrl/api/modifier/ext/outlet/$outletId'); // <-- perbaiki di sini
+    try {
+      final response = await http.get(url, headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      });
 
-    if (response.statusCode == 200) {
-      return ModifierResponse.fromJson(jsonDecode(response.body));
-      print(response.body);
-    } else {
-      throw Exception('Failed to load modifiers: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        return ModifierResponse.fromJson(jsonDecode(response.body));
+        print(response.body);
+      } else {
+        throw Exception('Failed to load modifiers: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching modifiers: $e');
+      rethrow;
     }
-  } catch (e) {
-    debugPrint('Error fetching modifiers: $e');
-    rethrow;
   }
-}
 
   Future<void> _createProduct({
     required String name,
@@ -1103,9 +1171,12 @@ class _ProductPageState extends State<ProductPage> {
   }) async {
     try {
       // Fetch category_id from category_name
-      final categoryResponse = await fetchCategories(widget.token, widget.outletId);
+      final categoryResponse =
+          await fetchCategories(widget.token, widget.outletId);
       final categoryData = categoryResponse.data.firstWhere(
-        (cat) => cat.category_name.trim().toLowerCase() == category_name.trim().toLowerCase(),
+        (cat) =>
+            cat.category_name.trim().toLowerCase() ==
+            category_name.trim().toLowerCase(),
         orElse: () => categoryResponse.data.first,
       );
       final category_id = categoryData.id;

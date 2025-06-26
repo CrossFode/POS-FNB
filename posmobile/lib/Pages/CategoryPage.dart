@@ -97,14 +97,16 @@ class _CategoryPageState extends State<CategoryPage> {
               'Are you sure you want to delete "${category.category_name}"?'),
           actions: [
             TextButton(
-              child: const Text('Cancel',style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
+              child: const Text('Cancel',
+                  style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
               onPressed: () => Navigator.pop(context),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red, // White color
               ),
-              child: const Text('Delete', style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
+              child: const Text('Delete',
+                  style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
               onPressed: () {
                 Navigator.pop(context); // Close the dialog
                 _deleteCategory(category);
@@ -130,8 +132,7 @@ class _CategoryPageState extends State<CategoryPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-                        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: Text(isEdit ? 'Edit Category' : 'Create Category'),
           content: Form(
             key: _formKey,
@@ -167,72 +168,75 @@ class _CategoryPageState extends State<CategoryPage> {
           ),
           actions: [
             TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Color.fromARGB(255, 53, 150, 105
-)),),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Color.fromARGB(255, 53, 150, 105)),
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 53, 150, 105), // Green color
+                backgroundColor:
+                    const Color.fromARGB(255, 53, 150, 105), // Green color
               ),
               child: Text(
-              isEdit ? 'Update' : 'Create',
-              style: TextStyle(color: Colors.white),
+                isEdit ? 'Update' : 'Create',
+                style: TextStyle(color: Colors.white),
               ),
               onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                final payload = {
-                'category_name': _nameController.text,
-                'is_food': _isFood,
-                'outlet_id': widget.outletId,
-                };
+                if (_formKey.currentState!.validate()) {
+                  final payload = {
+                    'category_name': _nameController.text,
+                    'is_food': _isFood,
+                    'outlet_id': widget.outletId,
+                  };
 
-                try {
-                final uri = isEdit
-                  ? Uri.parse('$baseUrl/api/category/${category!.id}')
-                  : Uri.parse('$baseUrl/api/category');
+                  try {
+                    final uri = isEdit
+                        ? Uri.parse('$baseUrl/api/category/${category!.id}')
+                        : Uri.parse('$baseUrl/api/category');
 
-                final response = await (isEdit
-                  ? http.put(
-                    uri,
-                    headers: {
-                      'Authorization': 'Bearer ${widget.token}',
-                      'Content-Type': 'application/json',
-                    },
-                    body: jsonEncode(payload),
-                    )
-                  : http.post(
-                    uri,
-                    headers: {
-                      'Authorization': 'Bearer ${widget.token}',
-                      'Content-Type': 'application/json',
-                    },
-                    body: jsonEncode(payload),
-                    ));
+                    final response = await (isEdit
+                        ? http.put(
+                            uri,
+                            headers: {
+                              'Authorization': 'Bearer ${widget.token}',
+                              'Content-Type': 'application/json',
+                            },
+                            body: jsonEncode(payload),
+                          )
+                        : http.post(
+                            uri,
+                            headers: {
+                              'Authorization': 'Bearer ${widget.token}',
+                              'Content-Type': 'application/json',
+                            },
+                            body: jsonEncode(payload),
+                          ));
 
-                if (response.statusCode == 200 ||
-                  response.statusCode == 201) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Category ${isEdit ? 'updated' : 'created'} successfully')),
-                  );
-                  setState(() {
-                  _categoryFuture = fetchCategoryinOutlet(
-                    widget.token, widget.outletId);
-                  });
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to save category')),
-                  );
+                    if (response.statusCode == 200 ||
+                        response.statusCode == 201) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Category ${isEdit ? 'updated' : 'created'} successfully')),
+                      );
+                      setState(() {
+                        _categoryFuture = fetchCategoryinOutlet(
+                            widget.token, widget.outletId);
+                      });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to save category')),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
                 }
-                } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $e')),
-                );
-                }
-              }
               },
             ),
           ],
@@ -243,122 +247,151 @@ class _CategoryPageState extends State<CategoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
-      appBar: AppBar(
-  automaticallyImplyLeading: false,
-  title: Padding(
-    padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
-    child: Text(
-      "Category",
-      style: TextStyle(
-        fontSize: 30,
-        fontWeight: FontWeight.bold,
-        color: Color.fromARGB(255, 255, 255, 255),
-      ),
-    ),
-  ),
-  backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
-  elevation: 0,
-  centerTitle: false,
-  foregroundColor: Colors.black,
-  shape: const Border(
-    bottom: BorderSide(
-      color: Color.fromARGB(255, 102, 105, 108), // Outline color
-      width: 0.5, // Outline thickness
-    ),
-  ),
-),
-
-              backgroundColor: const Color.fromARGB(255, 245, 244, 244),
-
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Padding(
+            padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
+            child: Text(
+              "Category",
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 255, 255, 255),
+              ),
+            ),
+          ),
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+          elevation: 0,
+          centerTitle: false,
+          foregroundColor: Colors.black,
+          shape: const Border(
+            bottom: BorderSide(
+              color: Color.fromARGB(255, 102, 105, 108), // Outline color
+              width: 0.5, // Outline thickness
+            ),
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 245, 244, 244),
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Column(
-              children: [
-                
-                Expanded(
-                  child: FutureBuilder<CategoryResponse>(
-                    future: _categoryFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData ||
-                          snapshot.data!.data.isEmpty) {
-                        return const Center(
-                            child: Text('No categories found.'));
-                      } else {
-                        final categories = snapshot.data!.data;
-
-                        return ListView.builder(
-                          itemCount: categories.length,
-                          itemBuilder: (context, index) {
-                            final category = categories[index];
-                            return ListTile(
-                              leading: Icon(
-                                category.is_food == 1
-                                    ? Icons.fastfood
-                                    : Icons.category,
-                                color: category.is_food == 1
-                                    ? Colors.green
-                                    : Colors.blueGrey,
-                              ),
-                              title: Text(category.category_name),
-                              subtitle: Row(
-                                children: [
-                                  Text('Outlet ID: '),
-                                  Flexible(
-                                    child: Text(
-                                      category.outlet_id,
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit),
-                                    onPressed: () {
-                                      _showCreateCategoryDialog(
-                                        context: context,
-                                        isEdit: true,
-                                        category: category,
-                                      );
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.red),
-                                    onPressed: () {
-                                      _showDeleteConfirmationDialog(category);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      }
-                    },
+          child: Stack(
+            children: [
+              // Background image - paling bawah dalam Stack
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/FixGaSihV2.png'),
+                      fit: BoxFit.cover,
+                      opacity: 0.1,
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              // Content asli tetap disini
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: FutureBuilder<CategoryResponse>(
+                        future: _categoryFuture,
+                        // Widget FutureBuilder yang sudah ada tetap sama
+                        builder: (context, snapshot) {
+                          // Isi builder tetap sama...
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.data.isEmpty) {
+                            return const Center(
+                                child: Text('No categories found.'));
+                          } else {
+                            // Return ListView.builder yang sudah ada
+                            final categories = snapshot.data!.data;
+                            return ListView.builder(
+                              // Isi ListView.builder tetap sama
+                              itemCount: categories.length,
+                              itemBuilder: (context, index) {
+                                final category = categories[index];
+                                return Card(
+                                  margin: EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  elevation: 2,
+                                  color: Colors.white.withOpacity(0.9),
+                                  child: ListTile(
+                                    leading: Icon(
+                                      category.is_food == 1
+                                          ? Icons.fastfood
+                                          : Icons.category,
+                                      color: category.is_food == 1
+                                          ? Colors.green
+                                          : Colors.blueGrey,
+                                    ),
+                                    title: Text(
+                                      category.category_name,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Row(
+                                      children: [
+                                        Text('Outlet ID: '),
+                                        Flexible(
+                                          child: Text(
+                                            category.outlet_id,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.edit),
+                                          onPressed: () {
+                                            _showCreateCategoryDialog(
+                                              context: context,
+                                              isEdit: true,
+                                              category: category,
+                                            );
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete,
+                                              color: Colors.red),
+                                          onPressed: () {
+                                            _showDeleteConfirmationDialog(
+                                                category);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             _showCreateCategoryDialog(context: context, isEdit: false);
           },
-          backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           child: const Icon(Icons.add, color: Colors.white),
           tooltip: 'Create Category',
         ),
