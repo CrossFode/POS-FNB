@@ -307,15 +307,18 @@ class _HistoryPageState extends State<HistoryPage>
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    'Edit Order ${order.customer}',
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                                  Expanded(
+                                    // Expanded diperlukan di sini
+                                    child: Text(
+                                      'Edit Order ${order.customer}',
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
                                   ),
                                   IconButton(
                                     onPressed: () =>
@@ -624,63 +627,61 @@ class _HistoryPageState extends State<HistoryPage>
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.8,
             ),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Order Details',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                // Header (fixed)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Rincian Pesanan',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close, color: Color(0xFF64748B)),
-                    ),
-                  ],
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                      ),
+                    ],
+                  ),
                 ),
-                const Divider(color: Color(0xFFE2E8F0)),
+                const Divider(height: 1),
 
-                // Content yang bisa di-scroll
+                // Content scrollable
                 Expanded(
                   child: SingleChildScrollView(
-                    child: Column(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 16),
+                          // Info customer & status
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Order By ${order.customer}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
+                              Expanded(
+                                child: Text(
+                                  'Order by ${order.customer}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
+                                    horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
                                   color: _getStatusColor(order.status)
-                                      .withAlpha(30),
-                                  borderRadius: BorderRadius.circular(12),
+                                      .withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   order.status,
@@ -693,9 +694,19 @@ class _HistoryPageState extends State<HistoryPage>
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
 
-                          // Detail information
+                          // Info detail pesanan
+                          const Text(
+                            'Informasi Pesanan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Detail informasi
                           _buildDetailRow('Customer', order.customer),
                           _buildDetailRow('Phone', order.customerPhone),
                           _buildDetailRow('Order Type', order.orderType),
@@ -708,267 +719,177 @@ class _HistoryPageState extends State<HistoryPage>
                           _buildDetailRow(
                               'Date', _formatDateTime(order.orderDate)),
 
-                          const SizedBox(height: 16),
-                          const Divider(),
-                          const SizedBox(height: 16),
+                          const Divider(height: 32),
 
-                          // Items Ordered Section
+                          // Rincian Pesanan (Items)
                           const Text(
-                            'Items Ordered:',
+                            'Rincian Pesanan',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
 
-                          // Items container with max height and scroll
-                          Container(
-                            constraints: const BoxConstraints(
-                              maxHeight: 200, // Maksimal tinggi 200px
-                            ),
-                            decoration: BoxDecoration(
-                              border:
-                                  Border.all(color: const Color(0xFFE2E8F0)),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              children: [
-                                // List produk scrollable
-                                Expanded(
-                                  child: ListView.separated(
-                                    shrinkWrap: true,
-                                    padding: const EdgeInsets.all(8),
-                                    itemCount: order.products.length,
-                                    separatorBuilder: (context, index) =>
-                                        const SizedBox(height: 8),
-                                    itemBuilder: (context, index) {
-                                      final item = order.products[index];
-                                      return Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFF8FAFC),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        child: Row(
+                          // List produk (seperti di gambar tanpa gambar)
+                          ...order.products
+                              .map((item) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Nama, jumlah dan harga
+                                        Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
                                           children: [
                                             Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    item.name,
-                                                    style: const TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Color(0xFF1E293B),
-                                                    ),
-                                                  ),
-                                                  if (item.variantName !=
-                                                          null &&
-                                                      item.variantName!
-                                                          .isNotEmpty)
-                                                    Text(
-                                                      'Variant: ${item.variantName}',
-                                                      style: const TextStyle(
-                                                        fontSize: 12,
-                                                        color:
-                                                            Color(0xFF64748B),
-                                                      ),
-                                                    ),
-                                                  Text(
-                                                    'Qty: ${item.quantity}',
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      color: Color(0xFF64748B),
-                                                    ),
-                                                  ),
-                                                ],
+                                              child: Text(
+                                                '${item.quantity}x ${item.name}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                ),
                                               ),
                                             ),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  _formatPrice(item.price),
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: Color(0xFF64748B),
-                                                  ),
-                                                ),
-                                                Text(
-                                                  _formatPrice(item.price *
-                                                      item.quantity),
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xFF1E293B),
-                                                  ),
-                                                ),
-                                              ],
+                                            Text(
+                                              _formatPrice(
+                                                  item.price * item.quantity),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ],
                                         ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                // Subtotal fixed di bawah
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                      color: const Color(0xFFF1F5F9),
-                                      border: Border(
-                                        bottom: BorderSide(
-                                            color: Colors.grey.shade200),
-                                      )),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Subtotal:',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF64748B),
-                                        ),
-                                      ),
-                                      Text(
-                                        _formatPrice(order.subtotalPrice),
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF1E293B),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
 
-                                // Diskon Regular jika ada
-                                if (order.discountName != null &&
-                                    order.discountAmount != null)
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                        color: const Color(0xFFF8FAFC),
-                                        border: Border(
-                                          bottom: BorderSide(
-                                              color: Colors.grey.shade200),
-                                        )),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Diskon ${order.discountName}:',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.green,
+                                        // Hanya tampilkan variant (jika ada)
+                                        if (item.variantName != null &&
+                                            item.variantName!.isNotEmpty)
+                                          Text(
+                                            item.variantName!,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade700,
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          order.discountType == 'percent'
-                                              ? '- ${_formatPrice((order.subtotalPrice * order.discountAmount!) ~/ 100)}'
-                                              : '- ${_formatPrice(order.discountAmount!)}',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.green,
-                                          ),
-                                        ),
+
+                                        const SizedBox(height: 4),
+                                        const Divider(height: 8),
                                       ],
                                     ),
-                                  ),
+                                  ))
+                              .toList(),
 
-                                // Diskon Referral jika ada
-                                if (order.referralCode != null &&
-                                    order.referralDiscount != null)
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                        color: const Color(0xFFF8FAFC),
-                                        border: Border(
-                                          bottom: BorderSide(
-                                              color: Colors.grey.shade200),
-                                        )),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Referral (${order.referralCode}):',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.green,
-                                          ),
-                                        ),
-                                        Text(
-                                          order.discountType == 'percent' &&
-                                                  order.discountAmount != null
-                                              ? '- ${_formatPrice(((order.subtotalPrice - ((order.subtotalPrice * order.discountAmount!) ~/ 100)) * order.referralDiscount!) ~/ 100)}'
-                                              : order.discountAmount != null
-                                                  ? '- ${_formatPrice(((order.subtotalPrice - order.discountAmount!) * order.referralDiscount!) ~/ 100)}'
-                                                  : '- ${_formatPrice((order.subtotalPrice * order.referralDiscount!) ~/ 100)}',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.green,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                          const SizedBox(height: 12),
 
-                                // Total akhir dengan background berbeda
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFE8F4FF),
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(8),
-                                      bottomRight: Radius.circular(8),
-                                    ),
+                          // Ringkasan harga
+                          // Subtotal Pesanan
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth:
+                                        MediaQuery.of(context).size.width *
+                                            0.40,
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Total Akhir:',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                        ),
-                                      ),
-                                      Text(
-                                        _formatPrice(order.totalPrice),
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                        ),
-                                      ),
-                                    ],
+                                  child: const Text(
+                                    'Subtotal Pesanan',
+                                    overflow: TextOverflow.visible,
+                                    softWrap: true,
+                                  ),
+                                ),
+                                Text(
+                                  _formatPrice(order.subtotalPrice),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ]),
+
+                          // Diskon Regular jika ada
+                          if (order.discountName != null &&
+                              order.discountAmount != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Voucher Diskon',
+                                      style:
+                                          const TextStyle(color: Colors.green)),
+                                  Text(
+                                    '-${_formatPrice(order.discountType == 'percent' ? (order.subtotalPrice * order.discountAmount!) ~/ 100 : order.discountAmount!)}',
+                                    style: const TextStyle(color: Colors.green),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          // Diskon Referral jika ada
+                          if (order.referralCode != null &&
+                              order.referralDiscount != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Referral',
+                                      style:
+                                          const TextStyle(color: Colors.green)),
+                                  Text(
+                                    '-${_formatPrice((order.subtotalPrice * order.referralDiscount!) ~/ 100)}',
+                                    style: const TextStyle(color: Colors.green),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
                   ),
-                )
+                ),
+
+                // Total Bayar (fixed di bawah)
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total Bayar',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        _formatPrice(order.totalPrice),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
