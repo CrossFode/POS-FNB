@@ -92,25 +92,69 @@ class _CategoryPageState extends State<CategoryPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-          title: const Text('Confirm Delete'),
-          content: Text(
-              'Are you sure you want to delete "${category.category_name}"?'),
-          actions: [
-            TextButton(
-              child: const Text('Cancel',
-                  style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
-              onPressed: () => Navigator.pop(context),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, // White color
+          title: const Center(
+            child: Text(
+              'Delete Category',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.black87,
               ),
-              child: const Text('Delete',
-                  style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-                _deleteCategory(category);
-              },
+            ),
+          ),
+          content: Text(
+            'Apakah anda yakin akan menghapus "${category.category_name}"?',
+            textAlign: TextAlign.center,
+          ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey[300]!),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color.fromARGB(255, 145, 145, 145),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context); // Close the dialog
+                      _deleteCategory(category);
+                    },
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -131,115 +175,209 @@ class _CategoryPageState extends State<CategoryPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-          title: Text(isEdit ? 'Edit Category' : 'Create Category'),
-          content: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Category Name'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a category name';
-                    }
-                    return null;
-                  },
-                ),
-                DropdownButtonFormField<int>(
-                  value: _isFood,
-                  decoration: const InputDecoration(labelText: 'Type'),
-                  dropdownColor: Colors.white,
-                  items: const [
-                    DropdownMenuItem(value: 1, child: Text('Food')),
-                    DropdownMenuItem(value: 0, child: Text('Non-Food')),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Center(
+                      child: Text(
+                        isEdit ? 'Edit Category' : 'Create Category',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Category Name
+                    const Text(
+                      "CATEGORY NAME",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        hintText: 'Category Name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a category name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Type (Food/Non-Food)
+                    const Text(
+                      "TYPE",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<int>(
+                      value: _isFood,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      dropdownColor: Colors.white,
+                      items: const [
+                        DropdownMenuItem(value: 1, child: Text('Food')),
+                        DropdownMenuItem(value: 0, child: Text('Non-Food')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          _isFood = value;
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Action Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(color: Colors.grey[300]!),
+                              ),
+                            ),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color.fromARGB(255, 53, 150, 105),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 53, 150, 105),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              isEdit ? 'Update' : 'Create',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            onPressed: () async {
+                              if (_formKey.currentState!.validate()) {
+                                final payload = {
+                                  'category_name': _nameController.text,
+                                  'is_food': _isFood,
+                                  'outlet_id': widget.outletId,
+                                };
+
+                                try {
+                                  final uri = isEdit
+                                      ? Uri.parse('$baseUrl/api/category/${category!.id}')
+                                      : Uri.parse('$baseUrl/api/category');
+
+                                  final response = await (isEdit
+                                      ? http.put(
+                                          uri,
+                                          headers: {
+                                            'Authorization': 'Bearer ${widget.token}',
+                                            'Content-Type': 'application/json',
+                                          },
+                                          body: jsonEncode(payload),
+                                        )
+                                      : http.post(
+                                          uri,
+                                          headers: {
+                                            'Authorization': 'Bearer ${widget.token}',
+                                            'Content-Type': 'application/json',
+                                          },
+                                          body: jsonEncode(payload),
+                                        ));
+
+                                  if (response.statusCode == 200 ||
+                                      response.statusCode == 201) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(
+                                              'Category ${isEdit ? 'updated' : 'created'} successfully')),
+                                    );
+                                    setState(() {
+                                      _categoryFuture = fetchCategoryinOutlet(
+                                          widget.token, widget.outletId);
+                                    });
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Failed to save category')),
+                                    );
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error: $e')),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      _isFood = value;
-                    }
-                  },
                 ),
-              ],
+              ),
             ),
           ),
-          actions: [
-            TextButton(
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Color.fromARGB(255, 53, 150, 105)),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color.fromARGB(255, 53, 150, 105), // Green color
-              ),
-              child: Text(
-                isEdit ? 'Update' : 'Create',
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  final payload = {
-                    'category_name': _nameController.text,
-                    'is_food': _isFood,
-                    'outlet_id': widget.outletId,
-                  };
-
-                  try {
-                    final uri = isEdit
-                        ? Uri.parse('$baseUrl/api/category/${category!.id}')
-                        : Uri.parse('$baseUrl/api/category');
-
-                    final response = await (isEdit
-                        ? http.put(
-                            uri,
-                            headers: {
-                              'Authorization': 'Bearer ${widget.token}',
-                              'Content-Type': 'application/json',
-                            },
-                            body: jsonEncode(payload),
-                          )
-                        : http.post(
-                            uri,
-                            headers: {
-                              'Authorization': 'Bearer ${widget.token}',
-                              'Content-Type': 'application/json',
-                            },
-                            body: jsonEncode(payload),
-                          ));
-
-                    if (response.statusCode == 200 ||
-                        response.statusCode == 201) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text(
-                                'Category ${isEdit ? 'updated' : 'created'} successfully')),
-                      );
-                      setState(() {
-                        _categoryFuture = fetchCategoryinOutlet(
-                            widget.token, widget.outletId);
-                      });
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to save category')),
-                      );
-                    }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
-                  }
-                }
-              },
-            ),
-          ],
         );
       },
     );

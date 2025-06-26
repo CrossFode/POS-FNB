@@ -73,132 +73,190 @@ class _HomePageSuperAdminState extends State<HomePageSuperAdmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: SafeArea(
-      child: Column(children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.end,
+      body: SafeArea(
+        child: Stack(
           children: [
-            TextButton(
-                onPressed: () async {
-                  SharedPreferences pref =
-                      await SharedPreferences.getInstance();
-                  pref.remove('token');
-
-                  pref.remove('role');
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => LoginPage()));
-                  print("Token dihapus");
-                  print("Role dihapus");
-                },
-                child: Text(
-                  "Logout",
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                ))
-          ],
-        ),
-        Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(
-                  child: Text(
-                    'Main Menu',
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 300,
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  shrinkWrap: true,
-                  children: [
-                    // Tombol ke OutletPage
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OutletPage(
-                              token: widget.token,
-                              outletId: '', // Isi sesuai kebutuhan
+            Center(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Stack(
+                        children: [
+                          // Background image di dalam Container
+                          Positioned.fill(
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                image: DecorationImage(
+                                  image: AssetImage('assets/images/FixGaSihV2.png'),
+                                  fit: BoxFit.cover,
+                                  opacity: 0.1,
+                                ),
+                              ),
                             ),
                           ),
-                        );
-                      },
-                      child: Card(
-                        elevation: 6,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          // Tombol Logout di pojok kanan atas dalam Container
+                          Positioned(
+                            top: 8,
+                            right: 16,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                                border: Border.all(color: Colors.red.withOpacity(0.15)),
+                              ),
+                              child: SizedBox(
+                                width: 44,
+                                height: 44,
+                                child: IconButton(
+                                  icon: const Icon(Icons.logout, color: Colors.red, size: 28),
+                                  tooltip: 'Logout',
+                                  onPressed: () async {
+                                    SharedPreferences pref = await SharedPreferences.getInstance();
+                                    pref.remove('token');
+                                    pref.remove('role');
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => LoginPage()),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Konten utama
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Icon(Icons.store, size: 40),
-                              SizedBox(height: 8),
-                              Text(
-                                'Outlet',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600),
+                              const SizedBox(height: 48),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 16.0),
+                                child: Text(
+                                  "Hi, Admin",
+                                  style: TextStyle(fontSize: 46),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                                child: Text(
+                                  'Main Menu',
+                                  style: TextStyle(
+                                    fontSize: 35,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              // Grid menu
+                              SizedBox(
+                                height: 300,
+                                child: GridView.count(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  shrinkWrap: true,
+                                  children: [
+                                    // Tombol ke OutletPage
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => OutletPage(
+                                              token: widget.token,
+                                              outletId: '',
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Card(
+                                        color: const Color.fromARGB(255, 53, 150, 105
+),
+                                        elevation: 6,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Center(
+                                          
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.store, size: 40, color: const Color.fromARGB(255, 255, 255, 255)),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                'Outlet',
+                                                style: TextStyle(
+                                                    fontSize: 16, fontWeight: FontWeight.w600, color: const Color.fromARGB(255, 255, 255, 255)),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Tombol ke UserPage
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => UserPage(
+                                                    token: widget.token,
+                                                    outletId: '',
+                                                  )),
+                                        );
+                                      },
+                                      child: Card(
+                                        color: const Color.fromARGB(255, 53, 150, 105),
+                                        elevation: 6,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.person, size: 40, color: const Color.fromARGB(255, 255, 255, 255)),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                'User',
+                                                style: TextStyle(
+                                                    fontSize: 16, fontWeight: FontWeight.w600, color: const Color.fromARGB(255, 255, 255, 255)),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Tambahkan tombol menu lain di sini sesuai kebutuhan
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
+                        ],
                       ),
                     ),
-                    // Tombol ke UserPage
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => UserPage(
-                                    token: widget.token,
-                                    outletId: '',
-                                  )),
-                        );
-                      },
-                      child: Card(
-                        elevation: 6,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.person, size: 40),
-                              SizedBox(height: 8),
-                              Text(
-                                'User',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Tambahkan tombol menu lain di sini sesuai kebutuhan
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ]),
-    ));
+      ),
+    );
   }
 }

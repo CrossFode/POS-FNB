@@ -367,34 +367,74 @@ class _DiscountPageState extends State<DiscountPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Discount'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        title: const Center(
+          child: Text(
+            'Delete Discount',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.black87,
+            ),
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 48),
             const SizedBox(height: 16),
             Text(
-              'Are you sure you want to delete "${discount.name}"?',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'You won\'t be able to revert this!',
-              style: TextStyle(color: Colors.grey),
+              'Apakah anda yakin ingin menghapus diskon "${discount.name}"?',
               textAlign: TextAlign.center,
             ),
           ],
         ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes, delete it!'),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey[300]!),
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color.fromARGB(255, 145, 145, 145),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text(
+                    'Delete',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -405,7 +445,7 @@ class _DiscountPageState extends State<DiscountPage> {
         final success = await _deleteDiscount(discount.id!);
         if (success) {
           _showSuccessSnackBar('Deleted! Discount has been deleted.');
-          _loadData(); // ganti dari _fetchDiscountsFromApi()
+          _loadData();
         } else {
           _showErrorSnackBar('Failed! Something went wrong.');
         }
@@ -483,7 +523,7 @@ class _DiscountPageState extends State<DiscountPage> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.grey[200],
+                      fillColor: const Color.fromARGB(255, 255, 255, 255),
                       contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     ),
                     onChanged: (value) {
@@ -806,14 +846,13 @@ class _DiscountPageState extends State<DiscountPage> {
 class _DiscountFormDialog extends StatefulWidget {
   final Diskon? discount;
   final List<Outlet> outlets;
-  final List<String>? selectedOutletIds; // Tambahkan ini
-  final Future<bool> Function(String name, String type, int amount,
-      [List<String>? outletIds]) onSubmit;
+  final List<String>? selectedOutletIds;
+  final Future<bool> Function(String name, String type, int amount, [List<String>? outletIds]) onSubmit;
 
   const _DiscountFormDialog({
     this.discount,
     required this.outlets,
-    this.selectedOutletIds, // Tambahkan ini
+    this.selectedOutletIds,
     required this.onSubmit,
   });
 
@@ -821,14 +860,13 @@ class _DiscountFormDialog extends StatefulWidget {
   State<_DiscountFormDialog> createState() => _DiscountFormDialogState();
 }
 
-class _DiscountFormDialogState extends State<_DiscountFormDialog>
-    with SingleTickerProviderStateMixin {
+class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
   String _selectedType = 'percent';
   bool _isSubmitting = false;
-  List<String> _selectedOutletIds = []; // Tambahkan ini
+  List<String> _selectedOutletIds = [];
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -839,17 +877,8 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
       _nameController.text = widget.discount!.name;
       _amountController.text = widget.discount!.amount.toString();
       _selectedType = widget.discount!.type;
-
       _selectedOutletIds = widget.selectedOutletIds ?? [];
-
-      // Initialize selected outlets if editing
-      // Implementasi ini perlu disesuaikan dengan struktur data yang sebenarnya
-      // _selectedOutletIds = widget.discount?.outlets
-      //         ?.map<String>((outlet) => outlet.id.toString())
-      //         .toList() ??
-      //     [];
     }
-
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -869,27 +898,21 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
     super.dispose();
   }
 
-  // Modifikasi _handleSubmit untuk menyertakan outletIds
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isSubmitting = true);
-
     try {
       final success = await widget.onSubmit(
         _nameController.text.trim(),
         _selectedType,
         int.parse(_amountController.text),
-        _selectedOutletIds, // Kirim outlet yang dipilih
+        _selectedOutletIds,
       );
-
       if (success && mounted) {
         Navigator.of(context).pop(true);
       }
     } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -898,7 +921,7 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
     return ScaleTransition(
       scale: _animation,
       child: Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         elevation: 8,
         backgroundColor: Colors.white,
         insetPadding: EdgeInsets.symmetric(
@@ -906,348 +929,287 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
           vertical: 24.0,
         ),
         child: Container(
-          padding: const EdgeInsets.all(0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 53, 150, 105),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    widget.discount != null ? 'Edit Discount' : 'New Discount',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.all(24),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Center(
+                    child: Text(
+                      widget.discount != null ? 'Edit Discount' : 'New Discount',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
-                ),
-              ),
+                  const SizedBox(height: 24),
 
-              // Form Content
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                child: Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Name
+                  const Text(
+                    "NAME",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter discount name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      filled: true,
+                      fillColor: Colors.white,
+                      prefixIcon: Icon(Icons.discount, color: Color.fromARGB(255, 53, 150, 105)),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Name is required';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Discount Type
+                  const Text(
+                    "DISCOUNT TYPE",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Name field
-                        const Text(
-                          'Name',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
+                        Flexible(
+                          child: _typeSelectionButton(
+                            title: 'Percentage',
+                            icon: Icons.percent,
+                            value: 'percent',
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            hintText: 'Enter discount name',
-                            contentPadding: const EdgeInsets.all(16),
-                            filled: true,
-                            fillColor: Colors.grey[100],
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                  color:
-                                      const Color.fromARGB(255, 53, 150, 105),
-                                  width: 2),
-                            ),
-                            prefixIcon: Icon(Icons.discount,
-                                color: const Color.fromARGB(255, 53, 150, 105)),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: _typeSelectionButton(
+                            title: ' Fixed',
+                            icon: Icons.attach_money,
+                            value: 'fixed',
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Name is required';
-                            }
-                            return null;
-                          },
                         ),
-                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
 
-                        // Type field
-                        const Text(
-                          'Discount Type',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.grey[100],
-                          ),
+                  // Amount
+                  const Text(
+                    "AMOUNT",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                    decoration: InputDecoration(
+                      hintText: 'Enter amount',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      filled: true,
+                      fillColor: Colors.white,
+                      prefixIcon: Icon(
+                        _selectedType == 'fixed' ? Icons.attach_money : Icons.percent,
+                        color: Color.fromARGB(255, 53, 150, 105),
+                      ),
+                      suffixText: _selectedType == 'percent' ? '%' : '',
+                      prefixText: _selectedType == 'fixed' ? 'Rp ' : '',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Amount is required';
+                      }
+                      final amount = int.tryParse(value);
+                      if (amount == null) {
+                        return 'Please enter a valid number';
+                      }
+                      if (amount <= 0) {
+                        return 'Amount must be greater than 0';
+                      }
+                      if (_selectedType == 'percent' && amount > 100) {
+                        return 'Percentage cannot exceed 100%';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Assign Outlet
+                  const Text(
+                    "ASSIGN OUTLET",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const Divider(thickness: 1.5, height: 24),
+                  Container(
+                    height: widget.outlets.length > 5 ? 200 : null,
+                    decoration: widget.outlets.length > 5
+                        ? BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade200),
+                            borderRadius: BorderRadius.circular(8),
+                          )
+                        : null,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: widget.outlets.length > 5
+                          ? null
+                          : NeverScrollableScrollPhysics(),
+                      itemCount: widget.outlets.length,
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      itemBuilder: (context, index) {
+                        final outlet = widget.outlets[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
                           child: Row(
                             children: [
-                              Expanded(
-                                child: _typeSelectionButton(
-                                  title: 'Percentage',
-                                  icon: Icons.percent,
-                                  value: 'percent',
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  value: _selectedOutletIds.contains(outlet.id.toString()),
+                                  onChanged: (bool? selected) {
+                                    setState(() {
+                                      if (selected == true) {
+                                        if (!_selectedOutletIds.contains(outlet.id.toString())) {
+                                          _selectedOutletIds.add(outlet.id.toString());
+                                        }
+                                      } else {
+                                        _selectedOutletIds.removeWhere((id) => id == outlet.id.toString());
+                                      }
+                                    });
+                                  },
+                                  activeColor: const Color.fromARGB(255, 53, 150, 105),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 12),
                               Expanded(
-                                child: _typeSelectionButton(
-                                  title: 'Fixed',
-                                  icon: Icons.attach_money,
-                                  value: 'fixed',
+                                child: Text(
+                                  outlet.outlet_name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 20),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
-                        // Amount field
-                        const Text(
-                          'Amount',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _amountController,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
-                          decoration: InputDecoration(
-                            hintText: 'Enter amount',
-                            contentPadding: const EdgeInsets.all(16),
-                            filled: true,
-                            fillColor: Colors.grey[100],
-                            border: OutlineInputBorder(
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
+                              side: BorderSide(color: Colors.grey[300]!),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                  color:
-                                      const Color.fromARGB(255, 53, 150, 105),
-                                  width: 2),
-                            ),
-                            prefixIcon: Icon(
-                              _selectedType == 'fixed'
-                                  ? Icons.attach_money
-                                  : Icons.percent,
-                              color: const Color.fromARGB(255, 53, 150, 105),
-                            ),
-                            suffixText: _selectedType == 'percent' ? '%' : '',
-                            prefixText: _selectedType == 'fixed' ? 'Rp ' : '',
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Amount is required';
-                            }
-                            final amount = int.tryParse(value);
-                            if (amount == null) {
-                              return 'Please enter a valid number';
-                            }
-                            if (amount <= 0) {
-                              return 'Amount must be greater than 0';
-                            }
-                            if (_selectedType == 'percent' && amount > 100) {
-                              return 'Percentage cannot exceed 100%';
-                            }
-                            return null;
-                          },
-                        ),
-
-                        // ASSIGN OUTLET Section
-                        const SizedBox(height: 24),
-                        Container(
-                          width: double.infinity,
                           child: const Text(
-                            'ASSIGN OUTLET',
+                            'Cancel',
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF7C7C7C),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color.fromARGB(255, 53, 150, 105),
                             ),
                           ),
                         ),
-                        const Divider(thickness: 1.5, height: 24),
-
-                        // Container dengan tinggi terbatas jika outlet > 5
-                        Container(
-                          // Tinggi container dibatasi jika jumlah outlet > 5
-                          // Setiap item outlet tingginya sekitar 40px
-                          height: widget.outlets.length > 5
-                              ? 200
-                              : null, // 5 outlets x 40px = 200px
-                          decoration: widget.outlets.length > 5
-                              ? BoxDecoration(
-                                  border:
-                                      Border.all(color: Colors.grey.shade200),
-                                  borderRadius: BorderRadius.circular(8),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isSubmitting ? null : _handleSubmit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 )
-                              : null,
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            // Hilangkan NeverScrollableScrollPhysics agar bisa scroll
-                            physics: widget.outlets.length > 5
-                                ? null
-                                : NeverScrollableScrollPhysics(),
-                            itemCount: widget.outlets.length,
-                            padding: EdgeInsets.symmetric(vertical: 4),
-                            itemBuilder: (context, index) {
-                              final outlet = widget.outlets[index];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 4, horizontal: 4),
-                                child: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: Checkbox(
-                                        value: _selectedOutletIds
-                                            .contains(outlet.id.toString()),
-                                        onChanged: (bool? selected) {
-                                          setState(() {
-                                            if (selected == true) {
-                                              if (!_selectedOutletIds.contains(
-                                                  outlet.id.toString())) {
-                                                _selectedOutletIds
-                                                    .add(outlet.id.toString());
-                                              }
-                                            } else {
-                                              _selectedOutletIds.removeWhere(
-                                                  (id) =>
-                                                      id ==
-                                                      outlet.id.toString());
-                                            }
-                                          });
-                                        },
-                                        activeColor: const Color.fromARGB(
-                                            255, 53, 150, 105),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        outlet.outlet_name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                              : const Text(
+                                  'Save',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Footer/Buttons
-              Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
-                  ),
-                ),
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed:
-                            _isSubmitting ? null : () => Navigator.pop(context),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: Colors.grey[200],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.bold,
-                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _isSubmitting ? null : _handleSubmit,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor:
-                              const Color.fromARGB(255, 53, 150, 105),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: _isSubmitting
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                'Save',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Custom button untuk pemilihan tipe diskon
-  Widget _typeSelectionButton(
-      {required String title, required IconData icon, required String value}) {
+  Widget _typeSelectionButton({
+    required String title,
+    required IconData icon,
+    required String value,
+  }) {
     final isSelected = _selectedType == value;
-
     return GestureDetector(
       onTap: () => setState(() => _selectedType = value),
       child: Container(
