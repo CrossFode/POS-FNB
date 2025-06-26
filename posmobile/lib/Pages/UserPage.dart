@@ -121,131 +121,278 @@ class _UserPageState extends State<UserPage> {
   }
 
   Future<void> _showEditUserDialog(User user) async {
-    final _formKey = GlobalKey<FormState>();
-    TextEditingController nameController = TextEditingController(text: user.name);
-    TextEditingController emailController = TextEditingController(text: user.email);
-    int selectedRoleId = user.roleId;
-    String? selectedOutletId = user.outlets.isNotEmpty ? user.outlets.first.id : null;
-    bool isSubmitting = false;
+  final _formKey = GlobalKey<FormState>();
+  TextEditingController nameController = TextEditingController(text: user.name);
+  TextEditingController emailController = TextEditingController(text: user.email);
+  int selectedRoleId = user.roleId;
+  String? selectedOutletId = user.outlets.isNotEmpty ? user.outlets.first.id : null;
+  bool isSubmitting = false;
 
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            title: Text('Edit User'),
-            content: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: nameController,
-                      decoration: InputDecoration(labelText: 'Name'),
-                      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
-                    ),
-                    TextFormField(
-                      controller: emailController,
-                      decoration: InputDecoration(labelText: 'Email'),
-                      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
-                    ),
-                    
-                    SizedBox(height: 12),
-                    Text('User Role', style: TextStyle(fontWeight: FontWeight.bold)),
-                    isRoleLoading
-                        ? CircularProgressIndicator()
-                        : DropdownButtonFormField<int>(
-                            value: selectedRoleId,
-                            decoration: InputDecoration(labelText: 'Role'),
-                            items: roleOptions.map((role) => DropdownMenuItem(
-                              value: role.value,
-                              child: Text(role.label),
-                            )).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedRoleId = value ?? user.roleId;
-                              });
-                            },
-                            validator: (value) => value == null ? 'Please select a role' : null,
-                          ),
-
-                    SizedBox(height: 12),
-                    Text('Assign Outlet', style: TextStyle(fontWeight: FontWeight.bold)),
-                    
-                    DropdownButtonFormField<String>(
-                      value: selectedOutletId,
-                      decoration: InputDecoration(labelText: 'Outlet'),
-                      items: outletOptions.map((outlet) => DropdownMenuItem(
-                        value: outlet.id,
-                        child: Text(outlet.outlet_name),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedOutletId = value;
-                        });
-                      },
-                      validator: (value) => value == null ? 'Please select an outlet' : null,
-                    ),
-                  ],
-                ),
+  await showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),),
+          backgroundColor: Colors.white,
+          title: Center(
+            child: Text(
+              'Edit User',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: isSubmitting ? null : () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: isSubmitting ? null : () async {
-                  if (_formKey.currentState!.validate()) {
-                    setState(() => isSubmitting = true);
-                    try {
-                      final response = await http.put(
-                        Uri.parse('$baseUrl/api/user/${user.id}'),
-                        headers: {
-                          'Content-Type': 'application/json',
-                          'Accept': 'application/json',
-                          'Authorization': 'Bearer ${widget.token}',
-                        },
-                        body: json.encode({
-                          'name': nameController.text,
-                          'email': emailController.text,
-                          'role_id': selectedRoleId,
-                          'outlets_id': selectedOutletId != null ? [selectedOutletId] : [],
-                        }),
-                      );
-                      if (response.statusCode == 200) {
-                        Navigator.pop(context);
-                        fetchUsers(widget.token, widget.outletId);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('User updated successfully')),
-                        );
-                      } else {
-                        final error = json.decode(response.body);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(error['message'] ?? 'Failed to update user')),
-                        );
-                      }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: $e')),
-                      );
-                    } finally {
-                      setState(() => isSubmitting = false);
-                    }
-                  }
-                },
-                child: isSubmitting
-                    ? CircularProgressIndicator()
-                    : Text('Save'),
-              ),
-            ],
           ),
-        );
-      },
-    );
-  }
+          content: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Name
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "NAME",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      hintText: 'Name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Email
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "EMAIL",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: InputDecoration(
+                      hintText: 'Email',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Role
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "USER ROLE",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  isRoleLoading
+                      ? const CircularProgressIndicator()
+                      : DropdownButtonFormField<int>(
+                          value: selectedRoleId,
+                          decoration: InputDecoration(
+                            hintText: 'Role',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          items: roleOptions
+                              .map((role) => DropdownMenuItem(
+                                    value: role.value,
+                                    child: Text(role.label),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedRoleId = value ?? user.roleId;
+                            });
+                          },
+                          validator: (value) => value == null ? 'Please select a role' : null,
+                        ),
+                  const SizedBox(height: 18),
+
+                  // Outlet
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "ASSIGN OUTLET",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  isOutletLoading
+                      ? const CircularProgressIndicator()
+                      : DropdownButtonFormField<String>(
+                          value: selectedOutletId,
+                          decoration: InputDecoration(
+                            hintText: 'Outlet',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          items: outletOptions
+                              .map((outlet) => DropdownMenuItem(
+                                    value: outlet.id,
+                                    child: Text(outlet.outlet_name),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedOutletId = value;
+                            });
+                          },
+                          validator: (value) => value == null ? 'Please select an outlet' : null,
+                        ),
+                ],
+              ),
+            ),
+          ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: isSubmitting ? null : () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey[300]!),
+                      ),
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color.fromARGB(255, 53, 150, 105),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () async {
+                            if (_formKey.currentState!.validate()) {
+                              setState(() => isSubmitting = true);
+                              try {
+                                final response = await http.put(
+                                  Uri.parse('$baseUrl/api/user/${user.id}'),
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'Authorization': 'Bearer ${widget.token}',
+                                  },
+                                  body: json.encode({
+                                    'name': nameController.text,
+                                    'email': emailController.text,
+                                    'role_id': selectedRoleId,
+                                    'outlets_id': selectedOutletId != null ? [selectedOutletId] : [],
+                                  }),
+                                );
+                                if (response.statusCode == 200) {
+                                  Navigator.pop(context);
+                                  fetchUsers(widget.token, widget.outletId);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('User updated successfully')),
+                                  );
+                                } else {
+                                  final error = json.decode(response.body);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(error['message'] ?? 'Failed to update user')),
+                                  );
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: $e')),
+                                );
+                              } finally {
+                                setState(() => isSubmitting = false);
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text(
+                            'Save',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
   Future<void> _showCreateUserDialog() async {
     final _formKey = GlobalKey<FormState>();
@@ -261,121 +408,290 @@ class _UserPageState extends State<UserPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-            title: Text('Create User'),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: Colors.white,
+            title: const Center(
+              child: Text(
+                'Create User',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
             content: Form(
               key: _formKey,
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Name
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "NAME",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: nameController,
-                      decoration: InputDecoration(labelText: 'Name'),
+                      decoration: InputDecoration(
+                        hintText: 'Name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
                       validator: (value) => value == null || value.isEmpty ? 'Required' : null,
                     ),
+                    const SizedBox(height: 18),
+
+                    // Email
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "EMAIL",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: emailController,
-                      decoration: InputDecoration(labelText: 'Email'),
+                      decoration: InputDecoration(
+                        hintText: 'Email',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
                       validator: (value) => value == null || value.isEmpty ? 'Required' : null,
                     ),
+                    const SizedBox(height: 18),
+
+                    // Password
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "PASSWORD",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: passwordController,
-                      decoration: InputDecoration(labelText: 'Password'),
                       obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: 'Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
                       validator: (value) => value == null || value.isEmpty ? 'Required' : null,
                     ),
+                    const SizedBox(height: 18),
 
-                    SizedBox(height: 12),
-                    Text('User Role', style: TextStyle(fontWeight: FontWeight.bold)),
+                    // Role
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "USER ROLE",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     isRoleLoading
-                        ? CircularProgressIndicator()
+                        ? const CircularProgressIndicator()
                         : DropdownButtonFormField<int>(
                             value: selectedRoleId,
-                            decoration: InputDecoration(labelText: 'Role'),
-                            items: roleOptions.map((role) => DropdownMenuItem<int>(
-                              value: role.value,
-                              child: Text(role.label),
-                            )).toList(),
+                            decoration: InputDecoration(
+                              hintText: 'Role',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            items: roleOptions
+                                .map((role) => DropdownMenuItem(
+                                      value: role.value,
+                                      child: Text(role.label),
+                                    ))
+                                .toList(),
                             onChanged: (value) {
                               setState(() {
-                                selectedRoleId = value!;
+                                selectedRoleId = value;
                               });
                             },
                             validator: (value) => value == null ? 'Please select a role' : null,
                           ),
-                    
-                    SizedBox(height: 12),
-                    Text('Assign Outlet', style: TextStyle(fontWeight: FontWeight.bold)),
-                    
-                    DropdownButtonFormField<String>(
-                      value: selectedOutletId,
-                      decoration: InputDecoration(labelText: 'Outlet'),
-                      items: outletOptions.map((outlet) => DropdownMenuItem(
-                        value: outlet.id,
-                        child: Text(outlet.outlet_name),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedOutletId = value;
-                        });
-                      },
-                      validator: (value) => value == null ? 'Please select an outlet' : null,
+                    const SizedBox(height: 18),
+
+                    // Outlet
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "ASSIGN OUTLET",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
+                      ),
                     ),
+                    const SizedBox(height: 6),
+                    isOutletLoading
+                        ? const CircularProgressIndicator()
+                        : DropdownButtonFormField<String>(
+                            value: selectedOutletId,
+                            decoration: InputDecoration(
+                              hintText: 'Outlet',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            items: outletOptions
+                                .map((outlet) => DropdownMenuItem(
+                                      value: outlet.id,
+                                      child: Text(outlet.outlet_name),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedOutletId = value;
+                              });
+                            },
+                            validator: (value) => value == null ? 'Please select an outlet' : null,
+                          ),
                   ],
                 ),
               ),
             ),
+            actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             actions: [
-              TextButton(
-                onPressed: isSubmitting ? null : () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: isSubmitting
-                    ? null
-                    : () async {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() => isSubmitting = true);
-                          try {
-                            final response = await http.post(
-                              Uri.parse('$baseUrl/api/user'),
-                              headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'Authorization': 'Bearer ${widget.token}',
-                              },
-                              body: json.encode({
-                                'name': nameController.text,
-                                'email': emailController.text,
-                                'password': passwordController.text,
-                                'role_id': selectedRoleId,
-                                'outlets_id': selectedOutletId != null ? [selectedOutletId] : [],
-                              }),
-                            );
-                            if (response.statusCode == 201 || response.statusCode == 200) {
-                              Navigator.pop(context);
-                              fetchUsers(widget.token, widget.outletId);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('User created successfully')),
-                              );
-                            } else {
-                              final error = json.decode(response.body);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(error['message'] ?? 'Failed to create user')),
-                              );
-                            }
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
-                            );
-                          } finally {
-                            setState(() => isSubmitting = false);
-                          }
-                        }
-                      },
-                child: isSubmitting
-                    ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text('Create'),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: isSubmitting ? null : () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color.fromARGB(255, 53, 150, 105),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: isSubmitting
+                          ? null
+                          : () async {
+                              if (_formKey.currentState!.validate()) {
+                                setState(() => isSubmitting = true);
+                                try {
+                                  final response = await http.post(
+                                    Uri.parse('$baseUrl/api/user'),
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                      'Accept': 'application/json',
+                                      'Authorization': 'Bearer ${widget.token}',
+                                    },
+                                    body: json.encode({
+                                      'name': nameController.text,
+                                      'email': emailController.text,
+                                      'password': passwordController.text,
+                                      'role_id': selectedRoleId,
+                                      'outlets_id': selectedOutletId != null ? [selectedOutletId] : [],
+                                    }),
+                                  );
+                                  if (response.statusCode == 201 || response.statusCode == 200) {
+                                    Navigator.pop(context);
+                                    fetchUsers(widget.token, widget.outletId);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('User created successfully')),
+                                    );
+                                  } else {
+                                    final error = json.decode(response.body);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(error['message'] ?? 'Failed to create user')),
+                                    );
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error: $e')),
+                                  );
+                                } finally {
+                                  setState(() => isSubmitting = false);
+                                }
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: isSubmitting
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Text(
+                              'Create',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -390,75 +706,117 @@ class _UserPageState extends State<UserPage> {
     builder: (BuildContext context) {
       return AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
         ),
-        title: Text(
-          'Delete User',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
+        backgroundColor: Colors.white,
+        title: const Center(
+          child: Text(
+            'Delete User',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.black87,
+            ),
           ),
         ),
         content: Text(
-          'Are you sure you want to delete ${user.name}? This action cannot be undone.',
+          'Apakah anda yakin ingin menghapus user ${user.name}?',
+          textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey[600]),
         ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey[600],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop(); // Tutup dialog sebelum proses
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => Center(child: CircularProgressIndicator()),
-              );
-              try {
-                final response = await http.delete(
-                  Uri.parse('$baseUrl/api/user/${user.id}'),
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer ${widget.token}',
-                  },
-                );
-                if (!mounted) return; // Tambahkan ini!
-                Navigator.of(context).pop(); // Tutup loading
-                if (response.statusCode == 200) {
-                  fetchUsers(widget.token, widget.outletId);
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('User deleted successfully'), backgroundColor: Colors.red),
-                  );
-                } else {
-                  final error = json.decode(response.body);
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(error['message'] ?? 'Failed to delete user'), backgroundColor: Colors.red),
-                  );
-                }
-              } catch (e) {
-                if (!mounted) return;
-                Navigator.of(context).pop(); // Tutup loading
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey[300]!),
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color.fromARGB(255, 145, 145, 145),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: Text('Delete'),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop(); // Tutup dialog sebelum proses
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => const Center(child: CircularProgressIndicator()),
+                    );
+                    try {
+                      final response = await http.delete(
+                        Uri.parse('$baseUrl/api/user/${user.id}'),
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Accept': 'application/json',
+                          'Authorization': 'Bearer ${widget.token}',
+                        },
+                      );
+                      if (!mounted) return;
+                      Navigator.of(context).pop(); // Tutup loading
+                      if (response.statusCode == 200) {
+                        fetchUsers(widget.token, widget.outletId);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('User deleted successfully'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      } else {
+                        final error = json.decode(response.body);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(error['message'] ?? 'Failed to delete user'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (!mounted) return;
+                      Navigator.of(context).pop(); // Tutup loading
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Delete',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       );
@@ -470,10 +828,18 @@ class _UserPageState extends State<UserPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Manage User'),
-        backgroundColor: Colors.white,
+        title: Text('Manage User', style: TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),  ),
+        backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
         elevation: 1,
       ),
+
+                  backgroundColor: const Color.fromARGB(255, 245, 244, 244),
+
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : users.isEmpty
@@ -523,6 +889,7 @@ class _UserPageState extends State<UserPage> {
                             .toList();
                         final user = filteredUsers[idx];
                         return Card(
+                          color: Colors.white,
                           margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           child: ListTile(
                             leading: CircleAvatar(
@@ -549,7 +916,7 @@ class _UserPageState extends State<UserPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: Icon(Icons.edit, color: Colors.blue),
+                                  icon: Icon(Icons.edit, color: const Color.fromARGB(255, 101, 104, 106)),
                                   onPressed: () => _showEditUserDialog(user),
                                   tooltip: 'Edit',
                                 ),
@@ -569,8 +936,9 @@ class _UserPageState extends State<UserPage> {
               ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateUserDialog,
-        backgroundColor: Colors.white,
-        child: Icon(Icons.add, color: Colors.grey[800]),
+        backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
+        child: Icon(Icons.add, color: const Color.fromARGB(255, 255, 255, 255)),
       ),
     );
   }

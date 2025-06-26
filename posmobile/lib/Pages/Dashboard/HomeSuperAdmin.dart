@@ -75,28 +75,28 @@ class _HomePageSuperAdminState extends State<HomePageSuperAdmin> {
     return Scaffold(
         body: SafeArea(
       child: Column(children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-                onPressed: () async {
-                  SharedPreferences pref =
-                      await SharedPreferences.getInstance();
-                  pref.remove('token');
-
-                  pref.remove('role');
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => LoginPage()));
-                  print("Token dihapus");
-                  print("Role dihapus");
-                },
-                child: Text(
-                  "Logout",
-                  style: TextStyle(color: Colors.red, fontSize: 16),
-                ))
-          ],
-        ),
+       Row(
+  crossAxisAlignment: CrossAxisAlignment.center,
+  mainAxisAlignment: MainAxisAlignment.end,
+  children: [
+    Padding(
+      padding: const EdgeInsets.only(left: 24, top: 8, right: 16),
+      child: IconButton(
+        icon: const Icon(Icons.logout, color: Colors.red, size: 28),
+        tooltip: 'Logout',
+        onPressed: () async {
+          SharedPreferences pref = await SharedPreferences.getInstance();
+          pref.remove('token');
+          pref.remove('role');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginPage()),
+          );
+        },
+      ),
+    ),
+  ],
+),
         Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

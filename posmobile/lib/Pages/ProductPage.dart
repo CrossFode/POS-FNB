@@ -147,58 +147,81 @@ class _ProductPageState extends State<ProductPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
-            return AlertDialog(
-              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-              title: Center(
-                child: Text(
-                  isEdit ? 'Edit Product' : 'Create Product',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-              content: SizedBox(
-                width: 400,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white,
+                ),
                 child: SingleChildScrollView(
                   child: Form(
                     key: _formKey,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // General Information
-                        const Align(
-                          alignment: Alignment.centerLeft,
+                        // Header
+                        Center(
                           child: Text(
-                            'GENERAL INFORMATION',
-                            style: TextStyle(
-                                color: Color.fromARGB(255, 66, 66, 66),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold),
+                            isEdit ? 'Edit Product' : 'Create Product',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
                         ),
-                        const Divider(color: Colors.grey, thickness: 1),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 24),
 
                         // Product Name
+                        const Text(
+                          "PRODUCT NAME",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
                         TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'Product Name',
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            hintText: 'Product Name',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            filled: true,
+                            fillColor: Colors.white,
                           ),
                           validator: (value) =>
                               value?.isEmpty ?? true ? 'Required' : null,
                           onSaved: (value) => _productName = value!,
                           initialValue: isEdit ? product?.name : null,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
 
                         // Category Dropdown
+                        const Text(
+                          "CATEGORY",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
                         FutureBuilder<CategoryResponse>(
                           future:
                               fetchCategories(widget.token, widget.outletId),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else if (!snapshot.hasData ||
@@ -208,69 +231,87 @@ class _ProductPageState extends State<ProductPage> {
                             final categories = snapshot.data!.data;
                             final categoryNames =
                                 categories.map((c) => c.category_name).toList();
-                            // Ensure _selectedCategory is either null or in the list
                             final dropdownValue =
                                 (categoryNames.contains(_selectedCategory))
                                     ? _selectedCategory
                                     : null;
                             return DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(
-                                labelText: 'Category',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                hintText: 'Category',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                filled: true,
+                                fillColor: Colors.white,
                               ),
                               value: dropdownValue,
-                              dropdownColor: Color.fromARGB(255, 255, 255,
-                                  255), // <-- Ubah warna background dropdown di sini
-
+                              dropdownColor: Colors.white,
                               items: categories.map((category) {
                                 return DropdownMenuItem(
                                   value: category.category_name,
                                   child: Text(category.category_name),
                                 );
                               }).toList(),
-                              onChanged: (value) => setStateDialog(
-                                  () => _selectedCategory = value),
-                              validator: (value) =>
-                                  value == null ? 'Select a category' : null,
+                              onChanged: (value) => setStateDialog(() => _selectedCategory = value),
+                              validator: (value) => value == null ? 'Select a category' : null,
                             );
                           },
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
 
                         // Description
+                        const Text(
+                          "DESCRIPTION",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
                         TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'Description',
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            hintText: 'Description',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            filled: true,
+                            fillColor: Colors.white,
                           ),
                           maxLines: 2,
                           onSaved: (value) => _description = value ?? '',
                           initialValue: isEdit ? product?.description : null,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
 
                         // Pricing Section
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'PRICING',
-                            style: TextStyle(
-                                color: Color.fromARGB(255, 66, 66, 66),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold),
+                        const Text(
+                          "PRICING",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
                           ),
                         ),
-                        const Divider(color: Colors.grey, thickness: 1),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 6),
 
                         // Single Price or Variants
                         if (_showSinglePrice)
                           TextFormField(
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Price',
+                            decoration: InputDecoration(
+                              hintText: 'Price',
                               prefixText: 'Rp ',
-                              border: OutlineInputBorder(),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              filled: true,
+                              fillColor: Colors.white,
                             ),
                             validator: (value) =>
                                 value?.isEmpty ?? true ? 'Required' : null,
@@ -295,14 +336,17 @@ class _ProductPageState extends State<ProductPage> {
                                       flex: 2,
                                       child: TextFormField(
                                         controller: controller['name'],
-                                        decoration: const InputDecoration(
-                                          labelText: 'Variant Name',
-                                          border: OutlineInputBorder(),
+                                        decoration: InputDecoration(
+                                          hintText: 'Variant Name',
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                          filled: true,
+                                          fillColor: Colors.white,
                                         ),
                                         validator: (value) =>
-                                            value?.isEmpty ?? true
-                                                ? 'Required'
-                                                : null,
+                                            value?.isEmpty ?? true ? 'Required' : null,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -311,27 +355,28 @@ class _ProductPageState extends State<ProductPage> {
                                       child: TextFormField(
                                         controller: controller['price'],
                                         keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Price',
+                                        decoration: InputDecoration(
+                                          hintText: 'Price',
                                           prefixText: 'Rp ',
-                                          border: OutlineInputBorder(),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                          filled: true,
+                                          fillColor: Colors.white,
                                         ),
                                         inputFormatters: [
                                           FilteringTextInputFormatter.digitsOnly
                                         ],
                                         validator: (value) =>
-                                            value?.isEmpty ?? true
-                                                ? 'Required'
-                                                : null,
+                                            value?.isEmpty ?? true ? 'Required' : null,
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.close,
-                                          color: Colors.red),
+                                      icon: const Icon(Icons.close, color: Colors.red),
                                       onPressed: () {
                                         setStateDialog(() {
-                                          _variantControllers
-                                              .remove(controller);
+                                          _variantControllers.remove(controller);
                                           if (_variantControllers.isEmpty) {
                                             _showSinglePrice = true;
                                           }
@@ -344,14 +389,20 @@ class _ProductPageState extends State<ProductPage> {
                             }).toList(),
                           ),
 
+                        // Tambahkan jarak sebelum tombol
+                        const SizedBox(height: 10), // <--- Tambahkan ini sebelum tombol
                         // Add Variant Button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 53, 150, 105),
-                              foregroundColor: Colors.white,
+                              backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              minimumSize: const Size(0, 44), // tinggi 44, lebar penuh
+                              elevation: 0,
                             ),
                             onPressed: () {
                               setStateDialog(() {
@@ -362,37 +413,39 @@ class _ProductPageState extends State<ProductPage> {
                                 _showSinglePrice = false;
                               });
                             },
-                            child: Text('ADD VARIANT',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'ADD VARIANT',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
 
                         // Modifiers Section
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'MODIFIERS',
-                            style: TextStyle(
-                                color: Color.fromARGB(255, 68, 68, 68),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold),
+                        const Text(
+                          "MODIFIERS",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
                           ),
                         ),
-                        const Divider(color: Colors.grey, thickness: 1),
+                        const SizedBox(height: 6),
 
                         // Modifiers List
                         FutureBuilder<ModifierResponse>(
                           future: fetchModifiers(widget.token, widget.outletId),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
-                            } else if (!snapshot.hasData ||
-                                snapshot.data!.data.isEmpty) {
+                            } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
                               return const Text('No modifiers available');
                             }
 
@@ -413,164 +466,151 @@ class _ProductPageState extends State<ProductPage> {
                                       _selectedModifiers[modifier.id] ?? false,
                                   onChanged: (bool? value) {
                                     setStateDialog(() {
-                                      _selectedModifiers[modifier.id] =
-                                          value ?? false;
+                                      _selectedModifiers[modifier.id] = value ?? false;
                                     });
                                   },
                                   controlAffinity:
                                       ListTileControlAffinity.leading,
                                   dense: true,
-                                  contentPadding:
-                                      EdgeInsets.zero, // Remove all padding
-                                  visualDensity: VisualDensity(
-                                      horizontal: -4, vertical: -4),
-                                  activeColor: Color.fromARGB(255, 53, 150,
-                                      105), // Checkbox background when checked
-                                  checkColor:
-                                      Colors.white, // Make it more compact
+                                  contentPadding: EdgeInsets.zero,
+                                  visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+                                  activeColor: const Color.fromARGB(255, 53, 150, 105),
+                                  checkColor: Colors.white,
                                 );
                               }).toList(),
                             );
                           },
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Action Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color.fromARGB(255, 53, 150, 105),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    _formKey.currentState!.save();
+
+                                    final modifier_ids = _selectedModifiers.entries
+                                        .where((e) => e.value)
+                                        .map((e) => e.key)
+                                        .toList();
+
+                                    final variants = _variantControllers.map((c) {
+                                      return {
+                                        'name': c['name']!.text,
+                                        'price': int.parse(c['price']!.text),
+                                      };
+                                    }).toList();
+
+                                    if (isEdit) {
+                                      // Update product
+                                      try {
+                                        final url = Uri.parse('$baseUrl/api/product/${product!.id}');
+                                        final categoryResponse = await fetchCategories(widget.token, widget.outletId);
+                                        final categoryData = categoryResponse.data.firstWhere(
+                                          (cat) => cat.category_name.trim().toLowerCase() == _selectedCategory!.trim().toLowerCase(),
+                                          orElse: () => categoryResponse.data.first,
+                                        );
+                                        final category_id = categoryData.id;
+
+                                        final response = await http.put(
+                                          url,
+                                          headers: {
+                                            'Authorization': 'Bearer ${widget.token}',
+                                            'Content-Type': 'application/json',
+                                          },
+                                          body: jsonEncode({
+                                            'name': _productName,
+                                            'category_id': category_id,
+                                            'description': _description,
+                                            'price': _showSinglePrice ? int.tryParse(_price) : null,
+                                            'is_active': 1,
+                                            'outlet_id': product.outlet_id,
+                                            if (variants.isNotEmpty) 'variants': variants,
+                                            if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
+                                            'updated_at': DateTime.now().toIso8601String(),
+                                          }),
+                                        );
+
+                                        if (response.statusCode == 200) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Product updated successfully!')),
+                                          );
+                                          setState(() {
+                                            _productFuture = fetchAllProduct(widget.token, widget.outletId);
+                                          });
+                                        } else {
+                                          final error = jsonDecode(response.body);
+                                          final errorMsg = error['message'] ?? error['error'] ?? response.body;
+                                          throw Exception('Server responded with: $errorMsg');
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Update failed: ${e.toString()}')),
+                                        );
+                                      }
+                                    } else {
+                                      // Create new product
+                                      await _createProduct(
+                                        name: _productName,
+                                        category_name: _selectedCategory!,
+                                        description: _description,
+                                        price: _showSinglePrice ? _price : '',
+                                        variants: variants,
+                                        modifier_ids: modifier_ids,
+                                      );
+                                    }
+
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                                child: const Text(
+                                  'Save',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-              actions: [
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color.fromARGB(255, 0, 0, 0),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50),
-                      side: const BorderSide(
-                        color:
-                            Color.fromARGB(255, 53, 150, 105), // Outline color
-                        width: 1.5, // Outline thickness
-                      ),
-                    ),
-                  ),
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(color: Color.fromARGB(255, 53, 150, 105)),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 53, 150, 105),
-                    foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                  ),
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-
-                      final modifier_ids = _selectedModifiers.entries
-                          .where((e) => e.value)
-                          .map((e) => e.key)
-                          .toList();
-
-                      final variants = _variantControllers.map((c) {
-                        return {
-                          'name': c['name']!.text,
-                          'price': int.parse(c['price']!.text),
-                        };
-                      }).toList();
-
-                      if (isEdit) {
-                        // Update product
-                        try {
-                          final url =
-                              Uri.parse('$baseUrl/api/product/${product!.id}');
-
-                          // Ambil category_id dari data kategori, bukan dari produk
-                          final categoryResponse = await fetchCategories(
-                              widget.token, widget.outletId);
-                          final categoryData = categoryResponse.data.firstWhere(
-                            (cat) =>
-                                cat.category_name.trim().toLowerCase() ==
-                                _selectedCategory!.trim().toLowerCase(),
-                            orElse: () => categoryResponse.data.first,
-                          );
-
-                          // Gunakan id dari kategori yang dipilih
-                          final category_id = categoryData.id;
-
-                          // category_id is guaranteed to be non-null, so no need to check for null
-
-                          final response = await http.put(
-                            url,
-                            headers: {
-                              'Authorization': 'Bearer ${widget.token}',
-                              'Content-Type': 'application/json',
-                            },
-                            body: jsonEncode({
-                              'name': _productName,
-                              'category_id':
-                                  category_id, // Gunakan category_id dari kategori yang dipilih
-                              'description': _description,
-                              'price': _showSinglePrice
-                                  ? int.tryParse(_price)
-                                  : null,
-                              'is_active': 1,
-                              'outlet_id': product.outlet_id,
-                              if (variants.isNotEmpty) 'variants': variants,
-                              if (modifier_ids.isNotEmpty)
-                                'modifiers': modifier_ids,
-                              'updated_at': DateTime.now().toIso8601String(),
-                            }),
-                          );
-
-                          print(
-                              'Update response status: ${response.statusCode}');
-                          print('Update response body: ${response.body}');
-
-                          if (response.statusCode == 200) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Product updated successfully!')),
-                            );
-                            setState(() {
-                              _productFuture = fetchAllProduct(
-                                  widget.token, widget.outletId);
-                            });
-                          } else {
-                            final error = jsonDecode(response.body);
-                            final errorMsg = error['message'] ??
-                                error['error'] ??
-                                response.body;
-                            throw Exception('Server responded with: $errorMsg');
-                          }
-                        } catch (e) {
-                          print('Update error: $e');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content:
-                                    Text('Update failed: ${e.toString()}')),
-                          );
-                        }
-                      } else {
-                        // Create new product
-                        await _createProduct(
-                          name: _productName,
-                          category_name: _selectedCategory!,
-                          description: _description,
-                          price: _showSinglePrice ? _price : '',
-                          variants: variants,
-                          modifier_ids: modifier_ids,
-                        );
-                      }
-
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
             );
           },
         );
@@ -731,35 +771,85 @@ class _ProductPageState extends State<ProductPage> {
                                                     content: const Text(
                                                         'Apakah anda yakin ingin menghapus produk ini?'),
                                                     actions: [
-                                                      TextButton(
-                                                        style: TextButton
-                                                            .styleFrom(
-                                                          foregroundColor:
-                                                              const Color
-                                                                  .fromARGB(
-                                                                  255, 0, 0, 0),
-                                                        ),
-                                                        onPressed: () =>
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop(false),
-                                                        child: const Text(
-                                                            'Cancel'),
-                                                      ),
-                                                      ElevatedButton(
-                                                        onPressed: () =>
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop(true),
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          backgroundColor:
-                                                              Colors.red,
-                                                          foregroundColor:
-                                                              Colors.white,
-                                                        ),
-                                                        child: const Text(
-                                                            'Delete'),
+                                                      Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: TextButton(
+                                                              style: TextButton
+                                                                  .styleFrom(
+                                                                padding: const EdgeInsets
+                                                                    .symmetric(
+                                                                    vertical: 16),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              12),
+                                                                  side: BorderSide(
+                                                                      color: Colors
+                                                                          .grey[300]!),
+                                                                ),
+                                                              ),
+                                                              onPressed: () =>
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          false),
+                                                              child: const Text(
+                                                                'Cancel',
+                                                                style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: Color
+                                                                      .fromARGB(
+                                                                          255,
+                                                                          145,
+                                                                          145,
+                                                                          145),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                              width: 12),
+                                                          Expanded(
+                                                            child: ElevatedButton(
+                                                              onPressed: () =>
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(true),
+                                                              style: ElevatedButton
+                                                                  .styleFrom(
+                                                                backgroundColor:
+                                                                    Colors.red,
+                                                                padding: const EdgeInsets
+                                                                    .symmetric(
+                                                                    vertical: 16),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              12),
+                                                                ),
+                                                              ),
+                                                              child: const Text(
+                                                                'Delete',
+                                                                style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ],
                                                   ),
