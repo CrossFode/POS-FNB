@@ -307,12 +307,17 @@ class _HistoryPageState extends State<HistoryPage>
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    'Edit Order ${order.customer}',
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                                  Expanded(
+                                    // Expanded diperlukan di sini
+                                    child: Text(
+                                      'Edit Order ${order.customer}',
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
                                     ),
                                   ),
                                   IconButton(
@@ -373,6 +378,7 @@ class _HistoryPageState extends State<HistoryPage>
                               const SizedBox(height: 12),
                               DropdownButtonFormField<String>(
                                 value: editedCashierId,
+                                isExpanded: true,
                                 decoration: InputDecoration(
                                   labelText: 'Cashier',
                                   border: const OutlineInputBorder(),
@@ -381,7 +387,11 @@ class _HistoryPageState extends State<HistoryPage>
                                 items: cashiers.map((cashier) {
                                   return DropdownMenuItem<String>(
                                     value: cashier['id'].toString(),
-                                    child: Text(cashier['name']),
+                                    child: Text(
+                                      cashier['name'],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
                                   );
                                 }).toList(),
                                 onChanged: (value) =>
@@ -390,6 +400,7 @@ class _HistoryPageState extends State<HistoryPage>
                               const SizedBox(height: 12),
                               DropdownButtonFormField<String>(
                                 value: editedPaymentId,
+                                isExpanded: true,
                                 decoration: InputDecoration(
                                   labelText: 'Payment Method',
                                   border: const OutlineInputBorder(),
@@ -398,29 +409,17 @@ class _HistoryPageState extends State<HistoryPage>
                                 items: paymentMethods.map((payment) {
                                   return DropdownMenuItem<String>(
                                     value: payment['id'].toString(),
-                                    child: Text(payment['payment_name']),
+                                    child: Text(
+                                      payment['payment_name'],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
                                   );
                                 }).toList(),
                                 onChanged: (value) =>
                                     setState(() => editedPaymentId = value),
                               ),
-                              const SizedBox(height: 12),
-                              DropdownButtonFormField<String>(
-                                value: editedOrderType,
-                                decoration: InputDecoration(
-                                  labelText: 'Order Type',
-                                  border: const OutlineInputBorder(),
-                                  errorText: errors['order_type'],
-                                ),
-                                items: orderTypes.map((type) {
-                                  return DropdownMenuItem<String>(
-                                    value: type['value'],
-                                    child: Text(type['label']),
-                                  );
-                                }).toList(),
-                                onChanged: (value) =>
-                                    setState(() => editedOrderType = value),
-                              ),
+
                               const SizedBox(height: 12),
                               GestureDetector(
                                 onTap: () async {
@@ -477,11 +476,6 @@ class _HistoryPageState extends State<HistoryPage>
                                       if (editedPaymentId == null) {
                                         setState(() => errors['order_payment'] =
                                             'Payment wajib diisi');
-                                        return;
-                                      }
-                                      if (editedOrderType == null) {
-                                        setState(() => errors['order_type'] =
-                                            'Order type wajib diisi');
                                         return;
                                       }
 
@@ -633,236 +627,267 @@ class _HistoryPageState extends State<HistoryPage>
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.8,
             ),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Order Details',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                // Header (fixed)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Rincian Pesanan',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close, color: Color(0xFF64748B)),
-                    ),
-                  ],
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                      ),
+                    ],
+                  ),
                 ),
-                const Divider(color: Color(0xFFE2E8F0)),
+                const Divider(height: 1),
 
-                // Content yang bisa di-scroll
+                // Content scrollable
                 Expanded(
                   child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Order By ${order.customer}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color:
-                                    _getStatusColor(order.status).withAlpha(30),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                order.status,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getStatusColor(order.status),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Detail information
-                        _buildDetailRow('Customer', order.customer),
-                        _buildDetailRow('Phone', order.customerPhone),
-                        _buildDetailRow('Order Type', order.orderType),
-                        if (order.tableNumber != null)
-                          _buildDetailRow('Table', order.tableNumber!),
-                        _buildDetailRow('Outlet', order.outlet),
-                        _buildDetailRow('Cashier', order.cashier),
-                        _buildDetailRow('Payment Method', order.paymentMethod),
-                        _buildDetailRow(
-                            'Date', _formatDateTime(order.orderDate)),
-
-                        const SizedBox(height: 16),
-                        const Divider(),
-                        const SizedBox(height: 16),
-
-                        // Items Ordered Section
-                        const Text(
-                          'Items Ordered:',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // Items container with max height and scroll
-                        Container(
-                          constraints: const BoxConstraints(
-                            maxHeight: 200, // Maksimal tinggi 200px
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Info customer & status
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // List produk scrollable
                               Expanded(
-                                child: ListView.separated(
-                                  shrinkWrap: true,
-                                  padding: const EdgeInsets.all(8),
-                                  itemCount: order.products.length,
-                                  separatorBuilder: (context, index) =>
-                                      const SizedBox(height: 8),
-                                  itemBuilder: (context, index) {
-                                    final item = order.products[index];
-                                    return Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF8FAFC),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  item.name,
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Color(0xFF1E293B),
-                                                  ),
-                                                ),
-                                                if (item.variantName != null &&
-                                                    item.variantName!
-                                                        .isNotEmpty)
-                                                  Text(
-                                                    'Variant: ${item.variantName}',
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      color: Color(0xFF64748B),
-                                                    ),
-                                                  ),
-                                                Text(
-                                                  'Qty: ${item.quantity}',
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: Color(0xFF64748B),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                _formatPrice(item.price),
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  color: Color(0xFF64748B),
-                                                ),
-                                              ),
-                                              Text(
-                                                _formatPrice(
-                                                    item.price * item.quantity),
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF1E293B),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
+                                child: Text(
+                                  'Order by ${order.customer}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              // Subtotal fixed di bawah
                               Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(8),
-                                    bottomRight: Radius.circular(8),
-                                  ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: _getStatusColor(order.status)
+                                      .withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      'Subtotal:',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF64748B),
-                                      ),
-                                    ),
-                                    Text(
-                                      _formatPrice(order.totalPrice),
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E293B),
-                                      ),
-                                    ),
-                                  ],
+                                child: Text(
+                                  order.status,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: _getStatusColor(order.status),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 16),
 
-                        const SizedBox(height: 16),
+                          // Info detail pesanan
+                          const Text(
+                            'Informasi Pesanan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
 
-                        // Total dengan background berbeda
-                      ],
+                          // Detail informasi
+                          _buildDetailRow('Customer', order.customer),
+                          _buildDetailRow('Phone', order.customerPhone),
+                          _buildDetailRow('Order Type', order.orderType),
+                          if (order.tableNumber != null)
+                            _buildDetailRow('Table', order.tableNumber!),
+                          _buildDetailRow('Outlet', order.outlet),
+                          _buildDetailRow('Cashier', order.cashier),
+                          _buildDetailRow(
+                              'Payment Method', order.paymentMethod),
+                          _buildDetailRow(
+                              'Date', _formatDateTime(order.orderDate)),
+
+                          const Divider(height: 32),
+
+                          // Rincian Pesanan (Items)
+                          const Text(
+                            'Rincian Pesanan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // List produk (seperti di gambar tanpa gambar)
+                          ...order.products
+                              .map((item) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Nama, jumlah dan harga
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                '${item.quantity}x ${item.name}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              _formatPrice(
+                                                  item.price * item.quantity),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
+                                        // Hanya tampilkan variant (jika ada)
+                                        if (item.variantName != null &&
+                                            item.variantName!.isNotEmpty)
+                                          Text(
+                                            item.variantName!,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade700,
+                                            ),
+                                          ),
+
+                                        const SizedBox(height: 4),
+                                        const Divider(height: 8),
+                                      ],
+                                    ),
+                                  ))
+                              .toList(),
+
+                          const SizedBox(height: 12),
+
+                          // Ringkasan harga
+                          // Subtotal Pesanan
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth:
+                                        MediaQuery.of(context).size.width *
+                                            0.40,
+                                  ),
+                                  child: const Text(
+                                    'Subtotal Pesanan',
+                                    overflow: TextOverflow.visible,
+                                    softWrap: true,
+                                  ),
+                                ),
+                                Text(
+                                  _formatPrice(order.subtotalPrice),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Diskon Regular jika ada
+                          if (order.discountName != null &&
+                              order.discountAmount != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Voucher Diskon',
+                                      style:
+                                          const TextStyle(color: Colors.green)),
+                                  Text(
+                                    '-${_formatPrice(order.discountType == 'percent' ? (order.subtotalPrice * order.discountAmount!) ~/ 100 : order.discountAmount!)}',
+                                    style: const TextStyle(color: Colors.green),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          // Diskon Referral jika ada
+                          if (order.referralCode != null &&
+                              order.referralDiscount != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Referral',
+                                      style:
+                                          const TextStyle(color: Colors.green)),
+                                  Text(
+                                    '-${_formatPrice((order.subtotalPrice * order.referralDiscount!) ~/ 100)}',
+                                    style: const TextStyle(color: Colors.green),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
+                  ),
+                ),
+
+                // Total Bayar (fixed di bawah)
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total Bayar',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        _formatPrice(order.totalPrice),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -913,6 +938,8 @@ class _HistoryPageState extends State<HistoryPage>
                 fontSize: 14,
                 color: Color(0xFF1E293B),
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
         ],
@@ -1215,6 +1242,9 @@ class _HistoryPageState extends State<HistoryPage>
                                                     fontWeight: FontWeight.w600,
                                                     color: Color(0xFF1E293B),
                                                   ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 1,
                                                 ),
                                               ),
                                               Row(
@@ -1412,6 +1442,25 @@ class _HistoryPageState extends State<HistoryPage>
                                               color: Color(0xFF64748B),
                                             ),
                                           ),
+
+                                          // Tambahkan indikator diskon jika ada diskon yang diterapkan
+                                          if (order.subtotalPrice >
+                                              order.totalPrice)
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.discount,
+                                                    size: 14,
+                                                    color: Colors.green),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Diskon: ${_formatPrice(order.subtotalPrice - order.totalPrice)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.green,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
 
                                           const SizedBox(height: 8),
 
