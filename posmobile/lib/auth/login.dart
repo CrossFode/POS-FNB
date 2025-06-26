@@ -126,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: Color(0xFF4CAF50), // Primary color 1 - sudah sesuai
+      backgroundColor: Color(0xFF359669), // Primary color 1 - sudah sesuai
       body: Stack(
         children: [
           // Bagian logo dan judul di area hijau
@@ -196,120 +196,153 @@ class _LoginPageState extends State<LoginPage> {
             bottom: 0,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white, // Neutral color 1
+                color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(15),
                   topRight: Radius.circular(15),
                 ),
               ),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 8),
-                      Center(
-                        child: Column(
-                          children: [
-                            Text(
-                              'Selamat Datang',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(
-                                    0xFF333333), // Neutral color 3 - dark gray
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Silakan masuk untuk melanjutkan',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(
-                                    0xFF666666), // Neutral color 4 - medium gray
-                              ),
-                            ),
-                          ],
-                        ),
+              child: Stack(
+                children: [
+                  // Background image
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(15),
+                        topRight: Radius.circular(15),
                       ),
-                      SizedBox(height: 24),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: TextStyle(
-                              color: Color(0xFF5A6C7D)), // Primary color 3
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Color(0xFF45A049)), // Primary color 2
-                          ),
-                          prefixIcon: Icon(Icons.email,
-                              color: Color(0xFF45A049)), // Primary color 2
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                        controller: _emailController,
-                      ),
-                      SizedBox(height: 16),
-                      TextField(
-                        obscureText: _obscureText,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(
-                              color: Color(0xFF5A6C7D)), // Primary color 3
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Color(0xFF45A049)), // Primary color 2
-                          ),
-                          prefixIcon: Icon(Icons.lock,
-                              color: Color(0xFF45A049)), // Primary color 2
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureText
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                              color: Color(0xFF5A6C7D), // Primary color 3
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscureText = !_obscureText;
-                              });
-                            },
-                          ),
-                        ),
-                        controller: _passwordController,
-                      ),
-                      SizedBox(height: 30),
-                      ElevatedButton(
-                        onPressed: () {
-                          String email = _emailController.text;
-                          String password = _passwordController.text;
-                          if (email.isEmpty || password.isEmpty) {
-                            _showMessage('Please fill in all fields');
-                            return;
-                          }
-                          login(email, password);
-                        },
-                        child: Text('LOGIN', style: TextStyle(fontSize: 16)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF45A049), // Primary color 2
-                          foregroundColor: Colors.white, // Neutral color 1
-                          minimumSize: Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage('assets/images/FixGaSihV2.png'),
+                            fit: BoxFit.fill,
+                            // alignment: Alignment.center, // Mengisi seluruh area
+                            opacity: 0.16,
                           ),
                         ),
                       ),
-                      SizedBox(height: 120),
-                    ],
+                    ),
                   ),
+                  // Form content
+                  SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 8),
+                          Center(
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Selamat Datang',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors
+                                        .black, // Neutral color 3 - dark gray
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Silakan masuk untuk melanjutkan',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color.fromARGB(255, 62, 62,
+                                        62), // Neutral color 4 - medium gray
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 24),
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              labelStyle: TextStyle(
+                                  color: Color(0xFF5A6C7D)), // Primary color 3
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color:
+                                        Color(0xFF45A049)), // Primary color 2
+                              ),
+                              prefixIcon:
+                                  Icon(Icons.email, color: Color(0xFF45A049)),
+                              filled: true,
+                              fillColor: Colors.white, // Primary color 2
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            controller: _emailController,
+                          ),
+                          SizedBox(height: 16),
+                          TextField(
+                            obscureText: _obscureText,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              labelStyle: TextStyle(
+                                  color: Color(0xFF5A6C7D)), // Primary color 3
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color:
+                                        Color(0xFF45A049)), // Primary color 2
+                              ),
+                              prefixIcon:
+                                  Icon(Icons.lock, color: Color(0xFF45A049)),
+                              filled: true,
+                              fillColor: Colors.white, // Primary color 2
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureText
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Color(0xFF5A6C7D), // Primary color 3
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureText = !_obscureText;
+                                  });
+                                },
+                              ),
+                            ),
+                            controller: _passwordController,
+                          ),
+                          SizedBox(height: 30),
+                          ElevatedButton(
+                            onPressed: () {
+                              String email = _emailController.text;
+                              String password = _passwordController.text;
+                              if (email.isEmpty || password.isEmpty) {
+                                _showMessage('Please fill in all fields');
+                                return;
+                              }
+                              login(email, password);
+                            },
+                            child:
+                                Text('LOGIN', style: TextStyle(fontSize: 16)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color.fromARGB(
+                                  255, 53, 150, 10), // Primary color 2
+                              foregroundColor: Colors.white, // Neutral color 1
+                              minimumSize: Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 120),
+                        ],
+                      ),
+                    ),
+                  ),
+<<<<<<< Fauzan
                 ),
               ),
             ),
@@ -324,6 +357,9 @@ class _LoginPageState extends State<LoginPage> {
               child: Image.asset(
                 'assets/images/LogoBawah.png',
                 height: 50,
+=======
+                ],
+>>>>>>> main
               ),
             ),
           ),
