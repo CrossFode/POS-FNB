@@ -142,212 +142,238 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-         appBar: AppBar(
-  automaticallyImplyLeading: false,
-  title: Padding(
-    padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
-    child: Text(
-      "Menu",
-      style: TextStyle(
-        fontSize: 30,
-        fontWeight: FontWeight.bold,
-        color: Color.fromARGB(255, 255, 255, 255),
-      ),
-    ),
-  ),
-  backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
-  elevation: 0,
-  centerTitle: false,
-  foregroundColor: Colors.black,
-  shape: const Border(
-    bottom: BorderSide(
-      color: Color.fromARGB(255, 102, 105, 108), // Outline color
-      width: 0.5, // Outline thickness
-    ),
-  ),
-),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Padding(
+            padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
+            child: Text(
+              "Menu",
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 255, 255, 255),
+              ),
+            ),
+          ),
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+          elevation: 0,
+          centerTitle: false,
+          foregroundColor: Colors.black,
+          shape: const Border(
+            bottom: BorderSide(
+              color: Color.fromARGB(255, 102, 105, 108), // Outline color
+              width: 0.5, // Outline thickness
+            ),
+          ),
+        ),
         backgroundColor: const Color.fromARGB(255, 245, 244, 244),
         body: SafeArea(
-          child: Column(
+          child: Stack(
             children: [
-              Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search menu items...',
-                      prefixIcon: Icon(Icons.search),
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          _filterProducts();
-                        },
-                      ),
-                      // ... rest of your decoration
+              // Background image - paling bawah dalam Stack
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/FixGaSihV2.png'),
+                      fit: BoxFit.cover,
+                      opacity: 0.1,
                     ),
-                    onChanged: (value) => _filterProducts(),
-                  )),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: FutureBuilder<CategoryResponse>(
-                  future: _categoryFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      final categoryNames = ['All'] +
-                          snapshot.data!.data
-                              .map((category) => category.category_name)
-                              .toList();
-
-                        return Row(
-                        children: categoryNames.map((category) {
-                          final isSelected = selectedCategory == category;
-                          return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: ChoiceChip(
-                            label: Text(
-                            category,
-                            style: TextStyle(
-                              color: isSelected
-                                ? Colors.white
-                                : const Color.fromARGB(255, 53, 150, 105
-), // Selected: white, Unselected: black
-                            ),
-                            ),
-                            selected: isSelected,
-                            selectedColor:
-                              const Color.fromARGB(255, 53, 150, 105),
-                            backgroundColor:
-                              const Color.fromARGB(255, 255, 255, 255),
-                            onSelected: (selected) {
-                            setState(() {
-                              selectedCategory = category;
-                            });
-                            },
-                          ),
-                          );
-                        }).toList(),
-                        );
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
-                    return const CircularProgressIndicator();
-                  },
+                  ),
                 ),
               ),
-              Expanded(
-                child: FutureBuilder<ProductResponse>(
-                  future: _productFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData ||
-                        snapshot.data!.data.isEmpty) {
-                      return const Center(child: Text('No products available'));
-                    }
-                    List<Product> productsToDisplay = _searchController
-                            .text.isNotEmpty
-                        ? _filteredProducts
-                        : selectedCategory == 'All'
+
+              // Konten asli - tetap sama seperti sebelumnya, hanya dimasukkan ke dalam Stack
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search menu items...',
+                        prefixIcon: Icon(Icons.search),
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            _filterProducts();
+                          },
+                        ),
+                      ),
+                      onChanged: (value) => _filterProducts(),
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: FutureBuilder<CategoryResponse>(
+                      future: _categoryFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          final categoryNames = ['All'] +
+                              snapshot.data!.data
+                                  .map((category) => category.category_name)
+                                  .toList();
+
+                          return Row(
+                            children: categoryNames.map((category) {
+                              final isSelected = selectedCategory == category;
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4),
+                                child: ChoiceChip(
+                                  label: Text(
+                                    category,
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : const Color.fromARGB(255, 53, 150,
+                                              105), // Selected: white, Unselected: black
+                                    ),
+                                  ),
+                                  selected: isSelected,
+                                  selectedColor:
+                                      const Color.fromARGB(255, 53, 150, 105),
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      selectedCategory = category;
+                                    });
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        return const CircularProgressIndicator();
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: FutureBuilder<ProductResponse>(
+                      future: _productFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.data.isEmpty) {
+                          return const Center(
+                              child: Text('No products available'));
+                        }
+                        List<Product> productsToDisplay =
+                            _searchController.text.isNotEmpty
+                                ? _filteredProducts
+                                : selectedCategory == 'All'
+                                    ? snapshot.data!.data
+                                    : snapshot.data!.data
+                                        .where((p) =>
+                                            p.category_name == selectedCategory)
+                                        .toList();
+                        final filteredProducts = selectedCategory == 'All'
                             ? snapshot.data!.data
                             : snapshot.data!.data
                                 .where(
                                     (p) => p.category_name == selectedCategory)
                                 .toList();
-                    final filteredProducts = selectedCategory == 'All'
-                        ? snapshot.data!.data
-                        : snapshot.data!.data
-                            .where((p) => p.category_name == selectedCategory)
-                            .toList();
 
-                    if (filteredProducts.isEmpty) {
-                      return Center(child: Text('No items found'));
-                    }
-                    return ListView.builder(
-                      padding: EdgeInsets.all(10),
-                      itemCount: productsToDisplay.length,
-                      itemBuilder: (context, index) {
-                        productsToDisplay.sort((a, b) => a.name
-                            .toLowerCase()
-                            .compareTo(b.name.toLowerCase()));
-                        final product = productsToDisplay[index];
-                        final price = product.variants[0].price;
-                        return InkWell(
-                          child: Card(
-                            color: Colors.white,
-                            elevation: 6,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Column(
+                        if (filteredProducts.isEmpty) {
+                          return Center(child: Text('No items found'));
+                        }
+                        return ListView.builder(
+                          padding: EdgeInsets.all(10),
+                          itemCount: productsToDisplay.length,
+                          itemBuilder: (context, index) {
+                            productsToDisplay.sort((a, b) => a.name
+                                .toLowerCase()
+                                .compareTo(b.name.toLowerCase()));
+                            final product = productsToDisplay[index];
+                            final price = product.variants[0].price;
+                            return InkWell(
+                              child: Card(
+                                color: Colors.white,
+                                elevation: 6,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                        CrossAxisAlignment.center,
                                     children: [
-                                      Text(
-                                        product.name,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            product.name,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            formatPriceToK(price),
+                                            style: TextStyle(
+                                              fontSize: 17,
+                                              color: Colors.blueGrey,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      Text(
-                                        formatPriceToK(price),
-                                        style: TextStyle(
-                                          fontSize: 17,
-                                          color: Colors.blueGrey,
-                                          fontWeight: FontWeight.normal,
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      SizedBox(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            _showOrderOptions(context, product);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                const Color.fromARGB(
+                                                    255, 53, 150, 105),
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(40))),
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                          child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  right: 8.0,
+                                                  left: 8,
+                                                  top: 15,
+                                                  bottom: 15),
+                                              child: const Icon(
+                                                Icons.add,
+                                                color: Colors.white,
+                                              )),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  SizedBox(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        _showOrderOptions(context, product);
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color.fromARGB(255, 53, 150, 105),
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(40))),
-                                        padding: EdgeInsets.zero,
-                                      ),
-                                      child: Padding(
-                                          padding: const EdgeInsets.only(
-                                              right: 8.0,
-                                              left: 8,
-                                              top: 15,
-                                              bottom: 15),
-                                          child: const Icon(
-                                            Icons.add,
-                                            color: Colors.white,
-                                          )),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         );
                       },
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -355,7 +381,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         floatingActionButton: _cartItems.isNotEmpty
             ? FloatingActionButton.extended(
                 onPressed: _showCart,
-                backgroundColor: const Color.fromARGB(255, 53, 150, 105), // Change color here
+                backgroundColor: const Color.fromARGB(
+                    255, 53, 150, 105), // Change color here
                 icon: const Icon(Icons.shopping_cart, color: Colors.white),
                 label: Text(
                   '${_cartItems.length} item(s)',
@@ -650,13 +677,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-        backgroundColor: const Color.fromARGB(255, 255, 254, 254), 
-
+      backgroundColor: const Color.fromARGB(255, 255, 254, 254),
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return StatefulBuilder(builder: (context, setModalState) {
-          
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -665,7 +690,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
               right: 16,
             ),
             child: SingleChildScrollView(
-              
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -676,8 +700,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                         onPressed: () => Navigator.pop(context),
                         child: const Text("CANCEL",
                             style: TextStyle(
-                                color: Color.fromARGB(255, 53, 150, 105
-),
+                                color: Color.fromARGB(255, 53, 150, 105),
                                 fontWeight: FontWeight.bold)),
                       ),
                       Text(
@@ -731,8 +754,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           print(_cartItems);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
+                          backgroundColor:
+                              const Color.fromARGB(255, 53, 150, 105),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50)),
                         ),
@@ -783,15 +806,21 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         );
                                       });
                                     },
-                                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                                    selectedColor: Color.fromARGB(255, 53, 150, 105), // <-- Green when selected
+                                    backgroundColor: const Color.fromARGB(
+                                        255, 255, 255, 255),
+                                    selectedColor: Color.fromARGB(255, 53, 150,
+                                        105), // <-- Green when selected
                                     checkmarkColor: Colors.white,
                                     labelStyle: TextStyle(
-                                      color: isSelected ? Colors.white : Colors.black,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black,
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      side: BorderSide(color: const Color.fromARGB(255, 187, 187, 187)),
+                                      side: BorderSide(
+                                          color: const Color.fromARGB(
+                                              255, 187, 187, 187)),
                                     ),
                                   );
                                 }).toList(),
@@ -845,15 +874,19 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                     max_selected: 1);
                               });
                             },
-                            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                            selectedColor: Color.fromARGB(255, 53, 150, 105), // <-- Green when selected
+                            backgroundColor:
+                                const Color.fromARGB(255, 255, 255, 255),
+                            selectedColor: Color.fromARGB(
+                                255, 53, 150, 105), // <-- Green when selected
                             checkmarkColor: Colors.white,
                             labelStyle: TextStyle(
                               color: isSelected ? Colors.white : Colors.black,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
-                              side: BorderSide(color: const Color.fromARGB(255, 187, 187, 187)),
+                              side: BorderSide(
+                                  color:
+                                      const Color.fromARGB(255, 187, 187, 187)),
                             ),
                           );
                         }).toList(),
@@ -923,8 +956,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-        backgroundColor: Color.fromARGB(255, 255, 254, 254
-), // <-- Set your desired color here
+      backgroundColor:
+          Color.fromARGB(255, 255, 254, 254), // <-- Set your desired color here
 
       builder: (BuildContext context) {
         return SafeArea(
@@ -1240,8 +1273,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
+                          backgroundColor:
+                              const Color.fromARGB(255, 53, 150, 105),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 32,
                             vertical: 16,

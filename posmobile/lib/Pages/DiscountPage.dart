@@ -258,8 +258,7 @@ class _DiscountPageState extends State<DiscountPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
+        backgroundColor: const Color.fromARGB(255, 53, 150, 105),
       ),
     );
   }
@@ -448,120 +447,138 @@ class _DiscountPageState extends State<DiscountPage> {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           title: const Text("Discount", style: TextStyle(fontSize: 30)),
-          backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           foregroundColor: const Color.fromARGB(255, 255, 255, 255),
         ),
-        resizeToAvoidBottomInset:
-            false,
-                  backgroundColor: const Color.fromARGB(255, 245, 244, 244),
- // Prevent resizing when keyboard appears
-        body: Column(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: const Color.fromARGB(255, 245, 244, 244),
+        // Prevent resizing when keyboard appears
+        body: Stack(
           children: [
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search discounts...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
+            // Background image dengan opacity 0.5
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/FixGaSihV2.png'),
+                    fit: BoxFit.cover,
+                    opacity: 0.1,
                   ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 ),
-                onChanged: (value) {
-                  setState(() => _searchQuery = value);
-                },
               ),
             ),
 
-            // Discounts ListView
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _filteredDiscounts.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.percent_outlined,
-                                  size: 64, color: Colors.grey[400]),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'No discounts found',
-                                style:
-                                    TextStyle(fontSize: 16, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.all(8),
-                          itemCount: _filteredDiscounts.length,
-                          separatorBuilder: (context, index) =>
-                              const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final discount = _filteredDiscounts[index];
-                            return Card(
-                                                      color: const Color.fromARGB(255, 255, 254, 254),
+            // Konten asli
+            Column(
+              children: [
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search discounts...',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    ),
+                    onChanged: (value) {
+                      setState(() => _searchQuery = value);
+                    },
+                  ),
+                ),
 
-                              elevation: 2,
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 4, horizontal: 2),
-                              child: ListTile(
-                                title: Text(
-                                  discount.name,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      discount.type == 'percent'
-                                          ? '${discount.amount}% off'
-                                          : 'Rp ${NumberFormat('#,###').format(discount.amount)} off',
-                                      style: TextStyle(
-                                        color: const Color.fromARGB(255, 53, 150, 105
-),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      discount.created_at != null
-                                          ? 'Created: ${DateFormat('dd/MM/yyyy').format(discount.created_at!)}'
-                                          : '',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600]),
-                                    ),
-                                  ],
-                                ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(Icons.edit,
-                                          color: const Color.fromARGB(255, 61, 63, 65)),
-                                      onPressed: () =>
-                                          _showEditDialog(discount),
-                                    ),
-                                    IconButton(
-                                      icon: Icon(Icons.delete,
-                                          color: Colors.red[700]),
-                                      onPressed: () =>
-                                          _showDeleteDialog(discount),
-                                    ),
-                                  ],
-                                ),
+                // Discounts ListView
+                Expanded(
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _filteredDiscounts.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.percent_outlined,
+                                      size: 64, color: Colors.grey[400]),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'No discounts found',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.grey),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.all(8),
+                              itemCount: _filteredDiscounts.length,
+                              separatorBuilder: (context, index) =>
+                                  const Divider(height: 1),
+                              itemBuilder: (context, index) {
+                                final discount = _filteredDiscounts[index];
+                                return Card(
+                                  color:
+                                      const Color.fromARGB(255, 255, 254, 254),
+                                  elevation: 2,
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 4, horizontal: 2),
+                                  child: ListTile(
+                                    title: Text(
+                                      discount.name,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          discount.type == 'percent'
+                                              ? '${discount.amount}% off'
+                                              : 'Rp ${NumberFormat('#,###').format(discount.amount)} off',
+                                          style: TextStyle(
+                                            color: const Color.fromARGB(
+                                                255, 53, 150, 105),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        Text(
+                                          discount.created_at != null
+                                              ? 'Created: ${DateFormat('dd/MM/yyyy').format(discount.created_at!)}'
+                                              : '',
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600]),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.edit,
+                                              color: const Color.fromARGB(
+                                                  255, 61, 63, 65)),
+                                          onPressed: () =>
+                                              _showEditDialog(discount),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.delete,
+                                              color: Colors.red[700]),
+                                          onPressed: () =>
+                                              _showDeleteDialog(discount),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                ),
+              ],
             ),
           ],
         ),
@@ -572,8 +589,7 @@ class _DiscountPageState extends State<DiscountPage> {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: const Color.fromARGB(255, 53, 150, 105
-).withOpacity(0.3),
+                color: const Color.fromARGB(255, 53, 150, 105).withOpacity(0.3),
                 spreadRadius: 2,
                 blurRadius: 8,
                 offset: const Offset(0, 3),
@@ -582,8 +598,7 @@ class _DiscountPageState extends State<DiscountPage> {
           ),
           child: FloatingActionButton(
             onPressed: _showCreateDialog,
-            backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
+            backgroundColor: const Color.fromARGB(255, 53, 150, 105),
             elevation: 0,
             // shape: const CircleBorder(),
             child: const Icon(
@@ -899,8 +914,7 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 53, 150, 105
-),
+                  color: const Color.fromARGB(255, 53, 150, 105),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
@@ -949,13 +963,13 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: const Color.fromARGB(255, 53, 150, 105
-), width: 2),
+                              borderSide: BorderSide(
+                                  color:
+                                      const Color.fromARGB(255, 53, 150, 105),
+                                  width: 2),
                             ),
-                            prefixIcon:
-                                Icon(Icons.discount, color: const Color.fromARGB(255, 53, 150, 105
-)),
+                            prefixIcon: Icon(Icons.discount,
+                                color: const Color.fromARGB(255, 53, 150, 105)),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -1027,16 +1041,16 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: const Color.fromARGB(255, 53, 150, 105
-), width: 2),
+                              borderSide: BorderSide(
+                                  color:
+                                      const Color.fromARGB(255, 53, 150, 105),
+                                  width: 2),
                             ),
                             prefixIcon: Icon(
                               _selectedType == 'fixed'
                                   ? Icons.attach_money
                                   : Icons.percent,
-                              color: const Color.fromARGB(255, 53, 150, 105
-),
+                              color: const Color.fromARGB(255, 53, 150, 105),
                             ),
                             suffixText: _selectedType == 'percent' ? '%' : '',
                             prefixText: _selectedType == 'fixed' ? 'Rp ' : '',
@@ -1125,8 +1139,8 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
                                             }
                                           });
                                         },
-                                        activeColor: const Color.fromARGB(255, 53, 150, 105
-),
+                                        activeColor: const Color.fromARGB(
+                                            255, 53, 150, 105),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(4),
@@ -1194,8 +1208,8 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
                         onPressed: _isSubmitting ? null : _handleSubmit,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
+                          backgroundColor:
+                              const Color.fromARGB(255, 53, 150, 105),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -1239,8 +1253,9 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color.fromARGB(255, 53, 150, 105
-) : Colors.transparent,
+          color: isSelected
+              ? const Color.fromARGB(255, 53, 150, 105)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(

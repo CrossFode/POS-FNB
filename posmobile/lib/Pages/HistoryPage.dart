@@ -363,6 +363,7 @@ class _HistoryPageState extends State<HistoryPage>
                                     onChanged: (value) {
                                       setState(() {
                                         editedCustomerName = value;
+                                        editedCustomerId = null;
                                         // Jika user mengetik manual, customerId dikosongkan
                                       });
                                     },
@@ -994,144 +995,162 @@ class _HistoryPageState extends State<HistoryPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: const Text(
-            "Order History",
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 255, 255, 255),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text(
+          "Order History",
+          style: TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 255, 255, 255),
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+        elevation: 0,
+        shadowColor: Colors.black12,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh,
+                color: Color.fromARGB(255, 255, 255, 255)),
+            onPressed: () {
+              _fetchOrdersFromApi();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Data refreshed'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.download,
+                color: Color.fromARGB(255, 255, 255, 255)),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Export feature coming soon'),
+                  backgroundColor: Colors.blue,
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Stack(
+        children: [
+          // Background image (hanya di belakang konten)
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/FixGaSihV2.png'),
+                  fit: BoxFit.cover,
+                  opacity: 0.07,
+                ),
+              ),
             ),
           ),
-          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
-          elevation: 0,
-          shadowColor: Colors.black12,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh, color: Color.fromARGB(255, 255, 255, 255)),
-              onPressed: () {
-                _fetchOrdersFromApi();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Data refreshed'),
-                    backgroundColor: Colors.green,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.download, color: Color.fromARGB(255, 255, 255, 255)),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Export feature coming soon'),
-                    backgroundColor: Colors.blue,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        body: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        spreadRadius: 0,
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Date Range',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF64748B))),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => _selectDate(context, true),
-                              child: Container(
-                                height: 48,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: const Color(0xFFE2E8F0)),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(_formatDate(startDate),
-                                        style: const TextStyle(fontSize: 14)),
-                                    const Icon(Icons.calendar_today,
-                                        size: 18, color: Color(0xFF64748B)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            child: Icon(Icons.arrow_forward,
-                                color: Color(0xFF64748B)),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => _selectDate(context, false),
-                              child: Container(
-                                height: 48,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: const Color(0xFFE2E8F0)),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(_formatDate(endDate),
-                                        style: const TextStyle(fontSize: 14)),
-                                    const Icon(Icons.calendar_today,
-                                        size: 18, color: Color(0xFF64748B)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
+
+          // Konten utama
+          Column(
+            children: [
+              // Container untuk date range picker (tanpa background image)
+              Container(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      spreadRadius: 0,
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                filteredOrders.isEmpty
-                    ? SizedBox(
-                        height: 300,
-                        child: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Date Range',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B))),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _selectDate(context, true),
+                            child: Container(
+                              height: 48,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                border:
+                                    Border.all(color: const Color(0xFFE2E8F0)),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(_formatDate(startDate),
+                                      style: const TextStyle(fontSize: 14)),
+                                  const Icon(Icons.calendar_today,
+                                      size: 18, color: Color(0xFF64748B)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Icon(Icons.arrow_forward,
+                              color: Color(0xFF64748B)),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _selectDate(context, false),
+                            child: Container(
+                              height: 48,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                border:
+                                    Border.all(color: const Color(0xFFE2E8F0)),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(_formatDate(endDate),
+                                      style: const TextStyle(fontSize: 14)),
+                                  const Icon(Icons.calendar_today,
+                                      size: 18, color: Color(0xFF64748B)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // List order dengan background image
+              Expanded(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: filteredOrders.isEmpty
+                      ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -1155,252 +1174,271 @@ class _HistoryPageState extends State<HistoryPage>
                               ),
                             ],
                           ),
-                        ),
-                      )
-                    : // Ganti bagian ListView.builder di dalam build method (sekitar baris 850-950)
-                    // Ganti bagian ListView.builder di dalam build method (sekitar baris 850-950)
-                    ListView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: filteredOrders.length,
-                        itemBuilder: (context, index) {
-                          final order = filteredOrders[index];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: Card(
-                              elevation: 1,
-                              color: Colors.white,
-                              shadowColor: Colors.grey.withOpacity(0.1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    width: 1),
-                              ),
-                              child: InkWell(
-                                onTap: () => _showOrderDetails(order, index),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Header dengan nama customer dan menu
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: filteredOrders.length,
+                          itemBuilder: (context, index) {
+                            final order = filteredOrders[index];
+                            return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: Card(
+                                  elevation: 1,
+                                  color: Colors.white,
+                                  shadowColor: Colors.grey.withOpacity(0.1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        width: 1),
+                                  ),
+                                  child: InkWell(
+                                    onTap: () =>
+                                        _showOrderDetails(order, index),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Expanded(
-                                            child: Text(
-                                              'Order By ${order.customer}',
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                                color: Color(0xFF1E293B),
-                                              ),
-                                            ),
-                                          ),
+                                          // Header dengan nama customer dan menu
                                           Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
+                                              Expanded(
+                                                child: Text(
+                                                  'Order By ${order.customer}',
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Color(0xFF1E293B),
+                                                  ),
+                                                ),
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
                                                         horizontal: 8,
                                                         vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: order.status == 'PAID'
-                                                      ? const Color(0xFFDCFCE7)
-                                                      : _getStatusColor(
-                                                              order.status)
-                                                          .withAlpha(30),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  order.status,
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w500,
-                                                    color:
-                                                        order.status == 'PAID'
+                                                    decoration: BoxDecoration(
+                                                      color: order.status ==
+                                                              'PAID'
+                                                          ? const Color(
+                                                              0xFFDCFCE7)
+                                                          : _getStatusColor(
+                                                                  order.status)
+                                                              .withAlpha(30),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    child: Text(
+                                                      order.status,
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: order.status ==
+                                                                'PAID'
                                                             ? const Color(
                                                                 0xFF16A34A)
                                                             : _getStatusColor(
                                                                 order.status),
-                                                  ),
-                                                ),
-                                              ),
-                                              PopupMenuButton<String>(
-                                                icon: const Icon(
-                                                  Icons.more_vert,
-                                                  color: Color(0xFF64748B),
-                                                  size: 20,
-                                                ),
-                                                offset: const Offset(0, 35),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                onSelected: (value) {
-                                                  switch (value) {
-                                                    case 'edit':
-                                                      _editOrder(order);
-                                                      break;
-                                                    case 'details':
-                                                      _showOrderDetails(
-                                                          order, index);
-                                                      break;
-                                                    case 'complete':
-                                                      _markOrderComplete(order);
-                                                      break;
-                                                    case 'print':
-                                                      _printOrder(order);
-                                                      break;
-                                                    case 'delete':
-                                                      _confirmDeleteOrder(
-                                                          order);
-                                                      break;
-                                                  }
-                                                },
-                                                itemBuilder:
-                                                    (BuildContext context) => [
-                                                  PopupMenuItem(
-                                                    value: 'details',
-                                                    height: 40,
-                                                    child: Row(
-                                                      children: [
-                                                        const Icon(
-                                                            Icons.visibility,
-                                                            size: 18,
-                                                            color: Colors.grey),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        const Text(
-                                                            'View Details',
-                                                            style: TextStyle(
-                                                                fontSize: 14)),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  PopupMenuItem(
-                                                    value: 'edit',
-                                                    height: 40,
-                                                    child: Row(
-                                                      children: [
-                                                        const Icon(Icons.edit,
-                                                            size: 18,
-                                                            color: Colors.blue),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        const Text('Edit Order',
-                                                            style: TextStyle(
-                                                                fontSize: 14)),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  if (order.status == 'PENDING')
-                                                    PopupMenuItem(
-                                                      value: 'complete',
-                                                      height: 40,
-                                                      child: Row(
-                                                        children: [
-                                                          const Icon(
-                                                              Icons
-                                                                  .check_circle,
-                                                              size: 18,
-                                                              color:
-                                                                  Colors.green),
-                                                          const SizedBox(
-                                                              width: 12),
-                                                          const Text(
-                                                              'Mark Complete',
-                                                              style: TextStyle(
-                                                                  fontSize:
-                                                                      14)),
-                                                        ],
                                                       ),
                                                     ),
-                                                  PopupMenuItem(
-                                                    value: 'print',
-                                                    height: 40,
-                                                    child: Row(
-                                                      children: [
-                                                        const Icon(Icons.print,
-                                                            size: 18,
-                                                            color: Colors.blue),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        const Text(
-                                                            'Print Receipt',
-                                                            style: TextStyle(
-                                                                fontSize: 14)),
-                                                      ],
-                                                    ),
                                                   ),
-                                                  const PopupMenuDivider(),
-                                                  PopupMenuItem(
-                                                    value: 'delete',
-                                                    height: 40,
-                                                    child: Row(
-                                                      children: [
-                                                        const Icon(Icons.delete,
-                                                            size: 18,
-                                                            color: Colors.red),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        const Text('Delete',
-                                                            style: TextStyle(
-                                                                fontSize: 14,
-                                                                color: Colors
-                                                                    .red)),
-                                                      ],
+                                                  PopupMenuButton<String>(
+                                                    icon: const Icon(
+                                                      Icons.more_vert,
+                                                      color: Color(0xFF64748B),
+                                                      size: 20,
                                                     ),
+                                                    offset: const Offset(0, 35),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    onSelected: (value) {
+                                                      switch (value) {
+                                                        case 'edit':
+                                                          _editOrder(order);
+                                                          break;
+                                                        case 'details':
+                                                          _showOrderDetails(
+                                                              order, index);
+                                                          break;
+                                                        case 'complete':
+                                                          _markOrderComplete(
+                                                              order);
+                                                          break;
+                                                        case 'print':
+                                                          _printOrder(order);
+                                                          break;
+                                                        case 'delete':
+                                                          _confirmDeleteOrder(
+                                                              order);
+                                                          break;
+                                                      }
+                                                    },
+                                                    itemBuilder: (BuildContext
+                                                            context) =>
+                                                        [
+                                                      PopupMenuItem(
+                                                        value: 'details',
+                                                        height: 40,
+                                                        child: Row(
+                                                          children: [
+                                                            const Icon(
+                                                                Icons
+                                                                    .visibility,
+                                                                size: 18,
+                                                                color: Colors
+                                                                    .grey),
+                                                            const SizedBox(
+                                                                width: 12),
+                                                            const Text(
+                                                                'View Details',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        14)),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      PopupMenuItem(
+                                                        value: 'edit',
+                                                        height: 40,
+                                                        child: Row(
+                                                          children: [
+                                                            const Icon(
+                                                                Icons.edit,
+                                                                size: 18,
+                                                                color: Colors
+                                                                    .blue),
+                                                            const SizedBox(
+                                                                width: 12),
+                                                            const Text(
+                                                                'Edit Order',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        14)),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      if (order.status ==
+                                                          'PENDING')
+                                                        PopupMenuItem(
+                                                          value: 'complete',
+                                                          height: 40,
+                                                          child: Row(
+                                                            children: [
+                                                              const Icon(
+                                                                  Icons
+                                                                      .check_circle,
+                                                                  size: 18,
+                                                                  color: Colors
+                                                                      .green),
+                                                              const SizedBox(
+                                                                  width: 12),
+                                                              const Text(
+                                                                  'Mark Complete',
+                                                                  style: TextStyle(
+                                                                      fontSize:
+                                                                          14)),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      PopupMenuItem(
+                                                        value: 'print',
+                                                        height: 40,
+                                                        child: Row(
+                                                          children: [
+                                                            const Icon(
+                                                                Icons.print,
+                                                                size: 18,
+                                                                color: Colors
+                                                                    .blue),
+                                                            const SizedBox(
+                                                                width: 12),
+                                                            const Text(
+                                                                'Print Receipt',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        14)),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      const PopupMenuDivider(),
+                                                      PopupMenuItem(
+                                                        value: 'delete',
+                                                        height: 40,
+                                                        child: Row(
+                                                          children: [
+                                                            const Icon(
+                                                                Icons.delete,
+                                                                size: 18,
+                                                                color:
+                                                                    Colors.red),
+                                                            const SizedBox(
+                                                                width: 12),
+                                                            const Text('Delete',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        14,
+                                                                    color: Colors
+                                                                        .red)),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ],
                                               ),
                                             ],
                                           ),
+
+                                          const SizedBox(height: 4),
+
+                                          // Date
+                                          Text(
+                                            'Date: ${_formatDateTime(order.orderDate)}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+
+                                          const SizedBox(height: 8),
+
+                                          // Total
+                                          Text(
+                                            _formatPrice(order.totalPrice),
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF3B82F6),
+                                            ),
+                                          ),
                                         ],
                                       ),
-
-                                      const SizedBox(height: 4),
-
-                                      // Date
-                                      Text(
-                                        'Date: ${_formatDateTime(order.orderDate)}',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: Color(0xFF64748B),
-                                        ),
-                                      ),
-
-                                      const SizedBox(height: 8),
-
-                                      // Total
-                                      Text(
-                                        _formatPrice(order.totalPrice),
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF3B82F6),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                const SizedBox(height: 20),
-              ],
-            ),
+                                ));
+                          },
+                        ),
+                ),
+              ),
+            ],
           ),
-        ),
-        bottomNavigationBar: _buildNavbar());
+        ],
+      ),
+      bottomNavigationBar: _buildNavbar(),
+    );
   }
 
   Widget _buildNavbar() {
