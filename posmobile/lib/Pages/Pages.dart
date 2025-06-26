@@ -9,3 +9,4 @@ export 'OutletPage.dart';
 export 'DiscountPage.dart';
 export 'previewBill.dart';
 export 'ReferralPage.dart';
+export 'PaymentPage.dart';

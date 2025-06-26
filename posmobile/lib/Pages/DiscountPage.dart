@@ -677,6 +677,16 @@ class _DiscountPageState extends State<DiscountPage> {
                   isManager: widget.isManager,
                 )),
               ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.payment,
+                label: 'Payment',
+                onTap: () => _navigateTo(Payment(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
             ],
           ),
         );

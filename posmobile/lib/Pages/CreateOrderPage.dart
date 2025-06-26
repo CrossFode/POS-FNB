@@ -8,6 +8,7 @@ import 'package:posmobile/Model/Model.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Components/Navbar.dart';
 import 'package:posmobile/Api/CreateOrder.dart';
+import 'package:posmobile/Pages/PaymentPage.dart';
 import 'package:posmobile/Pages/ReferralPage.dart';
 
 class CreateOrderPage extends StatefulWidget {
@@ -133,10 +134,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   String formatPriceToK(num price) {
     if (price >= 1000) {
-      return '${(price / 1000).toStringAsFixed(1)}K';
-    } else {
-      return price.toString();
+      double value = price / 1000;
+      return '${value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 1)}K';
     }
+    return price.toString();
   }
 
   @override
@@ -324,45 +325,102 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          Text(
-                                            formatPriceToK(price),
-                                            style: TextStyle(
-                                              fontSize: 17,
-                                              color: Colors.blueGrey,
-                                              fontWeight: FontWeight.normal,
-                                            ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                formatPriceToK(price),
+                                                style: TextStyle(
+                                                  fontSize: 17,
+                                                  color: Colors.blueGrey,
+                                                  fontWeight: FontWeight.normal,
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              if (product.is_active == 0) ...[
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.red,
+                                                      borderRadius: BorderRadius
+                                                          .all(Radius.circular(
+                                                              8))), // ini yang benar
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            5.0),
+                                                    child: Text(
+                                                      "Sold out",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize:
+                                                            10, // opsional agar teks kelihatan
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ]
+                                            ],
                                           ),
                                         ],
                                       ),
                                       SizedBox(
                                         height: 10,
                                       ),
-                                      SizedBox(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            _showOrderOptions(context, product);
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                const Color.fromARGB(
-                                                    255, 53, 150, 105),
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.all(
-                                                    Radius.circular(40))),
-                                            padding: EdgeInsets.zero,
-                                          ),
-                                          child: Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 8.0,
-                                                  left: 8,
-                                                  top: 15,
-                                                  bottom: 15),
-                                              child: const Icon(
-                                                Icons.add,
-                                                color: Colors.white,
-                                              )),
-                                        ),
-                                      ),
+                                      product.is_active == 1
+                                          ? ElevatedButton(
+                                              onPressed: () {
+                                                _showOrderOptions(
+                                                    context, product);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    const Color.fromARGB(
+                                                        255, 53, 150, 105),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(40)),
+                                                ),
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 8.0,
+                                                    left: 8,
+                                                    top: 15,
+                                                    bottom: 15),
+                                                child: const Icon(
+                                                  Icons.add,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            )
+                                          : ElevatedButton(
+                                              onPressed: null,
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    const Color.fromARGB(
+                                                        255, 49, 49, 49),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(40)),
+                                                ),
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 8.0,
+                                                    left: 8,
+                                                    top: 15,
+                                                    bottom: 15),
+                                                child: const Icon(
+                                                  Icons.add,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            )
                                     ],
                                   ),
                                 ),
@@ -456,6 +514,16 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 icon: Icons.history,
                 label: 'History',
                 onTap: () => _navigateTo(HistoryPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.payment,
+                label: 'Payment',
+                onTap: () => _navigateTo(Payment(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
@@ -1267,7 +1335,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               order_table: order_table,
                               order_type: 'takeaway',
                               order_details: order_details,
-                              order_payment: 'Cash',
+                              order_payment: 0,
                             );
                             _checkOut(order);
                           }
@@ -1308,13 +1376,16 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   void _checkOut(Order order) {
     TextEditingController referralCode = TextEditingController();
     String? refCode = null;
-    List<String> payment = ['Cash', 'QRIS', 'Transfer'];
-    String _selectedPaymentMethod;
-    _selectedPaymentMethod = payment[0];
+    // List<String> payment = ['Cash', 'QRIS', 'Transfer'];
+    // String _selectedPaymentMethod;
+    // _selectedPaymentMethod
+    PaymentMethod? _selectedPaymentMethod;
+
     int _finalTotalWithDiscount = 0;
     int _referralDiscount = 0;
     int? _besarDiskon = 0;
-    _cachedCheckoutData = Future.wait([_diskonFuture, _outletFuture]);
+    _cachedCheckoutData =
+        Future.wait([_diskonFuture, _paymentFuture, _outletFuture]);
     bool isCheck;
     showModalBottomSheet(
         context: context,
@@ -1506,28 +1577,31 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           ],
                         ),
                         SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
+                        DropdownButtonFormField<PaymentMethod>(
+                          dropdownColor: Colors.white,
                           decoration: InputDecoration(
                             labelText: 'Payment Method',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 14),
                           ),
                           value: _selectedPaymentMethod,
-                          hint: Text('Select Payment Method'),
-                          items:
-                              payment.map<DropdownMenuItem<String>>((method) {
-                            return DropdownMenuItem<String>(
+                          hint: const Text('Select Payment Method'),
+                          items: paymentMethods
+                              .map<DropdownMenuItem<PaymentMethod>>((method) {
+                            return DropdownMenuItem<PaymentMethod>(
                               value: method,
                               child: Text(
-                                method,
-                                style: TextStyle(fontSize: 14),
+                                method.payment_name,
+                                style: const TextStyle(fontSize: 14),
                               ),
                             );
                           }).toList(),
-                          onChanged: (String? newValue) {
+                          onChanged: (PaymentMethod? newValue) {
                             setModalState(() {
-                              _selectedPaymentMethod = newValue!;
+                              _selectedPaymentMethod = newValue;
                             });
                           },
                         ),
@@ -1582,7 +1656,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                             discountRef: (_besarDiskon ?? 0),
                                             total: _finalTotalWithDiscount,
                                             paymentMethod:
-                                                _selectedPaymentMethod ?? 'N/A',
+                                                _selectedPaymentMethod
+                                                        ?.payment_name ??
+                                                    'N/A',
                                             orderTime: DateTime.now(),
                                           )),
                                 );
@@ -1593,7 +1669,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       outlet_id: widget.outletId,
                                       customer_name: order.customer_name,
                                       phone_number: order.phone_number,
-                                      order_payment: _selectedPaymentMethod,
+                                      order_payment: order.order_payment,
                                       order_table: order.order_table,
                                       discount_id: _selectedDiskon?.id,
                                       referral_code: refCode,

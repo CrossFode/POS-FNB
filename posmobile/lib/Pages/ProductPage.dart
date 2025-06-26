@@ -12,6 +12,7 @@ import 'package:posmobile/Pages/CreateOrderPage.dart';
 import 'package:posmobile/Pages/DiscountPage.dart';
 import 'package:posmobile/Pages/HistoryPage.dart';
 import 'package:posmobile/Pages/ModifierPage.dart';
+import 'package:posmobile/Pages/Pages.dart';
 
 // Fungsi format harga agar seperti "20.0K" dan "5.5K" tanpa "Rp" dan underline
 String formatPrice(int price) {
@@ -952,6 +953,16 @@ class _ProductPageState extends State<ProductPage> {
                 icon: Icons.history,
                 label: 'History',
                 onTap: () => _navigateTo(HistoryPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.payment,
+                label: 'Payment',
+                onTap: () => _navigateTo(Payment(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
