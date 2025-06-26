@@ -319,6 +319,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         children: [
                                           Text(
                                             product.name,
+                                            softWrap: true,
+                                            maxLines: 2, // Maksimal 2 baris
+                                            overflow:
+                                                TextOverflow.ellipsis, // A
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontSize: 15,
