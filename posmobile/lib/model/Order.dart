@@ -5,7 +5,7 @@ class Order {
   final String customer_name;
   final String phone_number;
   final String order_totals;
-  final int order_payment;
+  final String order_payment;
   final int? order_table;
   final String order_type;
   final int? discount_id;
@@ -54,7 +54,7 @@ class Order {
       customer_name: json['customer_name'] as String,
       phone_number: json['phone_number'] as String,
       order_totals: json['order_totals'] as String,
-      order_payment: json['order_payment'] as int,
+      order_payment: json['order_payment'] as String,
       order_table: json['order_table'] as int?,
       order_type: json['order_type'] as String,
       discount_id: json['discount_id'] as int?,

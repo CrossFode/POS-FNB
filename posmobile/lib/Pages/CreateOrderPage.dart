@@ -1267,7 +1267,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               order_table: order_table,
                               order_type: 'takeaway',
                               order_details: order_details,
-                              order_payment: 0,
+                              order_payment: 'Cash',
                             );
                             _checkOut(order);
                           }
@@ -1308,13 +1308,14 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   void _checkOut(Order order) {
     TextEditingController referralCode = TextEditingController();
     String? refCode = null;
-    PaymentMethod? _selectedPaymentMethod;
+    List<String> payment = ['Cash', 'QRIS', 'Transfer'];
+    String _selectedPaymentMethod;
+    _selectedPaymentMethod = payment[0];
     int _finalTotalWithDiscount = 0;
     int _referralDiscount = 0;
     int? _besarDiskon = 0;
-
-    _cachedCheckoutData =
-        Future.wait([_diskonFuture, _paymentFuture, _outletFuture]);
+    _cachedCheckoutData = Future.wait([_diskonFuture, _outletFuture]);
+    bool isCheck;
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -1343,7 +1344,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                     : (_selectedDiskon?.amount ?? 0);
                 if (_selectedDiskon?.type == 'fixed') {
                   _finalTotalWithDiscount =
-                      orderTotal - _selectedDiskon!.amount.toInt();
+                      (orderTotal - _selectedDiskon!.amount.toInt()) -
+                          _referralDiscount;
                 } else {
                   _finalTotalWithDiscount =
                       (orderTotal - (orderTotal * diskon) ~/ 100) -
@@ -1422,13 +1424,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       icon: Icon(Icons.search),
                                       onPressed: () async {
                                         if (referralCode.text.isEmpty) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                  'Please enter a referral code'),
-                                            ),
-                                          );
+                                          setModalState(() {
+                                            _finalTotalWithDiscount =
+                                                _finalTotalWithDiscount;
+                                          });
+                                          print(_finalTotalWithDiscount);
                                           return;
                                         }
 
@@ -1441,16 +1441,17 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                             refCode = referralCode.text;
 
                                             setModalState(() {
-                                              _referralDiscount =
-                                                  (_finalTotalWithDiscount *
-                                                          response
-                                                              .data.discount) ~/
-                                                      100;
+                                              _referralDiscount = (int.tryParse(
+                                                          order.order_totals)! *
+                                                      response.data.discount) ~/
+                                                  100;
+
                                               _besarDiskon = response
                                                   .data.discount
                                                   .toInt();
                                               _finalTotalWithDiscount -=
                                                   _referralDiscount;
+                                              isCheck = true;
                                             });
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
@@ -1480,7 +1481,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           ],
                         ),
                         SizedBox(height: 16),
-                        DropdownButtonFormField<PaymentMethod>(
+                        DropdownButtonFormField<String>(
                           decoration: InputDecoration(
                             labelText: 'Payment Method',
                             border: OutlineInputBorder(),
@@ -1489,19 +1490,19 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           ),
                           value: _selectedPaymentMethod,
                           hint: Text('Select Payment Method'),
-                          items: paymentMethods
-                              .map<DropdownMenuItem<PaymentMethod>>((method) {
-                            return DropdownMenuItem<PaymentMethod>(
+                          items:
+                              payment.map<DropdownMenuItem<String>>((method) {
+                            return DropdownMenuItem<String>(
                               value: method,
                               child: Text(
-                                method.payment_name,
+                                method,
                                 style: TextStyle(fontSize: 14),
                               ),
                             );
                           }).toList(),
-                          onChanged: (PaymentMethod? newValue) {
+                          onChanged: (String? newValue) {
                             setModalState(() {
-                              _selectedPaymentMethod = newValue;
+                              _selectedPaymentMethod = newValue!;
                             });
                           },
                         ),
@@ -1552,12 +1553,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                                 0,
                                             discountVoucher:
                                                 (_selectedDiskon?.amount ?? 0),
+                                            discountType: _selectedDiskon!.type,
                                             discountRef: (_besarDiskon ?? 0),
                                             total: _finalTotalWithDiscount,
                                             paymentMethod:
-                                                _selectedPaymentMethod
-                                                        ?.payment_name ??
-                                                    'N/A',
+                                                _selectedPaymentMethod ?? 'N/A',
                                             orderTime: DateTime.now(),
                                           )),
                                 );
@@ -1568,7 +1568,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       outlet_id: widget.outletId,
                                       customer_name: order.customer_name,
                                       phone_number: order.phone_number,
-                                      order_payment: _selectedPaymentMethod!.id,
+                                      order_payment: _selectedPaymentMethod,
                                       order_table: order.order_table,
                                       discount_id: _selectedDiskon?.id,
                                       referral_code: refCode,
