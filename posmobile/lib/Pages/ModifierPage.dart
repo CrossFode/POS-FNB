@@ -1369,6 +1369,16 @@ class _ModifierPageState extends State<ModifierPage> {
                   // isManager: widget.isManager,
                 )),
               ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.payment,
+                label: 'Payment',
+                onTap: () => _navigateTo(Payment(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
             ],
           ),
         );

@@ -8,6 +8,7 @@ import 'package:posmobile/Model/Model.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Components/Navbar.dart';
 import 'package:posmobile/Api/CreateOrder.dart';
+import 'package:posmobile/Pages/PaymentPage.dart';
 import 'package:posmobile/Pages/ReferralPage.dart';
 
 class CreateOrderPage extends StatefulWidget {
@@ -133,10 +134,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   String formatPriceToK(num price) {
     if (price >= 1000) {
-      return '${(price / 1000).toStringAsFixed(1)}K';
-    } else {
-      return price.toString();
+      double value = price / 1000;
+      return '${value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 1)}K';
     }
+    return price.toString();
   }
 
   @override
@@ -318,51 +319,112 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         children: [
                                           Text(
                                             product.name,
+                                            softWrap: true,
+                                            maxLines: 2, // Maksimal 2 baris
+                                            overflow:
+                                                TextOverflow.ellipsis, // A
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          Text(
-                                            formatPriceToK(price),
-                                            style: TextStyle(
-                                              fontSize: 17,
-                                              color: Colors.blueGrey,
-                                              fontWeight: FontWeight.normal,
-                                            ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                formatPriceToK(price),
+                                                style: TextStyle(
+                                                  fontSize: 17,
+                                                  color: Colors.blueGrey,
+                                                  fontWeight: FontWeight.normal,
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              if (product.is_active == 0) ...[
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.red,
+                                                      borderRadius: BorderRadius
+                                                          .all(Radius.circular(
+                                                              8))), // ini yang benar
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            5.0),
+                                                    child: Text(
+                                                      "Sold out",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize:
+                                                            10, // opsional agar teks kelihatan
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ]
+                                            ],
                                           ),
                                         ],
                                       ),
                                       SizedBox(
                                         height: 10,
                                       ),
-                                      SizedBox(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            _showOrderOptions(context, product);
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                const Color.fromARGB(
-                                                    255, 53, 150, 105),
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.all(
-                                                    Radius.circular(40))),
-                                            padding: EdgeInsets.zero,
-                                          ),
-                                          child: Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 8.0,
-                                                  left: 8,
-                                                  top: 15,
-                                                  bottom: 15),
-                                              child: const Icon(
-                                                Icons.add,
-                                                color: Colors.white,
-                                              )),
-                                        ),
-                                      ),
+                                      product.is_active == 1
+                                          ? ElevatedButton(
+                                              onPressed: () {
+                                                _showOrderOptions(
+                                                    context, product);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    const Color.fromARGB(
+                                                        255, 53, 150, 105),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(40)),
+                                                ),
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 8.0,
+                                                    left: 8,
+                                                    top: 15,
+                                                    bottom: 15),
+                                                child: const Icon(
+                                                  Icons.add,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            )
+                                          : ElevatedButton(
+                                              onPressed: null,
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    const Color.fromARGB(
+                                                        255, 49, 49, 49),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(40)),
+                                                ),
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 8.0,
+                                                    left: 8,
+                                                    top: 15,
+                                                    bottom: 15),
+                                                child: const Icon(
+                                                  Icons.add,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            )
                                     ],
                                   ),
                                 ),
@@ -456,6 +518,16 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 icon: Icons.history,
                 label: 'History',
                 onTap: () => _navigateTo(HistoryPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.payment,
+                label: 'Payment',
+                onTap: () => _navigateTo(Payment(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
@@ -682,9 +754,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
+        return StatefulBuilder(builder: (context, setModalState) {
+          return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
                 top: 24,
@@ -747,8 +818,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               Navigator.pop(context);
 
                               int price = selectedVariants[0]['price'];
-                              int totalPrice = _calculateTotalPriceWithModifiers(
-                                  price, selectedModifiers, quantity);
+                              int totalPrice =
+                                  _calculateTotalPriceWithModifiers(
+                                      price, selectedModifiers, quantity);
 
                               Map<String, dynamic> newItem = {
                                 'product_id': product.id,
@@ -756,7 +828,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                 'modifier': List.from(selectedModifiers),
                                 'quantity': quantity,
                                 'notes': noteController.text,
-                                'variants': List<dynamic>.from(selectedVariants),
+                                'variants':
+                                    List<dynamic>.from(selectedVariants),
                                 'variant_price': selectedVariants[0]['price'],
                                 'total_price': totalPrice
                               };
@@ -767,14 +840,17 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                 for (int i = 0; i < _cartItems.length; i++) {
                                   var item = _cartItems[i];
 
-                                  if (item['product_id'] == newItem['product_id'] &&
-                                      _areVariantsEqual(
-                                          item['variants'], newItem['variants']) &&
-                                      _areModifiersEqual(
-                                          item['modifier'], newItem['modifier']) &&
+                                  if (item['product_id'] ==
+                                          newItem['product_id'] &&
+                                      _areVariantsEqual(item['variants'],
+                                          newItem['variants']) &&
+                                      _areModifiersEqual(item['modifier'],
+                                          newItem['modifier']) &&
                                       item['notes'] == newItem['notes']) {
-                                    _cartItems[i]['quantity'] += newItem['quantity'];
-                                    _cartItems[i]['total_price'] += newItem['total_price'];
+                                    _cartItems[i]['quantity'] +=
+                                        newItem['quantity'];
+                                    _cartItems[i]['total_price'] +=
+                                        newItem['total_price'];
                                     itemExists = true;
                                     break;
                                   }
@@ -786,7 +862,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               });
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 53, 150, 105),
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               minimumSize: const Size(0, 36),
                               shape: RoundedRectangleBorder(
@@ -826,11 +903,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   crossAxisAlignment: WrapCrossAlignment.start,
-                                  children: modifier.modifier_options.map((option) {
+                                  children:
+                                      modifier.modifier_options.map((option) {
                                     final isSelected = selectedModifiers.any(
                                         (m) =>
                                             m['id'] == modifier.id &&
-                                            m['modifier_options']['id'] == option.id);
+                                            m['modifier_options']['id'] ==
+                                                option.id);
 
                                     return ChoiceChip(
                                       label: Text(
@@ -846,16 +925,21 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                           );
                                         });
                                       },
-                                      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                                      selectedColor: Color.fromARGB(255, 53, 150, 105),
+                                      backgroundColor: const Color.fromARGB(
+                                          255, 255, 255, 255),
+                                      selectedColor:
+                                          Color.fromARGB(255, 53, 150, 105),
                                       checkmarkColor: Colors.white,
                                       labelStyle: TextStyle(
-                                        color: isSelected ? Colors.white : Colors.black,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.black,
                                       ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                         side: BorderSide(
-                                            color: const Color.fromARGB(255, 187, 187, 187)),
+                                            color: const Color.fromARGB(
+                                                255, 187, 187, 187)),
                                       ),
                                     );
                                   }).toList(),
@@ -908,7 +992,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       max_selected: 1);
                                 });
                               },
-                              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 255, 255, 255),
                               selectedColor: Color.fromARGB(255, 53, 150, 105),
                               checkmarkColor: Colors.white,
                               labelStyle: TextStyle(
@@ -917,7 +1002,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 side: BorderSide(
-                                    color: const Color.fromARGB(255, 187, 187, 187)),
+                                    color: const Color.fromARGB(
+                                        255, 187, 187, 187)),
                               ),
                             );
                           }).toList(),
@@ -968,17 +1054,20 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                     const SizedBox(height: 16),
                   ],
                 ),
-            ));
-            });
+              ));
+        });
       },
     );
   }
 
   void _showCart() {
     String _orderType = 'Take Away';
-    final TextEditingController _customerNameController = TextEditingController();
-    final TextEditingController _tableNumberController = TextEditingController();
-    final TextEditingController _phoneNumberController = TextEditingController();
+    final TextEditingController _customerNameController =
+        TextEditingController();
+    final TextEditingController _tableNumberController =
+        TextEditingController();
+    final TextEditingController _phoneNumberController =
+        TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -1037,7 +1126,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                             hintText: "Enter Customer Name",
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
                           ),
                           controller: _customerNameController,
                           validator: (value) {
@@ -1068,7 +1158,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                             hintText: "Enter Customer Phone Number",
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
                           ),
                           controller: _phoneNumberController,
                         ),
@@ -1096,7 +1187,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text("All of your items has been removed from cart"),
+                                    content: Text(
+                                        "All of your items has been removed from cart"),
                                   ),
                                 );
                               },
@@ -1131,7 +1223,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Expanded(
                                           child: Text(
@@ -1143,7 +1236,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                           ),
                                         ),
                                         IconButton(
-                                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                          icon: const Icon(Icons.delete_outline,
+                                              color: Colors.red),
                                           onPressed: () async {
                                             final itemName = item['name'];
                                             setState(() {
@@ -1151,15 +1245,19 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                               Navigator.pop(context);
                                               _showCart();
                                             });
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
                                               SnackBar(
-                                                content: Text('$itemName removed from cart'),
-                                                duration: const Duration(seconds: 2),
+                                                content: Text(
+                                                    '$itemName removed from cart'),
+                                                duration:
+                                                    const Duration(seconds: 2),
                                                 action: SnackBarAction(
                                                   label: 'Undo',
                                                   onPressed: () {
                                                     setState(() {
-                                                      _cartItems.insert(index, item);
+                                                      _cartItems.insert(
+                                                          index, item);
                                                     });
                                                   },
                                                 ),
@@ -1174,7 +1272,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                     ),
                                     if (item['variants'].isNotEmpty)
                                       Padding(
-                                        padding: const EdgeInsets.only(bottom: 4),
+                                        padding:
+                                            const EdgeInsets.only(bottom: 4),
                                         child: Text(
                                           'Variants: ${item['variants'].map((m) => '${m['name']} (Rp.${m['price']})').join(', ')}',
                                           style: TextStyle(
@@ -1185,10 +1284,12 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       ),
                                     if (item['modifier'].isNotEmpty)
                                       Padding(
-                                        padding: const EdgeInsets.only(bottom: 4),
+                                        padding:
+                                            const EdgeInsets.only(bottom: 4),
                                         child: Text(
                                           'Modifier: ${item['modifier'].map((m) {
-                                            final options = m['modifier_options'];
+                                            final options =
+                                                m['modifier_options'];
                                             return '${options['name']} (Rp.${options['price']})';
                                           }).join(', ')}',
                                           style: TextStyle(
@@ -1199,7 +1300,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       ),
                                     if (item['notes'].isNotEmpty)
                                       Padding(
-                                        padding: const EdgeInsets.only(bottom: 8),
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8),
                                         child: Text(
                                           'Notes: ${item['notes']}',
                                           style: const TextStyle(
@@ -1210,24 +1312,31 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       ),
                                     Divider(),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Container(
                                           decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.grey),
-                                            borderRadius: BorderRadius.circular(8),
+                                            border:
+                                                Border.all(color: Colors.grey),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                           child: Row(
                                             children: [
                                               IconButton(
-                                                icon: const Icon(Icons.remove, size: 18),
+                                                icon: const Icon(Icons.remove,
+                                                    size: 18),
                                                 onPressed: () {
                                                   if (item['quantity'] > 1) {
                                                     setState(() {
-                                                      _cartItems[index]['quantity']--;
-                                                      _cartItems[index]['total_price'] =
+                                                      _cartItems[index]
+                                                          ['quantity']--;
+                                                      _cartItems[index]
+                                                              ['total_price'] =
                                                           _calculateTotalPriceWithModifiers(
-                                                              item['variant_price'],
+                                                              item[
+                                                                  'variant_price'],
                                                               item['modifier'],
                                                               item['quantity']);
                                                       Navigator.pop(context);
@@ -1238,13 +1347,17 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                               ),
                                               Text('${item['quantity']}'),
                                               IconButton(
-                                                icon: const Icon(Icons.add, size: 18),
+                                                icon: const Icon(Icons.add,
+                                                    size: 18),
                                                 onPressed: () {
                                                   setState(() {
-                                                    _cartItems[index]['quantity']++;
-                                                    _cartItems[index]['total_price'] =
+                                                    _cartItems[index]
+                                                        ['quantity']++;
+                                                    _cartItems[index]
+                                                            ['total_price'] =
                                                         _calculateTotalPriceWithModifiers(
-                                                            item['variant_price'],
+                                                            item[
+                                                                'variant_price'],
                                                             item['modifier'],
                                                             item['quantity']);
                                                     Navigator.pop(context);
@@ -1257,7 +1370,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         ),
                                         Text(
                                           'Rp ${item['total_price'].toString().replaceAllMapped(
-                                                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                                RegExp(
+                                                    r'(\d{1,3})(?=(\d{3})+(?!\d))'),
                                                 (Match m) => '${m[1]}.',
                                               )}',
                                           style: const TextStyle(
@@ -1301,14 +1415,23 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                             ElevatedButton(
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
-                                  final orderDetails = _convertCartItemsToOrderDetails(_cartItems);
-                                  final orderTotal = _calculateOrderTotal(_cartItems);
-                                  final customer_name = _customerNameController.text;
+                                  final orderDetails =
+                                      _convertCartItemsToOrderDetails(
+                                          _cartItems);
+                                  final orderTotal =
+                                      _calculateOrderTotal(_cartItems);
+                                  final customer_name =
+                                      _customerNameController.text;
                                   final outlet_id = widget.outletId;
-                                  final phone_number = _phoneNumberController.text;
+                                  final phone_number =
+                                      _phoneNumberController.text;
                                   final order_totals = orderTotal.toString();
-                                  final order_table = _orderType.toLowerCase() != 'takeaway'
-                                      ? int.tryParse(_tableNumberController.text) ?? 0
+                                  final order_table = _orderType
+                                              .toLowerCase() !=
+                                          'takeaway'
+                                      ? int.tryParse(
+                                              _tableNumberController.text) ??
+                                          0
                                       : 1;
 
                                   final order = Order(
@@ -1325,8 +1448,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 53, 150, 105),
-                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                backgroundColor:
+                                    const Color.fromARGB(255, 53, 150, 105),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 32, vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -1360,13 +1485,17 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   void _checkOut(Order order) {
     TextEditingController referralCode = TextEditingController();
     String? refCode = null;
+    // List<String> payment = ['Cash', 'QRIS', 'Transfer'];
+    // String _selectedPaymentMethod;
+    // _selectedPaymentMethod
     PaymentMethod? _selectedPaymentMethod;
+
     int _finalTotalWithDiscount = 0;
     int _referralDiscount = 0;
     int? _besarDiskon = 0;
-
     _cachedCheckoutData =
         Future.wait([_diskonFuture, _paymentFuture, _outletFuture]);
+    bool isCheck;
     showModalBottomSheet(
         backgroundColor: const Color.fromARGB(255, 255, 254, 254),
         context: context,
@@ -1385,18 +1514,23 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 }
 
                 final diskonList = snapshot.data?[0]?.data ?? [];
-                List<Diskon> diskonListWithNoOption = [noDiscountOption] + diskonList;
+                List<Diskon> diskonListWithNoOption =
+                    [noDiscountOption] + diskonList;
                 final paymentMethods = snapshot.data?[1]?.data ?? [];
 
-                final orderTotal = int.tryParse(order.order_totals.toString()) ?? 0;
+                final orderTotal =
+                    int.tryParse(order.order_totals.toString()) ?? 0;
                 final diskon = _selectedDiskon == noDiscountOption
                     ? 0
                     : (_selectedDiskon?.amount ?? 0);
                 if (_selectedDiskon?.type == 'fixed') {
-                  _finalTotalWithDiscount = orderTotal - _selectedDiskon!.amount.toInt();
+                  _finalTotalWithDiscount =
+                      (orderTotal - _selectedDiskon!.amount.toInt()) -
+                          _referralDiscount;
                 } else {
                   _finalTotalWithDiscount =
-                      (orderTotal - (orderTotal * diskon) ~/ 100) - _referralDiscount;
+                      (orderTotal - (orderTotal * diskon) ~/ 100) -
+                          _referralDiscount;
                 }
 
                 return Padding(
@@ -1406,9 +1540,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                     left: 16,
                     right: 16,
                   ),
-                    
                   child: SingleChildScrollView(
-                    
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -1424,28 +1556,26 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                            
+
                         // Discount & Referral
                         Row(
-                          
                           children: [
                             Expanded(
                               flex: 2,
                               child: DropdownButtonFormField<Diskon>(
-                                
-                                                                isExpanded: true,
-                                                                dropdownColor: Colors.white, 
-
+                                isExpanded: true,
+                                dropdownColor: Colors.white,
                                 decoration: InputDecoration(
                                   labelText: 'Discount',
                                   labelStyle: TextStyle(fontSize: 13),
                                   hintText: 'No Discount',
-                                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.always,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                                  
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 14),
                                 ),
                                 value: _selectedDiskon ?? noDiscountOption,
                                 items: diskonListWithNoOption
@@ -1476,9 +1606,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       controller: referralCode,
                                       decoration: InputDecoration(
                                         labelText: 'Referral Code',
-                                        labelStyle: const TextStyle(fontSize: 14),
+                                        labelStyle:
+                                            const TextStyle(fontSize: 14),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
                                     ),
@@ -1493,42 +1625,70 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       icon: const Icon(Icons.search),
                                       onPressed: () async {
                                         if (referralCode.text.isEmpty) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text('Please enter a referral code'),
-                                            ),
-                                          );
+                                          setModalState(() {
+                                            _referralDiscount = 0;
+                                            _besarDiskon = 0;
+                                            refCode = null;
+
+                                            final orderTotal = int.tryParse(
+                                                    order.order_totals
+                                                        .toString()) ??
+                                                0;
+                                            final diskon = _selectedDiskon ==
+                                                    noDiscountOption
+                                                ? 0
+                                                : (_selectedDiskon?.amount ??
+                                                    0);
+
+                                            if (_selectedDiskon?.type ==
+                                                'fixed') {
+                                              _finalTotalWithDiscount =
+                                                  orderTotal -
+                                                      (_selectedDiskon?.amount
+                                                              ?.toInt() ??
+                                                          0);
+                                            } else {
+                                              _finalTotalWithDiscount =
+                                                  orderTotal -
+                                                      ((orderTotal * diskon) ~/
+                                                          100);
+                                            }
+                                          });
+
                                           return;
                                         }
                                         try {
-                                          final response = await fetchReferralCodes(
-                                              widget.token, referralCode.text);
+                                          final response =
+                                              await fetchReferralCodes(
+                                            widget.token,
+                                            referralCode.text.trim(),
+                                          );
+
                                           if (response.status == true) {
-                                            refCode = referralCode.text;
+                                            final orderTotal = int.tryParse(
+                                                    order.order_totals ?? '') ??
+                                                0;
+                                            final discountPercent =
+                                                response.data.discount.toInt();
+
                                             setModalState(() {
+                                              refCode =
+                                                  referralCode.text.trim();
+                                              _besarDiskon = discountPercent;
                                               _referralDiscount =
-                                                  (_finalTotalWithDiscount * response.data.discount) ~/
+                                                  (_finalTotalWithDiscount *
+                                                          discountPercent) ~/
                                                       100;
-                                              _besarDiskon = response.data.discount.toInt();
-                                              _finalTotalWithDiscount -= _referralDiscount;
+                                              _finalTotalWithDiscount =
+                                                  _calculateFinalTotal(
+                                                orderTotal,
+                                                _selectedDiskon,
+                                                _referralDiscount,
+                                              );
                                             });
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Referral code applied successfully!'),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
                                           }
                                         } catch (e) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text('Error: ${e.toString()}'),
-                                              backgroundColor: Colors.red,
-                                            ),
-                                          );
+                                          // Error handling
                                         }
                                       },
                                     ),
@@ -1542,15 +1702,17 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
                         // Payment Method
                         DropdownButtonFormField<PaymentMethod>(
-                          dropdownColor: Colors.white, 
+                          dropdownColor: Colors.white,
                           decoration: InputDecoration(
                             labelText: 'Payment Method',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 14),
                           ),
                           value: _selectedPaymentMethod,
+                          hint: const Text('Select Payment Method'),
                           hint: const Text('Select Payment Method'),
                           items: paymentMethods
                               .map<DropdownMenuItem<PaymentMethod>>((method) {
@@ -1558,6 +1720,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               value: method,
                               child: Text(
                                 method.payment_name,
+                                style: const TextStyle(fontSize: 14),
                                 style: const TextStyle(fontSize: 14),
                               ),
                             );
@@ -1599,7 +1762,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                 Navigator.pop(context);
 
                                 final outletResponse = await _outletFuture;
-                                final outletName = outletResponse.data.outlet_name;
+                                final outletName =
+                                    outletResponse.data.outlet_name;
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
@@ -1611,11 +1775,12 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                             orderType: order.order_type,
                                             tableNumber: order.order_table ?? 0,
                                             items: _cartItems,
-                                            subtotal: int.tryParse(
-                                                    order.order_totals) ??
-                                                0,
+                                            subtotal: _calculateOrderTotal(
+                                                _cartItems), // Tambahkan subtotal
+
                                             discountVoucher:
                                                 (_selectedDiskon?.amount ?? 0),
+                                            discountType: _selectedDiskon!.type,
                                             discountRef: (_besarDiskon ?? 0),
                                             total: _finalTotalWithDiscount,
                                             paymentMethod:
@@ -1632,7 +1797,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       outlet_id: widget.outletId,
                                       customer_name: order.customer_name,
                                       phone_number: order.phone_number,
-                                      order_payment: _selectedPaymentMethod!.id,
+                                      order_payment: _selectedPaymentMethod
+                                              ?.id ??
+                                          1, // Use selected payment ID or default
                                       order_table: order.order_table,
                                       discount_id: _selectedDiskon?.id,
                                       referral_code: refCode,
@@ -1642,7 +1809,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       order_details: order.order_details,
                                     ),
                                   );
-                                  if (mounted) setState(() => _cartItems.clear());
+                                  if (mounted)
+                                    setState(() => _cartItems.clear());
                                   if (result['success'] == true) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -1662,7 +1830,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                                backgroundColor:
+                                    const Color.fromARGB(255, 53, 150, 105),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 24,
                                   vertical: 12,
@@ -1721,5 +1890,29 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       total += (item['total_price'] as num).toInt();
     }
     return total;
+  }
+
+  int _calculateFinalTotal(
+      int orderTotal, Diskon? discount, int referralDiscount) {
+    int tempTotal = orderTotal;
+    print('Initial Order Total: $tempTotal');
+    print(
+        'Selected Discount: ${discount?.name} (${discount?.type} ${discount?.amount}) ');
+    print('Referral Discount: $referralDiscount');
+
+    // Apply main discount first
+    if (discount != null && discount != noDiscountOption) {
+      if (discount.type == 'fixed') {
+        tempTotal -= discount.amount;
+      } else {
+        tempTotal -= (tempTotal * discount.amount ~/ 100);
+      }
+    }
+    print('Total after discount: $tempTotal');
+    // Then apply referral discount
+    tempTotal -= referralDiscount;
+    print('Total after referral discount: $tempTotal');
+    // Ensure total doesn't go negative
+    return tempTotal > 0 ? tempTotal : 0;
   }
 }

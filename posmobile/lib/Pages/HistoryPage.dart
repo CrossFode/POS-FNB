@@ -1490,7 +1490,79 @@ class _HistoryPageState extends State<HistoryPage>
                                                               order);
                                                           break;
                                                         case 'print':
-                                                          _printOrder(order);
+                                                          List<
+                                                                  Map<String,
+                                                                      dynamic>>
+                                                              billItems =
+                                                              order.products.map(
+                                                                  (product) {
+                                                            return {
+                                                              'name':
+                                                                  product.name,
+                                                              'quantity':
+                                                                  product
+                                                                      .quantity,
+                                                              'total_price': product
+                                                                      .price *
+                                                                  product
+                                                                      .quantity,
+                                                              'variants':
+                                                                  product.variantName !=
+                                                                          null
+                                                                      ? [
+                                                                          {
+                                                                            'name':
+                                                                                product.variantName
+                                                                          }
+                                                                        ]
+                                                                      : [],
+                                                              'modifier':
+                                                                  [], // Add modifiers if available
+                                                              'notes':
+                                                                  '', // Add notes if available
+                                                            };
+                                                          }).toList();
+                                                          Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                              builder:
+                                                                  (context) =>
+                                                                      Previewbill(
+                                                                outletName:
+                                                                    order
+                                                                        .outlet,
+                                                                // orderId: 'ORDER-${DateTime.now().millisecondsSinceEpoch}',
+                                                                customerName:
+                                                                    order
+                                                                        .customer,
+                                                                orderType: order
+                                                                    .orderType,
+                                                                tableNumber:
+                                                                    int.tryParse(order.tableNumber ??
+                                                                            '0') ??
+                                                                        0,
+                                                                items:
+                                                                    billItems,
+                                                                subtotal: order
+                                                                    .subtotalPrice,
+                                                                discountVoucher:
+                                                                    order.discountAmount ??
+                                                                        0,
+                                                                discountType:
+                                                                    order.discountType ??
+                                                                        'fixed',
+                                                                discountRef:
+                                                                    order.referralDiscount ??
+                                                                        0,
+                                                                total: order
+                                                                    .totalPrice,
+                                                                paymentMethod: order
+                                                                    .paymentMethod,
+                                                                orderTime: order
+                                                                    .orderDate,
+                                                              ),
+                                                            ),
+                                                          );
                                                           break;
                                                         case 'delete':
                                                           _confirmDeleteOrder(
@@ -1735,6 +1807,16 @@ class _HistoryPageState extends State<HistoryPage>
                 icon: Icons.history,
                 label: 'History',
                 onTap: () {},
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.payment,
+                label: 'Payment',
+                onTap: () => _navigateTo(Payment(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
               ),
             ],
           ),
