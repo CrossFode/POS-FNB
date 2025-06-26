@@ -7,4 +7,5 @@ export 'Referral.dart';
 export 'Payment.dart';
 export 'Category.dart';
 export 'Admin/User.dart';
-// export 'Admin/UserOutlet.dart';
+export 'History.dart';
+export 'Referral.dart';

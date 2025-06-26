@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:posmobile/Dashboard/Dashboard.dart';
+import 'package:posmobile/Pages/Dashboard/Dashboard.dart';
 import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -14,6 +16,44 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _obscureText = true;
   final String apiBaseUrl = dotenv.env['API_BASE_URL'] ?? '';
+  @override
+  void initState() {
+    super.initState();
+    isLogin(); // panggil saat halaman baru dimuat
+  }
+
+  void isLogin() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    String? val = pref.getString("token");
+    String? role = pref.getString("role");
+    print("Token setelah logout: $val");
+    print("Role setelah logout: $role");
+    if (val != null && role != null) {
+      if (role == 'Admin') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePageSuperAdmin(token: val),
+          ),
+        );
+      } else if (role == 'Manager') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(token: val, isManager: true),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(token: val, isManager: false),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -31,7 +71,13 @@ class _LoginPageState extends State<LoginPage> {
         // If the server returns an OK response, parse the JSON
         final data = jsonDecode(response.body);
         print(data['token']);
+
         // Navigate to the Admin page
+        SharedPreferences pref = await SharedPreferences.getInstance();
+        await pref.setString('token', data['token']);
+        await pref.setString('role', data['data']['role_name']); // Simpan role
+        print("Token disimpan: ${data['token']}");
+        print("Role disimpan: ${data['data']['role_name']}");
 
         if (data['data']['role_name'] == 'Admin') {
           Navigator.pushReplacement(
@@ -79,27 +125,130 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: IntrinsicHeight(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Color(0xFF4CAF50), // Primary color 1 - sudah sesuai
+      body: Stack(
+        children: [
+          // Bagian logo dan judul di area hijau
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.45,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo dalam container accent color
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFC8F5E8), // Accent color 1 - light mint
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/LogoFix.png',
+                            width: 105,
+                            height: 105,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.receipt,
+                                  size: 70,
+                                  color: Color(0xFF5A6C7D)); // Primary color 3
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'POS.in',
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // Neutral color 1
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Point of Sale System',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color(
+                          0xFFF5F5F5), // Neutral color 2 - very light gray
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Card putih dengan form login
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.40,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white, // Neutral color 1
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(15),
+                  topRight: Radius.circular(15),
+                ),
+              ),
+              child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(24.0),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.asset(
-                        'assets/images/logo.png',
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                      SizedBox(height: 8),
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              'Selamat Datang',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(
+                                    0xFF333333), // Neutral color 3 - dark gray
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Silakan masuk untuk melanjutkan',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(
+                                    0xFF666666), // Neutral color 4 - medium gray
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(height: 24),
                       TextField(
                         decoration: InputDecoration(
                           labelText: 'Email',
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(
+                              color: Color(0xFF5A6C7D)), // Primary color 3
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                                color: Color(0xFF45A049)), // Primary color 2
+                          ),
+                          prefixIcon: Icon(Icons.email,
+                              color: Color(0xFF45A049)), // Primary color 2
                         ),
                         keyboardType: TextInputType.emailAddress,
                         controller: _emailController,
@@ -108,23 +257,36 @@ class _LoginPageState extends State<LoginPage> {
                       TextField(
                         obscureText: _obscureText,
                         decoration: InputDecoration(
-                            labelText: 'Password',
-                            border: OutlineInputBorder(),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureText
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureText = !_obscureText;
-                                });
-                              },
-                            )),
+                          labelText: 'Password',
+                          labelStyle: TextStyle(
+                              color: Color(0xFF5A6C7D)), // Primary color 3
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                                color: Color(0xFF45A049)), // Primary color 2
+                          ),
+                          prefixIcon: Icon(Icons.lock,
+                              color: Color(0xFF45A049)), // Primary color 2
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureText
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Color(0xFF5A6C7D), // Primary color 3
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureText = !_obscureText;
+                              });
+                            },
+                          ),
+                        ),
                         controller: _passwordController,
                       ),
-                      SizedBox(height: 24),
+                      SizedBox(height: 30),
                       ElevatedButton(
                         onPressed: () {
                           String email = _emailController.text;
@@ -135,28 +297,37 @@ class _LoginPageState extends State<LoginPage> {
                           }
                           login(email, password);
                         },
-                        child: Text('Login'),
+                        child: Text('LOGIN', style: TextStyle(fontSize: 16)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(210, 9, 9, 9),
-                          foregroundColor: Colors.white,
-                          minimumSize: Size(1000, 50),
+                          backgroundColor: Color(0xFF45A049), // Primary color 2
+                          foregroundColor: Colors.white, // Neutral color 1
+                          minimumSize: Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          // Full-width button
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                       ),
-                      Spacer(),
-                      Image.asset(
-                        'assets/images/lakesidefnb.png',
-                        height: 100,
-                      ),
+                      SizedBox(height: 120),
                     ],
                   ),
                 ),
               ),
             ),
-          );
-        },
+          ),
+
+          Positioned(
+            bottom: -25,
+            left: 0,
+            right: 0,
+            child: Opacity(
+              opacity: 0.5, // Nilai 0.0 (transparan) hingga 1.0 (solid)
+              child: Image.asset(
+                'assets/images/LogoBawah.png',
+                height: 50,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

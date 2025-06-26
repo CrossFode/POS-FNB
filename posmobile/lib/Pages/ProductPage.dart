@@ -437,15 +437,20 @@ class _ProductPageState extends State<ProductPage> {
               actions: [
                 TextButton(
                   style: TextButton.styleFrom(
-                    // backgroundColor: const Color.fromARGB(255, 255, 255, 255), // warna hitam
-                    foregroundColor: const Color.fromARGB(255, 0, 0, 0),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                  foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    side: const BorderSide(
+                    color: Color.fromARGB(255, 53, 150, 105
+), // Outline color
+                    width: 1.5, // Outline thickness
                     ),
                   ),
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: const Text('Cancel',style: TextStyle(color: Color.fromARGB(255, 53, 150, 105
+)),),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -578,11 +583,12 @@ class _ProductPageState extends State<ProductPage> {
       style: TextStyle(
         fontSize: 30,
         fontWeight: FontWeight.bold,
-        color: Color.fromARGB(255, 0, 0, 0),
+        color: Color.fromARGB(255, 255, 255, 255),
       ),
     ),
   ),
-  backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+  backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
   elevation: 0,
   centerTitle: false,
   foregroundColor: Colors.black,
@@ -641,7 +647,7 @@ class _ProductPageState extends State<ProductPage> {
                                     Text(
                                       product.name,
                                       style: const TextStyle(
-                                        fontSize: 23,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -686,6 +692,7 @@ class _ProductPageState extends State<ProductPage> {
                                               await showDialog<bool>(
                                             context: context,
                                             builder: (context) => AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                                               title:
                                                   const Text('Delete Product'),
                                               content: const Text(
@@ -881,6 +888,7 @@ class _ProductPageState extends State<ProductPage> {
                 onTap: () => _navigateTo(HistoryPage(
                   token: widget.token,
                   outletId: widget.outletId,
+                  isManager: widget.isManager,
                 )),
               ),
             ],

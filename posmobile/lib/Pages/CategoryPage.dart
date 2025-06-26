@@ -91,16 +91,20 @@ class _CategoryPageState extends State<CategoryPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: const Text('Confirm Delete'),
           content: Text(
               'Are you sure you want to delete "${category.category_name}"?'),
           actions: [
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancel',style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
               onPressed: () => Navigator.pop(context),
             ),
-            TextButton(
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // White color
+              ),
+              child: const Text('Delete', style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
               onPressed: () {
                 Navigator.pop(context); // Close the dialog
                 _deleteCategory(category);
@@ -126,6 +130,8 @@ class _CategoryPageState extends State<CategoryPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+                        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+
           title: Text(isEdit ? 'Edit Category' : 'Create Category'),
           content: Form(
             key: _formKey,
@@ -145,6 +151,7 @@ class _CategoryPageState extends State<CategoryPage> {
                 DropdownButtonFormField<int>(
                   value: _isFood,
                   decoration: const InputDecoration(labelText: 'Type'),
+                  dropdownColor: Colors.white,
                   items: const [
                     DropdownMenuItem(value: 1, child: Text('Food')),
                     DropdownMenuItem(value: 0, child: Text('Non-Food')),
@@ -160,65 +167,72 @@ class _CategoryPageState extends State<CategoryPage> {
           ),
           actions: [
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Color.fromARGB(255, 53, 150, 105
+)),),
               onPressed: () => Navigator.pop(context),
             ),
             ElevatedButton(
-              child: Text(isEdit ? 'Update' : 'Create'),
+              style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 53, 150, 105), // Green color
+              ),
+              child: Text(
+              isEdit ? 'Update' : 'Create',
+              style: TextStyle(color: Colors.white),
+              ),
               onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  final payload = {
-                    'category_name': _nameController.text,
-                    'is_food': _isFood,
-                    'outlet_id': widget.outletId,
-                  };
+              if (_formKey.currentState!.validate()) {
+                final payload = {
+                'category_name': _nameController.text,
+                'is_food': _isFood,
+                'outlet_id': widget.outletId,
+                };
 
-                  try {
-                    final uri = isEdit
-                        ? Uri.parse('$baseUrl/api/category/${category!.id}')
-                        : Uri.parse('$baseUrl/api/category');
+                try {
+                final uri = isEdit
+                  ? Uri.parse('$baseUrl/api/category/${category!.id}')
+                  : Uri.parse('$baseUrl/api/category');
 
-                    final response = await (isEdit
-                        ? http.put(
-                            uri,
-                            headers: {
-                              'Authorization': 'Bearer ${widget.token}',
-                              'Content-Type': 'application/json',
-                            },
-                            body: jsonEncode(payload),
-                          )
-                        : http.post(
-                            uri,
-                            headers: {
-                              'Authorization': 'Bearer ${widget.token}',
-                              'Content-Type': 'application/json',
-                            },
-                            body: jsonEncode(payload),
-                          ));
+                final response = await (isEdit
+                  ? http.put(
+                    uri,
+                    headers: {
+                      'Authorization': 'Bearer ${widget.token}',
+                      'Content-Type': 'application/json',
+                    },
+                    body: jsonEncode(payload),
+                    )
+                  : http.post(
+                    uri,
+                    headers: {
+                      'Authorization': 'Bearer ${widget.token}',
+                      'Content-Type': 'application/json',
+                    },
+                    body: jsonEncode(payload),
+                    ));
 
-                    if (response.statusCode == 200 ||
-                        response.statusCode == 201) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text(
-                                'Category ${isEdit ? 'updated' : 'created'} successfully')),
-                      );
-                      setState(() {
-                        _categoryFuture = fetchCategoryinOutlet(
-                            widget.token, widget.outletId);
-                      });
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to save category')),
-                      );
-                    }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
-                  }
+                if (response.statusCode == 200 ||
+                  response.statusCode == 201) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Category ${isEdit ? 'updated' : 'created'} successfully')),
+                  );
+                  setState(() {
+                  _categoryFuture = fetchCategoryinOutlet(
+                    widget.token, widget.outletId);
+                  });
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to save category')),
+                  );
                 }
+                } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $e')),
+                );
+                }
+              }
               },
             ),
           ],
@@ -229,18 +243,42 @@ class _CategoryPageState extends State<CategoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
+      appBar: AppBar(
+  automaticallyImplyLeading: false,
+  title: Padding(
+    padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
+    child: Text(
+      "Category",
+      style: TextStyle(
+        fontSize: 30,
+        fontWeight: FontWeight.bold,
+        color: Color.fromARGB(255, 255, 255, 255),
+      ),
+    ),
+  ),
+  backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
+  elevation: 0,
+  centerTitle: false,
+  foregroundColor: Colors.black,
+  shape: const Border(
+    bottom: BorderSide(
+      color: Color.fromARGB(255, 102, 105, 108), // Outline color
+      width: 0.5, // Outline thickness
+    ),
+  ),
+),
+
+              backgroundColor: const Color.fromARGB(255, 245, 244, 244),
+
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.only(top: 12.0),
             child: Column(
               children: [
-                Center(
-                  child: Text(
-                    "Category",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                  ),
-                ),
+                
                 Expanded(
                   child: FutureBuilder<CategoryResponse>(
                     future: _categoryFuture,
@@ -319,7 +357,8 @@ class _CategoryPageState extends State<CategoryPage> {
           onPressed: () {
             _showCreateCategoryDialog(context: context, isEdit: false);
           },
-          backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105
+),
           child: const Icon(Icons.add, color: Colors.white),
           tooltip: 'Create Category',
         ),
@@ -370,7 +409,7 @@ class _CategoryPageState extends State<CategoryPage> {
               _buildMenuOption(
                 icon: Icons.card_giftcard,
                 label: 'Referral Code',
-                onTap: () => _navigateTo(ModifierPage(
+                onTap: () => _navigateTo(ReferralCodePage(
                   token: widget.token,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
@@ -394,7 +433,7 @@ class _CategoryPageState extends State<CategoryPage> {
                 onTap: () => _navigateTo(HistoryPage(
                   token: widget.token,
                   outletId: widget.outletId,
-                  // isManager: widget.isManager,
+                  isManager: widget.isManager,
                 )),
               ),
             ],
