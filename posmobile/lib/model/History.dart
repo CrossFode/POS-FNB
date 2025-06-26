@@ -1,3 +1,5 @@
+import 'package:flutter/src/widgets/framework.dart';
+
 class History {
   final String id;
   final String customerId;
@@ -12,10 +14,10 @@ class History {
   String status;
   final String outlet;
   final String? tableNumber;
-  
+
   // Tambahkan properti untuk diskon dan harga
-  final int subtotalPrice;  // total sebelum diskon
-  final int totalPrice;     // total setelah diskon
+  final int subtotalPrice; // total sebelum diskon
+  final int totalPrice; // total setelah diskon
   final String? discountName;
   final int? discountAmount;
   final String? discountType;
@@ -95,7 +97,7 @@ class History {
     final orderDetails = (json['order_details'] is List)
         ? json['order_details'] as List
         : <dynamic>[];
-        
+
     return History(
       id: json['id']?.toString() ?? '',
       customerId: json['customer']?['id']?.toString() ?? '',
@@ -118,13 +120,13 @@ class History {
       status: (json['status']?.toString() ?? '').toUpperCase(),
       outlet: json['outlet']?['outlet_name']?.toString() ?? '-',
       tableNumber: json['order_table']?.toString(),
-      
+
       // Tambahkan informasi diskon dan subtotal
-      subtotalPrice: json['order_subtotal'] != null 
-          ? int.tryParse(json['order_subtotal'].toString()) ?? 0 
+      subtotalPrice: json['order_subtotal'] != null
+          ? int.tryParse(json['order_subtotal'].toString()) ?? 0
           : 0,
-      totalPrice: json['order_total'] != null 
-          ? int.tryParse(json['order_total'].toString()) ?? 0 
+      totalPrice: json['order_total'] != null
+          ? int.tryParse(json['order_total'].toString()) ?? 0
           : 0,
       discountName: json['discount']?['name']?.toString(),
       discountAmount: json['discount']?['amount'] != null

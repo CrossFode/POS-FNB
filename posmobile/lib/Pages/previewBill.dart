@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 class Previewbill extends StatefulWidget {
   final String outletName;
-  final String orderId;
+  final String? orderId;
   final String customerName;
   final String orderType;
   final int tableNumber;
@@ -20,7 +20,7 @@ class Previewbill extends StatefulWidget {
   const Previewbill({
     super.key,
     required this.outletName,
-    required this.orderId,
+    this.orderId,
     required this.customerName,
     required this.orderType,
     required this.tableNumber,
@@ -113,7 +113,7 @@ class _PreviewBillState extends State<Previewbill> {
                     // Order Info
                     Center(
                       child: Text(
-                        widget.orderId,
+                        widget.orderId ?? "",
                         style: TextStyle(fontSize: 18, height: 1.2),
                       ),
                     ),
@@ -262,7 +262,7 @@ class _PreviewBillState extends State<Previewbill> {
                             Text('Diskon:',
                                 style: TextStyle(fontSize: 20, height: 1.2)),
                             Text(
-                                'Rp.${widget.discountVoucher} + ${widget.discountRef}',
+                                'Rp.${widget.discountVoucher} + ${widget.discountRef}%',
                                 style: TextStyle(fontSize: 20, height: 1.2)),
                           ] else if (widget.discountType == "percent" &&
                               widget.discountRef == 0) ...[

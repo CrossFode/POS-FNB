@@ -1531,42 +1531,35 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         try {
                                           final response =
                                               await fetchReferralCodes(
-                                                  widget.token,
-                                                  referralCode.text);
+                                            widget.token,
+                                            referralCode.text.trim(),
+                                          );
+
                                           if (response.status == true) {
-                                            refCode = referralCode.text;
+                                            final orderTotal = int.tryParse(
+                                                    order.order_totals ?? '') ??
+                                                0;
+                                            final discountPercent =
+                                                response.data.discount.toInt();
 
                                             setModalState(() {
-                                              _referralDiscount = (int.tryParse(
-                                                          order.order_totals)! *
-                                                      response.data.discount) ~/
-                                                  100;
-
-                                              _besarDiskon = response
-                                                  .data.discount
-                                                  .toInt();
-                                              _finalTotalWithDiscount -=
-                                                  _referralDiscount;
-                                              isCheck = true;
+                                              refCode =
+                                                  referralCode.text.trim();
+                                              _besarDiskon = discountPercent;
+                                              _referralDiscount =
+                                                  (_finalTotalWithDiscount *
+                                                          discountPercent) ~/
+                                                      100;
+                                              _finalTotalWithDiscount =
+                                                  _calculateFinalTotal(
+                                                orderTotal,
+                                                _selectedDiskon,
+                                                _referralDiscount,
+                                              );
                                             });
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                    'Referral code applied successfully!'),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
                                           }
                                         } catch (e) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                  'Error: ${e.toString()}'),
-                                              backgroundColor: Colors.red,
-                                            ),
-                                          );
+                                          // Error handling
                                         }
                                       },
                                     ),
@@ -1647,9 +1640,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                             orderType: order.order_type,
                                             tableNumber: order.order_table ?? 0,
                                             items: _cartItems,
-                                            subtotal: int.tryParse(
-                                                    order.order_totals) ??
-                                                0,
+                                            subtotal: _calculateOrderTotal(
+                                                _cartItems), // Tambahkan subtotal
+
                                             discountVoucher:
                                                 (_selectedDiskon?.amount ?? 0),
                                             discountType: _selectedDiskon!.type,
@@ -1669,7 +1662,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       outlet_id: widget.outletId,
                                       customer_name: order.customer_name,
                                       phone_number: order.phone_number,
-                                      order_payment: order.order_payment,
+                                      order_payment: _selectedPaymentMethod
+                                              ?.id ??
+                                          1, // Use selected payment ID or default
                                       order_table: order.order_table,
                                       discount_id: _selectedDiskon?.id,
                                       referral_code: refCode,
@@ -1761,5 +1756,29 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       total += (item['total_price'] as num).toInt();
     }
     return total;
+  }
+
+  int _calculateFinalTotal(
+      int orderTotal, Diskon? discount, int referralDiscount) {
+    int tempTotal = orderTotal;
+    print('Initial Order Total: $tempTotal');
+    print(
+        'Selected Discount: ${discount?.name} (${discount?.type} ${discount?.amount}) ');
+    print('Referral Discount: $referralDiscount');
+
+    // Apply main discount first
+    if (discount != null && discount != noDiscountOption) {
+      if (discount.type == 'fixed') {
+        tempTotal -= discount.amount;
+      } else {
+        tempTotal -= (tempTotal * discount.amount ~/ 100);
+      }
+    }
+    print('Total after discount: $tempTotal');
+    // Then apply referral discount
+    tempTotal -= referralDiscount;
+    print('Total after referral discount: $tempTotal');
+    // Ensure total doesn't go negative
+    return tempTotal > 0 ? tempTotal : 0;
   }
 }
