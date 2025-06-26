@@ -152,49 +152,101 @@ class _HistoryPageState extends State<HistoryPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus Order'),
-        content:
-            Text('Apakah Anda yakin ingin menghapus order ${order.customer}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Tidak'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        title: const Center(
+          child: Text(
+            'Delete Order',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.black87,
+            ),
           ),
-          TextButton(
-            onPressed: () async {
-              // Tambahkan request DELETE ke backend
-              final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
-              final String token = widget.token;
-              final response = await http.delete(
-                Uri.parse('$baseUrl/api/order/${order.id}'),
-                headers: {
-                  'Authorization': 'Bearer $token',
-                  'Content-Type': 'application/json',
-                },
-              );
-              if (response.statusCode == 200) {
-                setState(() {
-                  orders.removeWhere((o) => o.id == order.id);
-                  _filterOrders();
-                });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Order ${order.customer} berhasil dihapus'),
-                    backgroundColor: Colors.red,
+        ),
+        content: Text(
+          'Apakah anda yakin ingin menghapus history "${order.customer}"?',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey[300]!),
+                    ),
                   ),
-                );
-              } else {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Gagal menghapus order: ${response.body}'),
-                    backgroundColor: Colors.red,
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color.fromARGB(255, 145, 145, 145),
+                    ),
                   ),
-                );
-              }
-            },
-            child: const Text('Ya', style: TextStyle(color: Colors.red)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
+                    final String token = widget.token;
+                    final response = await http.delete(
+                      Uri.parse('$baseUrl/api/order/${order.id}'),
+                      headers: {
+                        'Authorization': 'Bearer $token',
+                        'Content-Type': 'application/json',
+                      },
+                    );
+                    if (!mounted) return;
+                    if (response.statusCode == 200) {
+                      setState(() {
+                        orders.removeWhere((o) => o.id == order.id);
+                        _filterOrders();
+                      });
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Order ${order.customer} berhasil dihapus'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    } else {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Gagal menghapus order: ${response.body}'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Delete',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -287,50 +339,49 @@ class _HistoryPageState extends State<HistoryPage>
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
-              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.9,
-                constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.8),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white,
+                ),
                 child: loading
                     ? const Center(child: CircularProgressIndicator())
                     : SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
+                        child: Form(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    // Expanded diperlukan di sini
-                                    child: Text(
-                                      'Edit Order ${order.customer}',
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E293B),
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
+                              // Header
+                              Center(
+                                child: Text(
+                                  'Edit Order ${order.customer}',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
                                   ),
-                                  IconButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    icon: const Icon(Icons.close,
-                                        color: Color(0xFF64748B)),
-                                  ),
-                                ],
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
                               ),
-                              const Divider(),
-                              const SizedBox(height: 16),
-                              // Customer Name pakai input field saja
+                              const SizedBox(height: 24),
+
+                              // Customer Name
+                              const Text(
+                                "CUSTOMER NAME",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
                               Autocomplete<Map<String, dynamic>>(
                                 optionsBuilder:
                                     (TextEditingValue textEditingValue) {
@@ -360,8 +411,14 @@ class _HistoryPageState extends State<HistoryPage>
                                     controller: controller,
                                     focusNode: focusNode,
                                     decoration: InputDecoration(
-                                      labelText: 'Customer Name',
-                                      border: const OutlineInputBorder(),
+                                      hintText: 'Customer Name',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 12),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                       errorText: errors['customer_id'] ??
                                           errors['customer_name'],
                                     ),
@@ -369,19 +426,37 @@ class _HistoryPageState extends State<HistoryPage>
                                       setState(() {
                                         editedCustomerName = value;
                                         editedCustomerId = null;
-                                        // Jika user mengetik manual, customerId dikosongkan
+                                        // Jika user mengetip manual, customerId dikosongkan
                                       });
                                     },
                                   );
                                 },
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 18),
+
+                              // Cashier
+                              const Text(
+                                "CASHIER",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
                               DropdownButtonFormField<String>(
                                 value: editedCashierId,
                                 isExpanded: true,
                                 decoration: InputDecoration(
-                                  labelText: 'Cashier',
-                                  border: const OutlineInputBorder(),
+                                  hintText: 'Cashier',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 12),
+                                  filled: true,
+                                  fillColor: Colors.white,
                                   errorText: errors['order_cashier'],
                                 ),
                                 items: cashiers.map((cashier) {
@@ -397,13 +472,31 @@ class _HistoryPageState extends State<HistoryPage>
                                 onChanged: (value) =>
                                     setState(() => editedCashierId = value),
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 18),
+
+                              // Payment Method
+                              const Text(
+                                "PAYMENT METHOD",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
                               DropdownButtonFormField<String>(
                                 value: editedPaymentId,
                                 isExpanded: true,
                                 decoration: InputDecoration(
-                                  labelText: 'Payment Method',
-                                  border: const OutlineInputBorder(),
+                                  hintText: 'Payment Method',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 12),
+                                  filled: true,
+                                  fillColor: Colors.white,
                                   errorText: errors['order_payment'],
                                 ),
                                 items: paymentMethods.map((payment) {
@@ -419,8 +512,54 @@ class _HistoryPageState extends State<HistoryPage>
                                 onChanged: (value) =>
                                     setState(() => editedPaymentId = value),
                               ),
+                              const SizedBox(height: 18),
 
-                              const SizedBox(height: 12),
+                              // Order Type
+                              const Text(
+                                "ORDER TYPE",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              DropdownButtonFormField<String>(
+                                value: editedOrderType,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  hintText: 'Order Type',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 12),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                items: orderTypes.map((type) {
+                                  return DropdownMenuItem<String>(
+                                    value: type['value'],
+                                    child: Text(type['label']),
+                                  );
+                                }).toList(),
+                                onChanged: (value) =>
+                                    setState(() => editedOrderType = value),
+                              ),
+                              const SizedBox(height: 18),
+
+                              // Order Date
+                              const Text(
+                                "ORDER DATE",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
                               GestureDetector(
                                 onTap: () async {
                                   final picked = await showDatePicker(
@@ -441,8 +580,14 @@ class _HistoryPageState extends State<HistoryPage>
                                           .format(editedOrderDate),
                                     ),
                                     decoration: InputDecoration(
-                                      labelText: 'Order Date',
-                                      border: const OutlineInputBorder(),
+                                      hintText: 'Order Date',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 12),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                       suffixIcon:
                                           const Icon(Icons.calendar_today),
                                       errorText: errors['created_at'],
@@ -450,156 +595,188 @@ class _HistoryPageState extends State<HistoryPage>
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 24),
+
+                              // Action Buttons
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: const Text('Cancel'),
+                                  Expanded(
+                                    child: TextButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          side: BorderSide(color: Colors.grey[300]!),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Cancel',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color.fromARGB(255, 53, 150, 105),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(width: 12),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      setState(() => errors = {});
-                                      if (editedCustomerName.trim().isEmpty) {
-                                        setState(() => errors['customer_name'] =
-                                            'Customer wajib diisi');
-                                        return;
-                                      }
-                                      if (editedCashierId == null) {
-                                        setState(() => errors['order_cashier'] =
-                                            'Cashier wajib diisi');
-                                        return;
-                                      }
-                                      if (editedPaymentId == null) {
-                                        setState(() => errors['order_payment'] =
-                                            'Payment wajib diisi');
-                                        return;
-                                      }
-
-                                      if (editedCustomerId != null &&
-                                          editedCustomerId!.isNotEmpty) {
-                                        if (editedCustomerName.trim() !=
-                                            order.customer) {
-                                          // Update customer lama (PUT)
-                                          final updated = await _updateCustomer(
-                                            editedCustomerId!,
-                                            editedCustomerName.trim(),
-                                            order.customerPhone, // nomor lama
-                                          );
-                                          if (!updated) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                    'Gagal update customer'),
-                                                backgroundColor: Colors.red,
-                                              ),
-                                            );
-                                            return;
-                                          }
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        setState(() => errors = {});
+                                        if (editedCustomerName.trim().isEmpty) {
+                                          setState(() => errors['customer_name'] =
+                                              'Customer wajib diisi');
+                                          return;
                                         }
-                                      }
-                                      // Kirim ke API (PUT)
-                                      final body = <String, dynamic>{
-                                        'order_cashier': editedCashierId,
-                                        'order_payment': editedPaymentId,
-                                        'order_type': editedOrderType,
-                                        'created_at':
-                                            editedOrderDate.toIso8601String(),
-                                      };
-                                      if (editedCustomerId != null &&
-                                          editedCustomerId!.isNotEmpty) {
-                                        body['customer_id'] = editedCustomerId;
-                                      }
-                                      if (editedCustomerId == null ||
-                                          editedCustomerId!.isEmpty) {
-                                        body['customer_name'] =
-                                            editedCustomerName.trim();
-                                      }
+                                        if (editedCashierId == null) {
+                                          setState(() => errors['order_cashier'] =
+                                              'Cashier wajib diisi');
+                                          return;
+                                        }
+                                        if (editedPaymentId == null) {
+                                          setState(() => errors['order_payment'] =
+                                              'Payment wajib diisi');
+                                          return;
+                                        }
 
-                                      print(json.encode(body));
-
-                                      final response = await http.put(
-                                        Uri.parse(
-                                            '${dotenv.env['API_BASE_URL']}/api/order/${order.id}'),
-                                        headers: {
-                                          'Content-Type': 'application/json',
-                                          'Authorization':
-                                              'Bearer ${widget.token}',
-                                        },
-                                        body: json.encode(body),
-                                      );
-                                      if (response.statusCode == 200) {
-                                        if (!mounted) return;
-                                        setState(() {
-                                          orders[orders.indexWhere(
-                                                  (o) => o.id == order.id)] =
-                                              order.copyWith(
-                                            customer: editedCustomerName.trim(),
-                                            cashier: cashiers.firstWhere((c) =>
-                                                c['id'].toString() ==
-                                                editedCashierId)['name'],
-                                            paymentMethod:
-                                                paymentMethods.firstWhere((p) =>
-                                                        p['id'].toString() ==
-                                                        editedPaymentId)[
-                                                    'payment_name'],
-                                            orderType: orderTypes.firstWhere(
-                                                (t) =>
-                                                    t['value'] ==
-                                                    editedOrderType)['label'],
-                                            orderDate: editedOrderDate,
-                                          );
-                                          _filterOrders();
-                                        });
-                                        Navigator.of(context).pop();
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                                'Order updated successfully'),
-                                            backgroundColor: Colors.green,
-                                          ),
-                                        );
-                                      } else if (response.statusCode == 422) {
-                                        final errorData =
-                                            json.decode(response.body);
-                                        setState(() {
-                                          errors = {};
-                                          if (errorData['errors'] != null) {
-                                            final errorsData =
-                                                errorData['errors'];
-                                            if (errorsData is Map) {
-                                              errorsData.forEach((key, value) {
-                                                if (value is List &&
-                                                    value.isNotEmpty) {
-                                                  errors[key] =
-                                                      value.first.toString();
-                                                } else if (value is String) {
-                                                  errors[key] = value;
-                                                }
-                                              });
+                                        if (editedCustomerId != null &&
+                                            editedCustomerId!.isNotEmpty) {
+                                          if (editedCustomerName.trim() !=
+                                              order.customer) {
+                                            // Update customer lama (PUT)
+                                            final updated = await _updateCustomer(
+                                              editedCustomerId!,
+                                              editedCustomerName.trim(),
+                                              order.customerPhone, // nomor lama
+                                            );
+                                            if (!updated) {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      'Gagal update customer'),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                              return;
                                             }
                                           }
-                                        });
-                                      } else {
-                                        if (!mounted) return;
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                'Failed: ${response.body}'),
-                                            backgroundColor: Colors.red,
-                                          ),
+                                        }
+                                        // Kirim ke API (PUT)
+                                        final body = <String, dynamic>{
+                                          'order_cashier': editedCashierId,
+                                          'order_payment': editedPaymentId,
+                                          'order_type': editedOrderType,
+                                          'created_at':
+                                              editedOrderDate.toIso8601String(),
+                                        };
+                                        if (editedCustomerId != null &&
+                                            editedCustomerId!.isNotEmpty) {
+                                          body['customer_id'] = editedCustomerId;
+                                        }
+                                        if (editedCustomerId == null ||
+                                            editedCustomerId!.isEmpty) {
+                                          body['customer_name'] =
+                                              editedCustomerName.trim();
+                                        }
+
+                                        final response = await http.put(
+                                          Uri.parse(
+                                              '${dotenv.env['API_BASE_URL']}/api/order/${order.id}'),
+                                          headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization':
+                                                'Bearer ${widget.token}',
+                                          },
+                                          body: json.encode(body),
                                         );
-                                      }
-                                    },
-                                    child: const Text('Save'),
+                                        if (response.statusCode == 200) {
+                                          if (!mounted) return;
+                                          setState(() {
+                                            orders[orders.indexWhere(
+                                                    (o) => o.id == order.id)] =
+                                                order.copyWith(
+                                              customer: editedCustomerName.trim(),
+                                              cashier: cashiers.firstWhere((c) =>
+                                                  c['id'].toString() ==
+                                                  editedCashierId)['name'],
+                                              paymentMethod:
+                                                  paymentMethods.firstWhere((p) =>
+                                                          p['id'].toString() ==
+                                                          editedPaymentId)[
+                                                      'payment_name'],
+                                              orderType: orderTypes.firstWhere(
+                                                  (t) =>
+                                                      t['value'] ==
+                                                      editedOrderType)['label'],
+                                              orderDate: editedOrderDate,
+                                            );
+                                            _filterOrders();
+                                          });
+                                          Navigator.of(context).pop();
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  'Order updated successfully'),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                        } else if (response.statusCode == 422) {
+                                          final errorData =
+                                              json.decode(response.body);
+                                          setState(() {
+                                            errors = {};
+                                            if (errorData['errors'] != null) {
+                                              final errorsData =
+                                                  errorData['errors'];
+                                              if (errorsData is Map) {
+                                                errorsData.forEach((key, value) {
+                                                  if (value is List &&
+                                                      value.isNotEmpty) {
+                                                    errors[key] =
+                                                        value.first.toString();
+                                                  } else if (value is String) {
+                                                    errors[key] = value;
+                                                  }
+                                                });
+                                              }
+                                            }
+                                          });
+                                        } else {
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Failed: ${response.body}'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color.fromARGB(255, 53, 150, 105),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Save',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                    ),
                                   ),
-                                ],
+                               ) ],
                               ),
                             ],
                           ),
@@ -1065,6 +1242,9 @@ class _HistoryPageState extends State<HistoryPage>
           const SizedBox(width: 8),
         ],
       ),
+
+              backgroundColor: const Color.fromARGB(255, 245, 244, 244),
+
       body: Stack(
         children: [
           // Background image (hanya di belakang konten)
@@ -1074,7 +1254,7 @@ class _HistoryPageState extends State<HistoryPage>
                 image: DecorationImage(
                   image: AssetImage('assets/images/FixGaSihV2.png'),
                   fit: BoxFit.cover,
-                  opacity: 0.07,
+                  opacity: 0.1,
                 ),
               ),
             ),
@@ -1288,7 +1468,9 @@ class _HistoryPageState extends State<HistoryPage>
                                                       size: 20,
                                                     ),
                                                     offset: const Offset(0, 35),
+                                                    color: Colors.white,
                                                     shape:
+                                                    
                                                         RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -1420,8 +1602,7 @@ class _HistoryPageState extends State<HistoryPage>
                                                             const Icon(
                                                                 Icons.edit,
                                                                 size: 18,
-                                                                color: Colors
-                                                                    .blue),
+                                                                color: Color.fromARGB(255, 98, 101, 103)),
                                                             const SizedBox(
                                                                 width: 12),
                                                             const Text(
@@ -1463,8 +1644,7 @@ class _HistoryPageState extends State<HistoryPage>
                                                             const Icon(
                                                                 Icons.print,
                                                                 size: 18,
-                                                                color: Colors
-                                                                    .blue),
+                                                                color: Color.fromARGB(255, 108, 115, 120)),
                                                             const SizedBox(
                                                                 width: 12),
                                                             const Text(
