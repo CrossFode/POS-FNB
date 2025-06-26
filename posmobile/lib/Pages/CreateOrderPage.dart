@@ -1425,10 +1425,35 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       onPressed: () async {
                                         if (referralCode.text.isEmpty) {
                                           setModalState(() {
-                                            _finalTotalWithDiscount =
-                                                _finalTotalWithDiscount;
+                                            _referralDiscount = 0;
+                                            _besarDiskon = 0;
+                                            refCode = null;
+
+                                            final orderTotal = int.tryParse(
+                                                    order.order_totals
+                                                        .toString()) ??
+                                                0;
+                                            final diskon = _selectedDiskon ==
+                                                    noDiscountOption
+                                                ? 0
+                                                : (_selectedDiskon?.amount ??
+                                                    0);
+
+                                            if (_selectedDiskon?.type ==
+                                                'fixed') {
+                                              _finalTotalWithDiscount =
+                                                  orderTotal -
+                                                      (_selectedDiskon?.amount
+                                                              ?.toInt() ??
+                                                          0);
+                                            } else {
+                                              _finalTotalWithDiscount =
+                                                  orderTotal -
+                                                      ((orderTotal * diskon) ~/
+                                                          100);
+                                            }
                                           });
-                                          print(_finalTotalWithDiscount);
+
                                           return;
                                         }
 
