@@ -219,9 +219,11 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text("Referal Code",style: TextStyle(fontSize: 30),),
-          backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
+          title: const Text(
+            "Referal Code",
+            style: TextStyle(fontSize: 30),
+          ),
+          backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           foregroundColor: Colors.white,
           elevation: 2,
         ),
@@ -239,119 +241,56 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                 DateTime? expiredDate;
 
                 return StatefulBuilder(
-                  builder: (context, setState) => Dialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.grey[50]!,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Header
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: const Color.fromARGB(255, 172, 175, 177),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.add_business,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              const Expanded(
-                                child: Text(
-                                  'Create New Referral Code',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                            ],
+                    builder: (context, setState) => Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          const SizedBox(height: 24),
-
-                          // Form Fields
-                          SingleChildScrollView(
+                          child: Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.grey[50]!,
+                            ),
                             child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Code Field
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.1),
-                                        spreadRadius: 1,
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: TextField(
-                                    controller: codeController,
-                                    decoration: InputDecoration(
-                                      labelText: 'Referral Code',
-                                      
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Description Field
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.1),
-                                        spreadRadius: 1,
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: TextField(
-                                    controller: descController,
-                                    maxLines: 2,
-                                    decoration: InputDecoration(
-                                      labelText: 'Description',
-                                      
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Discount and Quotas Row
+                                // Header
                                 Row(
                                   children: [
-                                    Expanded(
-                                      child: Container(
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: const Color.fromARGB(
+                                            255, 172, 175, 177),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.add_business,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    const Expanded(
+                                      child: Text(
+                                        'Create New Referral Code',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Form Fields
+                                SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      // Code Field
+                                      Container(
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius:
@@ -367,11 +306,9 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                           ],
                                         ),
                                         child: TextField(
-                                          controller: discountController,
-                                          keyboardType: TextInputType.number,
+                                          controller: codeController,
                                           decoration: InputDecoration(
-                                            labelText: 'Discount (%)',
-                                            
+                                            labelText: 'Referral Code',
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(12),
@@ -379,829 +316,826 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                             ),
                                             filled: true,
                                             fillColor: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+
+                                      // Description Field
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.1),
+                                              spreadRadius: 1,
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: TextField(
+                                          controller: descController,
+                                          maxLines: 2,
+                                          decoration: InputDecoration(
+                                            labelText: 'Description',
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderSide: BorderSide.none,
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+
+                                      // Discount and Quotas Row
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.1),
+                                                    spreadRadius: 1,
+                                                    blurRadius: 4,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: TextField(
+                                                controller: discountController,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                decoration: InputDecoration(
+                                                  labelText: 'Discount (%)',
+                                                  border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    borderSide: BorderSide.none,
+                                                  ),
+                                                  filled: true,
+                                                  fillColor: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.1),
+                                                    spreadRadius: 1,
+                                                    blurRadius: 4,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: TextField(
+                                                controller: quotasController,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                decoration: InputDecoration(
+                                                  labelText: 'Quotas',
+                                                  border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    borderSide: BorderSide.none,
+                                                  ),
+                                                  filled: true,
+                                                  fillColor: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+
+                                      // Date Picker
+                                      GestureDetector(
+                                        onTap: () async {
+                                          final pickedDate =
+                                              await showDatePicker(
+                                            context: context,
+                                            initialDate: expiredDate ??
+                                                DateTime.now().add(
+                                                    const Duration(days: 30)),
+                                            firstDate: DateTime.now(),
+                                            lastDate: DateTime(2101),
+                                            builder: (context, child) {
+                                              return Theme(
+                                                data:
+                                                    Theme.of(context).copyWith(
+                                                  colorScheme:
+                                                      ColorScheme.light(
+                                                    primary: Colors.blue[600]!,
+                                                  ),
+                                                ),
+                                                child: child!,
+                                              );
+                                            },
+                                          );
+                                          if (pickedDate != null) {
+                                            setState(() {
+                                              expiredDate = pickedDate;
+                                            });
+                                          }
+                                        },
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            border: Border.all(
+                                                color: Colors.grey[300]!),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.grey
+                                                    .withOpacity(0.1),
+                                                spreadRadius: 1,
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                expiredDate != null
+                                                    ? 'Expires: ${DateFormat('dd/MM/yyyy').format(expiredDate!)}'
+                                                    : 'Select Expiry Date',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: expiredDate != null
+                                                      ? Colors.black87
+                                                      : Colors.grey[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Action Buttons
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        style: TextButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 16),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            side: BorderSide(
+                                                color: Colors.grey[300]!),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Cancel',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color.fromARGB(
+                                                255, 53, 150, 105),
                                           ),
                                         ),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.grey.withOpacity(0.1),
-                                              spreadRadius: 1,
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          if (codeController.text.isNotEmpty &&
+                                              expiredDate != null &&
+                                              discountController
+                                                  .text.isNotEmpty &&
+                                              quotasController
+                                                  .text.isNotEmpty) {
+                                            addReferralCode(
+                                              code: codeController.text,
+                                              description: descController.text,
+                                              discount: int.tryParse(
+                                                      discountController
+                                                          .text) ??
+                                                  0,
+                                              quotas: int.tryParse(
+                                                      quotasController.text) ??
+                                                  0,
+                                              expiredDate: expiredDate!,
+                                            );
+                                            Navigator.pop(context);
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color.fromARGB(
+                                              255, 53, 150, 105),
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 16),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
                                         ),
-                                        child: TextField(
-                                          controller: quotasController,
-                                          keyboardType: TextInputType.number,
-                                          decoration: InputDecoration(
-                                            labelText: 'Quotas',
-                                            
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              borderSide: BorderSide.none,
-                                            ),
-                                            filled: true,
-                                            fillColor: Colors.white,
+                                        child: const Text(
+                                          'Create Code',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 16),
-
-                                // Date Picker
-                                GestureDetector(
-                                  onTap: () async {
-                                    final pickedDate = await showDatePicker(
-                                      context: context,
-                                      initialDate: expiredDate ??
-                                          DateTime.now()
-                                              .add(const Duration(days: 30)),
-                                      firstDate: DateTime.now(),
-                                      lastDate: DateTime(2101),
-                                      builder: (context, child) {
-                                        return Theme(
-                                          data: Theme.of(context).copyWith(
-                                            colorScheme: ColorScheme.light(
-                                              primary: Colors.blue[600]!,
-                                            ),
-                                          ),
-                                          child: child!,
-                                        );
-                                      },
-                                    );
-                                    if (pickedDate != null) {
-                                      setState(() {
-                                        expiredDate = pickedDate;
-                                      });
-                                    }
-                                  },
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border:
-                                          Border.all(color: Colors.grey[300]!),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.1),
-                                          spreadRadius: 1,
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          expiredDate != null
-                                              ? 'Expires: ${DateFormat('dd/MM/yyyy').format(expiredDate!)}'
-                                              : 'Select Expiry Date',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: expiredDate != null
-                                                ? Colors.black87
-                                                : Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 24),
-
-                          // Action Buttons
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      side:
-                                          BorderSide(color: Colors.grey[300]!),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Cancel',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color.fromARGB(255, 53, 150, 105
-),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    if (codeController.text.isNotEmpty &&
-                                        expiredDate != null &&
-                                        discountController.text.isNotEmpty &&
-                                        quotasController.text.isNotEmpty) {
-                                      addReferralCode(
-                                        code: codeController.text,
-                                        description: descController.text,
-                                        discount: int.tryParse(
-                                                discountController.text) ??
-                                            0,
-                                        quotas: int.tryParse(
-                                                quotasController.text) ??
-                                            0,
-                                        expiredDate: expiredDate!,
-                                      );
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(255, 53, 150, 105
-),
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Create Code',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
+                        ));
               },
             );
           },
           backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           child: const Icon(Icons.add, color: Colors.white),
         ),
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : referralCodes.isEmpty
-                ? const Center(child: Text('No referral codes found'))
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: referralCodes.length,
-                    itemBuilder: (context, index) {
-                      final code = referralCodes[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      code.code ?? '-',
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.deepPurple,
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit,
-                                        ),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          TextEditingController codeController =
-                                              TextEditingController(
-                                                  text: code.code ?? '');
-                                          TextEditingController descController =
-                                              TextEditingController(
-                                                  text: code.description ?? '');
-                                          TextEditingController
-                                              discountController =
-                                              TextEditingController(
-                                                  text:
-                                                      code.discount.toString());
-                                          TextEditingController
-                                              quotasController =
-                                              TextEditingController(
-                                                  text: code.quotas.toString());
-                                          DateTime expiredDate =
-                                              code.expiredDate;
+        body: Stack(
+          children: [
+            // Background image dengan opacity 0.5
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/FixGaSihV2.png'),
+                    fit: BoxFit.cover,
+                    opacity: 0.1,
+                  ),
+                ),
+              ),
+            ),
 
-                                          return StatefulBuilder(
-                                            builder: (context, setState) =>
-                                                Dialog(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(24),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight,
-                                                    colors: [
-                                                      Colors.grey[50]!,
-                                                      Colors.white
-                                                    ],
-                                                  ),
-                                                ),
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    // Header
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(12),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: const Color.fromARGB(255, 115, 113, 111),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        12),
-                                                          ),
-                                                          child: const Icon(
-                                                            Icons.edit_note,
-                                                            color: Colors.white,
-                                                            size: 24,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 16),
-                                                        const Expanded(
-                                                          child: Text(
-                                                            'Edit Referral Code',
-                                                            style: TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: Colors
-                                                                  .black87,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    const SizedBox(height: 24),
-
-                                                    // Form Fields (sama seperti add dialog tapi dengan data awal)
-                                                    SingleChildScrollView(
-                                                      child: Column(
-                                                        children: [
-                                                          // Code Field
-                                                          Container(
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color:
-                                                                  Colors.white,
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          12),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                  color: Colors
-                                                                      .grey
-                                                                      .withOpacity(
-                                                                          0.1),
-                                                                  spreadRadius:
-                                                                      1,
-                                                                  blurRadius: 4,
-                                                                  offset:
-                                                                      const Offset(
-                                                                          0, 2),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: TextField(
-                                                              controller:
-                                                                  codeController,
-                                                              decoration:
-                                                                  InputDecoration(
-                                                                labelText:
-                                                                    'Referral Code',
-                                                                
-                                                                border:
-                                                                    OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              12),
-                                                                  borderSide:
-                                                                      BorderSide
-                                                                          .none,
-                                                                ),
-                                                                filled: true,
-                                                                fillColor:
-                                                                    Colors
-                                                                        .white,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 16),
-
-                                                          // Description Field
-                                                          Container(
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color:
-                                                                  Colors.white,
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          12),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                  color: Colors
-                                                                      .grey
-                                                                      .withOpacity(
-                                                                          0.1),
-                                                                  spreadRadius:
-                                                                      1,
-                                                                  blurRadius: 4,
-                                                                  offset:
-                                                                      const Offset(
-                                                                          0, 2),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: TextField(
-                                                              controller:
-                                                                  descController,
-                                                              maxLines: 2,
-                                                              decoration:
-                                                                  InputDecoration(
-                                                                labelText:
-                                                                    'Description',
-                                                                
-                                                                border:
-                                                                    OutlineInputBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              12),
-                                                                  borderSide:
-                                                                      BorderSide
-                                                                          .none,
-                                                                ),
-                                                                filled: true,
-                                                                fillColor:
-                                                                    Colors
-                                                                        .white,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 16),
-
-                                                          // Discount and Quotas Row
-                                                          Row(
-                                                            children: [
-                                                              Expanded(
-                                                                child:
-                                                                    Container(
-                                                                  decoration:
-                                                                      BoxDecoration(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            12),
-                                                                    boxShadow: [
-                                                                      BoxShadow(
-                                                                        color: Colors
-                                                                            .grey
-                                                                            .withOpacity(0.1),
-                                                                        spreadRadius:
-                                                                            1,
-                                                                        blurRadius:
-                                                                            4,
-                                                                        offset: const Offset(
-                                                                            0,
-                                                                            2),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                  child:
-                                                                      TextField(
-                                                                    controller:
-                                                                        discountController,
-                                                                    keyboardType:
-                                                                        TextInputType
-                                                                            .number,
-                                                                    decoration:
-                                                                        InputDecoration(
-                                                                      labelText:
-                                                                          'Discount (%)',
-                                                                      
-                                                                      border:
-                                                                          OutlineInputBorder(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(12),
-                                                                        borderSide:
-                                                                            BorderSide.none,
-                                                                      ),
-                                                                      filled:
-                                                                          true,
-                                                                      fillColor:
-                                                                          Colors
-                                                                              .white,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              const SizedBox(
-                                                                  width: 12),
-                                                              Expanded(
-                                                                child:
-                                                                    Container(
-                                                                  decoration:
-                                                                      BoxDecoration(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            12),
-                                                                    boxShadow: [
-                                                                      BoxShadow(
-                                                                        color: Colors
-                                                                            .grey
-                                                                            .withOpacity(0.1),
-                                                                        spreadRadius:
-                                                                            1,
-                                                                        blurRadius:
-                                                                            4,
-                                                                        offset: const Offset(
-                                                                            0,
-                                                                            2),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                  child:
-                                                                      TextField(
-                                                                    controller:
-                                                                        quotasController,
-                                                                    keyboardType:
-                                                                        TextInputType
-                                                                            .number,
-                                                                    decoration:
-                                                                        InputDecoration(
-                                                                      labelText:
-                                                                          'Quotas',
-                                                                      
-                                                                      border:
-                                                                          OutlineInputBorder(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(12),
-                                                                        borderSide:
-                                                                            BorderSide.none,
-                                                                      ),
-                                                                      filled:
-                                                                          true,
-                                                                      fillColor:
-                                                                          Colors
-                                                                              .white,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 16),
-
-                                                          // Date Picker
-                                                          GestureDetector(
-                                                            onTap: () async {
-                                                              final pickedDate =
-                                                                  await showDatePicker(
-                                                                context:
-                                                                    context,
-                                                                initialDate:
-                                                                    expiredDate,
-                                                                firstDate:
-                                                                    DateTime
-                                                                        .now(),
-                                                                lastDate:
-                                                                    DateTime(
-                                                                        2101),
-                                                                builder:
-                                                                    (context,
-                                                                        child) {
-                                                                  return Theme(
-                                                                    data: Theme.of(
-                                                                            context)
-                                                                        .copyWith(
-                                                                      colorScheme:
-                                                                          ColorScheme
-                                                                              .light(
-                                                                        primary:
-                                                                            Colors.orange[600]!,
-                                                                      ),
-                                                                    ),
-                                                                    child:
-                                                                        child!,
-                                                                  );
-                                                                },
-                                                              );
-                                                              if (pickedDate !=
-                                                                  null) {
-                                                                setState(() {
-                                                                  expiredDate =
-                                                                      pickedDate;
-                                                                });
-                                                              }
-                                                            },
-                                                            child: Container(
-                                                              width: double
-                                                                  .infinity,
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(16),
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color: Colors
-                                                                    .white,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            12),
-                                                                border: Border.all(
-                                                                    color: Colors
-                                                                            .grey[
-                                                                        300]!),
-                                                                boxShadow: [
-                                                                  BoxShadow(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.1),
-                                                                    spreadRadius:
-                                                                        1,
-                                                                    blurRadius:
-                                                                        4,
-                                                                    offset:
-                                                                        const Offset(
-                                                                            0,
-                                                                            2),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              child: Row(
-                                                                children: [
-                                                                  
-                                                                  const SizedBox(
-                                                                      width:
-                                                                          12),
-                                                                  Text(
-                                                                    'Expires: ${DateFormat('dd/MM/yyyy').format(expiredDate)}',
-                                                                    style:
-                                                                        const TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                      color: Colors
-                                                                          .black87,
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 24),
-
-                                                    // Action Buttons
-                                                    Row(
-                                                      children: [
-                                                        Expanded(
-                                                          child: TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.pop(
-                                                                    context),
-                                                            style: TextButton
-                                                                .styleFrom(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .symmetric(
-                                                                      vertical:
-                                                                          16),
-                                                              shape:
-                                                                  RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            12),
-                                                                side: BorderSide(
-                                                                    color: Colors
-                                                                            .grey[
-                                                                        300]!),
-                                                              ),
-                                                            ),
-                                                            child: const Text(
-                                                              'Cancel',
-                                                              style: TextStyle(
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                color:
-                                                                    Color.fromARGB(255, 53, 150, 105
-),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        Expanded(
-                                                          child: ElevatedButton(
-                                                            onPressed: () {
-                                                              editReferralCode(
-                                                                id: code.id,
-                                                                code:
-                                                                    codeController
-                                                                        .text,
-                                                                description:
-                                                                    descController
-                                                                        .text,
-                                                                discount: int.tryParse(
-                                                                        discountController
-                                                                            .text) ??
-                                                                    0,
-                                                                quotas: int.tryParse(
-                                                                        quotasController
-                                                                            .text) ??
-                                                                    0,
-                                                                expiredDate:
-                                                                    expiredDate,
-                                                              );
-                                                              Navigator.pop(
-                                                                  context);
-                                                            },
-                                                            style:
-                                                                ElevatedButton
-                                                                    .styleFrom(
-                                                              backgroundColor:
-                                                                  const Color.fromARGB(255, 53, 150, 105
-),
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .symmetric(
-                                                                      vertical:
-                                                                          16),
-                                                              shape:
-                                                                  RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            12),
-                                                              ),
-                                                            ),
-                                                            child: const Text(
-                                                              'Update Code',
-                                                              style: TextStyle(
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
-                                    tooltip: 'Edit',
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.red),
-                                    onPressed: () =>
-                                        deleteReferralCode(code.id),
-                                    tooltip: 'Delete',
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                code.description ?? '-',
-                                style: const TextStyle(
-                                    fontSize: 14, color: Colors.black87),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Chip(
-                                    label: Text('Discount: ${code.discount}%'),
-                                    backgroundColor: Colors.blue[50],
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Chip(
-                                    label: Text(
-                                        'Quota: ${code.usaged ?? 0} / ${code.quotas}'),
-                                    backgroundColor: Colors.green[50],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Column(
+            // Konten asli
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : referralCodes.isEmpty
+                    ? const Center(child: Text('No referral codes found'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: referralCodes.length,
+                        itemBuilder: (context, index) {
+                          final code = referralCodes[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     children: [
-                                      Icon(Icons.timer,
-                                          size: 16, color: Colors.grey[600]),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Expired: ${DateFormat('dd/MM/yyyy HH:mm').format(code.expiredDate)}',
-                                        style: const TextStyle(
-                                            fontSize: 12, color: Colors.grey),
+                                      Expanded(
+                                        child: Text(
+                                          code.code ?? '-',
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.deepPurple,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.edit,
+                                        ),
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              TextEditingController
+                                                  codeController =
+                                                  TextEditingController(
+                                                      text: code.code ?? '');
+                                              TextEditingController
+                                                  descController =
+                                                  TextEditingController(
+                                                      text: code.description ??
+                                                          '');
+                                              TextEditingController
+                                                  discountController =
+                                                  TextEditingController(
+                                                      text: code.discount
+                                                          .toString());
+                                              TextEditingController
+                                                  quotasController =
+                                                  TextEditingController(
+                                                      text: code.quotas
+                                                          .toString());
+                                              DateTime expiredDate =
+                                                  code.expiredDate;
+
+                                              return StatefulBuilder(
+                                                  builder:
+                                                      (context, setState) =>
+                                                          Dialog(
+                                                            shape:
+                                                                RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          20),
+                                                            ),
+                                                            child: Container(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(24),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            20),
+                                                                gradient:
+                                                                    LinearGradient(
+                                                                  begin: Alignment
+                                                                      .topLeft,
+                                                                  end: Alignment
+                                                                      .bottomRight,
+                                                                  colors: [
+                                                                    Colors.grey[
+                                                                        50]!,
+                                                                    Colors.white
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              child: Column(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                children: [
+                                                                  // Header
+                                                                  Row(
+                                                                    children: [
+                                                                      Container(
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            12),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color: const Color
+                                                                              .fromARGB(
+                                                                              255,
+                                                                              115,
+                                                                              113,
+                                                                              111),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(12),
+                                                                        ),
+                                                                        child:
+                                                                            const Icon(
+                                                                          Icons
+                                                                              .edit_note,
+                                                                          color:
+                                                                              Colors.white,
+                                                                          size:
+                                                                              24,
+                                                                        ),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              16),
+                                                                      const Expanded(
+                                                                        child:
+                                                                            Text(
+                                                                          'Edit Referral Code',
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                20,
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            color:
+                                                                                Colors.black87,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          24),
+
+                                                                  // Form Fields (sama seperti add dialog tapi dengan data awal)
+                                                                  SingleChildScrollView(
+                                                                    child:
+                                                                        Column(
+                                                                      children: [
+                                                                        // Code Field
+                                                                        Container(
+                                                                          decoration:
+                                                                              BoxDecoration(
+                                                                            color:
+                                                                                Colors.white,
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(12),
+                                                                            boxShadow: [
+                                                                              BoxShadow(
+                                                                                color: Colors.grey.withOpacity(0.1),
+                                                                                spreadRadius: 1,
+                                                                                blurRadius: 4,
+                                                                                offset: const Offset(0, 2),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                          child:
+                                                                              TextField(
+                                                                            controller:
+                                                                                codeController,
+                                                                            decoration:
+                                                                                InputDecoration(
+                                                                              labelText: 'Referral Code',
+                                                                              border: OutlineInputBorder(
+                                                                                borderRadius: BorderRadius.circular(12),
+                                                                                borderSide: BorderSide.none,
+                                                                              ),
+                                                                              filled: true,
+                                                                              fillColor: Colors.white,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                        const SizedBox(
+                                                                            height:
+                                                                                16),
+
+                                                                        // Description Field
+                                                                        Container(
+                                                                          decoration:
+                                                                              BoxDecoration(
+                                                                            color:
+                                                                                Colors.white,
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(12),
+                                                                            boxShadow: [
+                                                                              BoxShadow(
+                                                                                color: Colors.grey.withOpacity(0.1),
+                                                                                spreadRadius: 1,
+                                                                                blurRadius: 4,
+                                                                                offset: const Offset(0, 2),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                          child:
+                                                                              TextField(
+                                                                            controller:
+                                                                                descController,
+                                                                            maxLines:
+                                                                                2,
+                                                                            decoration:
+                                                                                InputDecoration(
+                                                                              labelText: 'Description',
+                                                                              border: OutlineInputBorder(
+                                                                                borderRadius: BorderRadius.circular(12),
+                                                                                borderSide: BorderSide.none,
+                                                                              ),
+                                                                              filled: true,
+                                                                              fillColor: Colors.white,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                        const SizedBox(
+                                                                            height:
+                                                                                16),
+
+                                                                        // Discount and Quotas Row
+                                                                        Row(
+                                                                          children: [
+                                                                            Expanded(
+                                                                              child: Container(
+                                                                                decoration: BoxDecoration(
+                                                                                  color: Colors.white,
+                                                                                  borderRadius: BorderRadius.circular(12),
+                                                                                  boxShadow: [
+                                                                                    BoxShadow(
+                                                                                      color: Colors.grey.withOpacity(0.1),
+                                                                                      spreadRadius: 1,
+                                                                                      blurRadius: 4,
+                                                                                      offset: const Offset(0, 2),
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                                child: TextField(
+                                                                                  controller: discountController,
+                                                                                  keyboardType: TextInputType.number,
+                                                                                  decoration: InputDecoration(
+                                                                                    labelText: 'Discount (%)',
+                                                                                    border: OutlineInputBorder(
+                                                                                      borderRadius: BorderRadius.circular(12),
+                                                                                      borderSide: BorderSide.none,
+                                                                                    ),
+                                                                                    filled: true,
+                                                                                    fillColor: Colors.white,
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(width: 12),
+                                                                            Expanded(
+                                                                              child: Container(
+                                                                                decoration: BoxDecoration(
+                                                                                  color: Colors.white,
+                                                                                  borderRadius: BorderRadius.circular(12),
+                                                                                  boxShadow: [
+                                                                                    BoxShadow(
+                                                                                      color: Colors.grey.withOpacity(0.1),
+                                                                                      spreadRadius: 1,
+                                                                                      blurRadius: 4,
+                                                                                      offset: const Offset(0, 2),
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                                child: TextField(
+                                                                                  controller: quotasController,
+                                                                                  keyboardType: TextInputType.number,
+                                                                                  decoration: InputDecoration(
+                                                                                    labelText: 'Quotas',
+                                                                                    border: OutlineInputBorder(
+                                                                                      borderRadius: BorderRadius.circular(12),
+                                                                                      borderSide: BorderSide.none,
+                                                                                    ),
+                                                                                    filled: true,
+                                                                                    fillColor: Colors.white,
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                        const SizedBox(
+                                                                            height:
+                                                                                16),
+
+                                                                        // Date Picker
+                                                                        GestureDetector(
+                                                                          onTap:
+                                                                              () async {
+                                                                            final pickedDate =
+                                                                                await showDatePicker(
+                                                                              context: context,
+                                                                              initialDate: expiredDate,
+                                                                              firstDate: DateTime.now(),
+                                                                              lastDate: DateTime(2101),
+                                                                              builder: (context, child) {
+                                                                                return Theme(
+                                                                                  data: Theme.of(context).copyWith(
+                                                                                    colorScheme: ColorScheme.light(
+                                                                                      primary: Colors.orange[600]!,
+                                                                                    ),
+                                                                                  ),
+                                                                                  child: child!,
+                                                                                );
+                                                                              },
+                                                                            );
+                                                                            if (pickedDate !=
+                                                                                null) {
+                                                                              setState(() {
+                                                                                expiredDate = pickedDate;
+                                                                              });
+                                                                            }
+                                                                          },
+                                                                          child:
+                                                                              Container(
+                                                                            width:
+                                                                                double.infinity,
+                                                                            padding:
+                                                                                const EdgeInsets.all(16),
+                                                                            decoration:
+                                                                                BoxDecoration(
+                                                                              color: Colors.white,
+                                                                              borderRadius: BorderRadius.circular(12),
+                                                                              border: Border.all(color: Colors.grey[300]!),
+                                                                              boxShadow: [
+                                                                                BoxShadow(
+                                                                                  color: Colors.grey.withOpacity(0.1),
+                                                                                  spreadRadius: 1,
+                                                                                  blurRadius: 4,
+                                                                                  offset: const Offset(0, 2),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                            child:
+                                                                                Row(
+                                                                              children: [
+                                                                                const SizedBox(width: 12),
+                                                                                Text(
+                                                                                  'Expires: ${DateFormat('dd/MM/yyyy').format(expiredDate)}',
+                                                                                  style: const TextStyle(
+                                                                                    fontSize: 16,
+                                                                                    color: Colors.black87,
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                      height:
+                                                                          24),
+
+                                                                  // Action Buttons
+                                                                  Row(
+                                                                    children: [
+                                                                      Expanded(
+                                                                        child:
+                                                                            TextButton(
+                                                                          onPressed: () =>
+                                                                              Navigator.pop(context),
+                                                                          style:
+                                                                              TextButton.styleFrom(
+                                                                            padding:
+                                                                                const EdgeInsets.symmetric(vertical: 16),
+                                                                            shape:
+                                                                                RoundedRectangleBorder(
+                                                                              borderRadius: BorderRadius.circular(12),
+                                                                              side: BorderSide(color: Colors.grey[300]!),
+                                                                            ),
+                                                                          ),
+                                                                          child:
+                                                                              const Text(
+                                                                            'Cancel',
+                                                                            style:
+                                                                                TextStyle(
+                                                                              fontSize: 16,
+                                                                              fontWeight: FontWeight.w600,
+                                                                              color: Color.fromARGB(255, 53, 150, 105),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                          width:
+                                                                              12),
+                                                                      Expanded(
+                                                                        child:
+                                                                            ElevatedButton(
+                                                                          onPressed:
+                                                                              () {
+                                                                            editReferralCode(
+                                                                              id: code.id,
+                                                                              code: codeController.text,
+                                                                              description: descController.text,
+                                                                              discount: int.tryParse(discountController.text) ?? 0,
+                                                                              quotas: int.tryParse(quotasController.text) ?? 0,
+                                                                              expiredDate: expiredDate,
+                                                                            );
+                                                                            Navigator.pop(context);
+                                                                          },
+                                                                          style:
+                                                                              ElevatedButton.styleFrom(
+                                                                            backgroundColor: const Color.fromARGB(
+                                                                                255,
+                                                                                53,
+                                                                                150,
+                                                                                105),
+                                                                            padding:
+                                                                                const EdgeInsets.symmetric(vertical: 16),
+                                                                            shape:
+                                                                                RoundedRectangleBorder(
+                                                                              borderRadius: BorderRadius.circular(12),
+                                                                            ),
+                                                                          ),
+                                                                          child:
+                                                                              const Text(
+                                                                            'Update Code',
+                                                                            style:
+                                                                                TextStyle(
+                                                                              fontSize: 16,
+                                                                              fontWeight: FontWeight.bold,
+                                                                              color: Colors.white,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ));
+                                            },
+                                          );
+                                        },
+                                        tooltip: 'Edit',
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red),
+                                        onPressed: () =>
+                                            deleteReferralCode(code.id),
+                                        tooltip: 'Delete',
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    code.description ?? '-',
+                                    style: const TextStyle(
+                                        fontSize: 14, color: Colors.black87),
+                                  ),
+                                  const SizedBox(height: 8),
                                   Row(
                                     children: [
-                                      Icon(Icons.calendar_today,
-                                          size: 16, color: Colors.grey[600]),
+                                      Chip(
+                                        label:
+                                            Text('Discount: ${code.discount}%'),
+                                        backgroundColor: Colors.blue[50],
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Chip(
+                                        label: Text(
+                                            'Quota: ${code.usaged ?? 0} / ${code.quotas}'),
+                                        backgroundColor: Colors.green[50],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(Icons.timer,
+                                              size: 16,
+                                              color: Colors.grey[600]),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Expired: ${DateFormat('dd/MM/yyyy HH:mm').format(code.expiredDate)}',
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey),
+                                          ),
+                                        ],
+                                      ),
                                       const SizedBox(width: 4),
-                                      Text(
-                                        code.createdAt != null
-                                            ? 'Created: ${DateFormat('dd/MM/yyyy HH:mm').format(code.createdAt!)}'
-                                            : 'Created: -',
-                                        style: const TextStyle(
-                                            fontSize: 12, color: Colors.grey),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.calendar_today,
+                                              size: 16,
+                                              color: Colors.grey[600]),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            code.createdAt != null
+                                                ? 'Created: ${DateFormat('dd/MM/yyyy HH:mm').format(code.createdAt!)}'
+                                                : 'Created: -',
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                            ),
+                          );
+                        },
+                      ),
+          ],
+        ),
         bottomNavigationBar: _buildNavbar());
   }
 
