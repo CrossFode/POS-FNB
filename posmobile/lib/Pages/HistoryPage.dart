@@ -38,12 +38,6 @@ class _HistoryPageState extends State<HistoryPage>
   List<History> orders = [];
   List<History> filteredOrders = [];
 
-  final List<String> paymentOptions = [
-    'Cash',
-    'QrCode (Lakeside)',
-    'QrCode (Telkom University)',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -169,7 +163,8 @@ class _HistoryPageState extends State<HistoryPage>
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey[600]),
         ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        actionsPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         actions: [
           Row(
             children: [
@@ -215,7 +210,8 @@ class _HistoryPageState extends State<HistoryPage>
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Order ${order.customer} berhasil dihapus'),
+                          content:
+                              Text('Order ${order.customer} berhasil dihapus'),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -223,7 +219,8 @@ class _HistoryPageState extends State<HistoryPage>
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Gagal menghapus order: ${response.body}'),
+                          content:
+                              Text('Gagal menghapus order: ${response.body}'),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -415,8 +412,9 @@ class _HistoryPageState extends State<HistoryPage>
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 12),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 12),
                                       filled: true,
                                       fillColor: Colors.white,
                                       errorText: errors['customer_id'] ??
@@ -512,41 +510,7 @@ class _HistoryPageState extends State<HistoryPage>
                                 onChanged: (value) =>
                                     setState(() => editedPaymentId = value),
                               ),
-                              const SizedBox(height: 18),
 
-                              // Order Type
-                              const Text(
-                                "ORDER TYPE",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              DropdownButtonFormField<String>(
-                                value: editedOrderType,
-                                isExpanded: true,
-                                decoration: InputDecoration(
-                                  hintText: 'Order Type',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 12),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                ),
-                                items: orderTypes.map((type) {
-                                  return DropdownMenuItem<String>(
-                                    value: type['value'],
-                                    child: Text(type['label']),
-                                  );
-                                }).toList(),
-                                onChanged: (value) =>
-                                    setState(() => editedOrderType = value),
-                              ),
                               const SizedBox(height: 18),
 
                               // Order Date
@@ -584,8 +548,9 @@ class _HistoryPageState extends State<HistoryPage>
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 12),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 12),
                                       filled: true,
                                       fillColor: Colors.white,
                                       suffixIcon:
@@ -602,13 +567,16 @@ class _HistoryPageState extends State<HistoryPage>
                                 children: [
                                   Expanded(
                                     child: TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
                                       style: TextButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 16),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          side: BorderSide(color: Colors.grey[300]!),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          side: BorderSide(
+                                              color: Colors.grey[300]!),
                                         ),
                                       ),
                                       child: const Text(
@@ -616,7 +584,8 @@ class _HistoryPageState extends State<HistoryPage>
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
-                                          color: Color.fromARGB(255, 53, 150, 105),
+                                          color:
+                                              Color.fromARGB(255, 53, 150, 105),
                                         ),
                                       ),
                                     ),
@@ -627,18 +596,21 @@ class _HistoryPageState extends State<HistoryPage>
                                       onPressed: () async {
                                         setState(() => errors = {});
                                         if (editedCustomerName.trim().isEmpty) {
-                                          setState(() => errors['customer_name'] =
-                                              'Customer wajib diisi');
+                                          setState(() =>
+                                              errors['customer_name'] =
+                                                  'Customer wajib diisi');
                                           return;
                                         }
                                         if (editedCashierId == null) {
-                                          setState(() => errors['order_cashier'] =
-                                              'Cashier wajib diisi');
+                                          setState(() =>
+                                              errors['order_cashier'] =
+                                                  'Cashier wajib diisi');
                                           return;
                                         }
                                         if (editedPaymentId == null) {
-                                          setState(() => errors['order_payment'] =
-                                              'Payment wajib diisi');
+                                          setState(() =>
+                                              errors['order_payment'] =
+                                                  'Payment wajib diisi');
                                           return;
                                         }
 
@@ -647,7 +619,8 @@ class _HistoryPageState extends State<HistoryPage>
                                           if (editedCustomerName.trim() !=
                                               order.customer) {
                                             // Update customer lama (PUT)
-                                            final updated = await _updateCustomer(
+                                            final updated =
+                                                await _updateCustomer(
                                               editedCustomerId!,
                                               editedCustomerName.trim(),
                                               order.customerPhone, // nomor lama
@@ -675,7 +648,8 @@ class _HistoryPageState extends State<HistoryPage>
                                         };
                                         if (editedCustomerId != null &&
                                             editedCustomerId!.isNotEmpty) {
-                                          body['customer_id'] = editedCustomerId;
+                                          body['customer_id'] =
+                                              editedCustomerId;
                                         }
                                         if (editedCustomerId == null ||
                                             editedCustomerId!.isEmpty) {
@@ -699,15 +673,17 @@ class _HistoryPageState extends State<HistoryPage>
                                             orders[orders.indexWhere(
                                                     (o) => o.id == order.id)] =
                                                 order.copyWith(
-                                              customer: editedCustomerName.trim(),
-                                              cashier: cashiers.firstWhere((c) =>
-                                                  c['id'].toString() ==
-                                                  editedCashierId)['name'],
-                                              paymentMethod:
-                                                  paymentMethods.firstWhere((p) =>
+                                              customer:
+                                                  editedCustomerName.trim(),
+                                              cashier: cashiers.firstWhere(
+                                                  (c) =>
+                                                      c['id'].toString() ==
+                                                      editedCashierId)['name'],
+                                              paymentMethod: paymentMethods
+                                                      .firstWhere((p) =>
                                                           p['id'].toString() ==
                                                           editedPaymentId)[
-                                                      'payment_name'],
+                                                  'payment_name'],
                                               orderType: orderTypes.firstWhere(
                                                   (t) =>
                                                       t['value'] ==
@@ -734,7 +710,8 @@ class _HistoryPageState extends State<HistoryPage>
                                               final errorsData =
                                                   errorData['errors'];
                                               if (errorsData is Map) {
-                                                errorsData.forEach((key, value) {
+                                                errorsData
+                                                    .forEach((key, value) {
                                                   if (value is List &&
                                                       value.isNotEmpty) {
                                                     errors[key] =
@@ -759,12 +736,13 @@ class _HistoryPageState extends State<HistoryPage>
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color.fromARGB(255, 53, 150, 105),
+                                        backgroundColor: const Color.fromARGB(
+                                            255, 53, 150, 105),
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 16),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
                                       child: const Text(
@@ -774,9 +752,10 @@ class _HistoryPageState extends State<HistoryPage>
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                         ),
+                                      ),
                                     ),
-                                  ),
-                               ) ],
+                                  )
+                                ],
                               ),
                             ],
                           ),
@@ -1022,7 +1001,7 @@ class _HistoryPageState extends State<HistoryPage>
                                       style:
                                           const TextStyle(color: Colors.green)),
                                   Text(
-                                    '-${_formatPrice((order.subtotalPrice * order.referralDiscount!) ~/ 100)}',
+                                    '-${_formatPrice(_calculateReferralDiscount(order))}',
                                     style: const TextStyle(color: Colors.green),
                                   ),
                                 ],
@@ -1141,6 +1120,28 @@ class _HistoryPageState extends State<HistoryPage>
     return formatter.format(price).replaceAll(',', '.');
   }
 
+  int _calculateReferralDiscount(History order) {
+    // Jika tidak ada referral atau persentase diskon
+    if (order.referralCode == null || order.referralDiscount == null) {
+      return 0;
+    }
+
+    int priceAfterDiscount = order.subtotalPrice;
+
+    // Jika ada diskon reguler, hitung harga setelah diskon
+    if (order.discountName != null && order.discountAmount != null) {
+      if (order.discountType == 'percent') {
+        priceAfterDiscount -=
+            (order.subtotalPrice * order.discountAmount!) ~/ 100;
+      } else {
+        priceAfterDiscount -= order.discountAmount!;
+      }
+    }
+
+    // Hitung diskon referral dari harga setelah diskon reguler
+    return (priceAfterDiscount * order.referralDiscount!) ~/ 100;
+  }
+
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -1242,9 +1243,7 @@ class _HistoryPageState extends State<HistoryPage>
           const SizedBox(width: 8),
         ],
       ),
-
-              backgroundColor: const Color.fromARGB(255, 245, 244, 244),
-
+      backgroundColor: const Color.fromARGB(255, 245, 244, 244),
       body: Stack(
         children: [
           // Background image (hanya di belakang konten)
@@ -1470,7 +1469,6 @@ class _HistoryPageState extends State<HistoryPage>
                                                     offset: const Offset(0, 35),
                                                     color: Colors.white,
                                                     shape:
-                                                    
                                                         RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -1602,7 +1600,12 @@ class _HistoryPageState extends State<HistoryPage>
                                                             const Icon(
                                                                 Icons.edit,
                                                                 size: 18,
-                                                                color: Color.fromARGB(255, 98, 101, 103)),
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        98,
+                                                                        101,
+                                                                        103)),
                                                             const SizedBox(
                                                                 width: 12),
                                                             const Text(
@@ -1644,7 +1647,12 @@ class _HistoryPageState extends State<HistoryPage>
                                                             const Icon(
                                                                 Icons.print,
                                                                 size: 18,
-                                                                color: Color.fromARGB(255, 108, 115, 120)),
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        108,
+                                                                        115,
+                                                                        120)),
                                                             const SizedBox(
                                                                 width: 12),
                                                             const Text(
