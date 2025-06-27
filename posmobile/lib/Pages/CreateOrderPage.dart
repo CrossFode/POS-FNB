@@ -1575,7 +1575,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     PaymentMethod? _selectedPaymentMethod;
 
     int _finalTotalWithDiscount = 0;
-    int _referralDiscount = 0;
+    int? _referralDiscount = 0;
     int? _besarDiskon = 0;
     _cachedCheckoutData =
         Future.wait([_diskonFuture, _paymentFuture, _outletFuture]);
@@ -1607,7 +1607,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 _finalTotalWithDiscount = _calculateFinalTotal(
                   orderTotal,
                   _selectedDiskon,
-                  _referralDiscount,
+                  _referralDiscount ?? 0,
                   _besarDiskon ?? 0,
                 );
 
@@ -1761,8 +1761,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                                 _finalTotalWithDiscount =
                                                     _calculateFinalTotal(
                                                   orderTotal,
-                                                  _selectedDiskon,
-                                                  _referralDiscount,
+                                                  _selectedDiskon ??
+                                                      noDiscountOption,
+                                                  _referralDiscount ?? 0,
                                                   discountPercent,
                                                 );
                                               });
@@ -1846,7 +1847,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                 final recalculatedTotal = _calculateFinalTotal(
                                   int.parse(order.order_totals),
                                   _selectedDiskon,
-                                  _referralDiscount,
+                                  _referralDiscount ?? 0,
                                   _besarDiskon ?? 0,
                                 );
                                 try {
@@ -1867,8 +1868,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       order_details: order.order_details,
                                     ),
                                   );
-
+                                  print(result);
                                   if (result['success'] == true) {
+                                    // Jangan di Delete dulu, karena kita ini uat tutup modal yg dibelakang
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(result['message']),
@@ -1876,8 +1878,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       ),
                                     );
 
-                                    // Pindahkan pushReplacement ke dalam blok if
-                                    Navigator.pushReplacement(
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => Previewbill(
@@ -1904,13 +1905,12 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         ),
                                       ),
                                     );
-                                    // Clear cart items after successful order
                                     setState(() {
                                       _cartItems.clear();
+                                      Navigator.pop(context);
+                                      Navigator.pop(context);
                                     });
-
-                                    Navigator.pop(context);
-                                    Navigator.pop(context);
+                                    // Clear cart items after successful order
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -2007,6 +2007,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
             discount.amount.toInt() ~/
             100); // Untuk diskon persentase
       }
+    } else {
+      // Jika tidak ada diskon yang dipilih, hanya kurangi referral discount
+      tempTotal -= referralDiscount;
     }
 
     return tempTotal > 0 ? tempTotal : 0;
