@@ -2,7 +2,7 @@ class Diskon {
   final int? id;
   final String name;
   final String type;
-  final double amount;
+  final int amount;
   final DateTime? created_at;
 
   final List<String> outletIds;
@@ -30,7 +30,7 @@ class Diskon {
       id: json['id'],
       name: json['name'],
       type: json['type'],
-      amount: double.parse(json['amount'].toString()),
+      amount: int.parse(json['amount'].toString()),
       created_at: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
