@@ -45,13 +45,6 @@ class _DiscountPageState extends State<DiscountPage> {
       };
 
   @override
-  void initState() {
-    super.initState();
-    // Jangan panggil SnackBar di sini!
-    // _loadData(); // Jangan panggil di sini jika butuh context
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_isLoading) {
@@ -311,55 +304,43 @@ class _DiscountPageState extends State<DiscountPage> {
   }
 
   Future<void> _showEditDialog(Diskon discount) async {
-    List<String> selectedOutletIds =
-        await _getOutletIdsForDiscount(discount.id!);
+    // Tidak perlu API call lagi
+    // Gunakan langsung outletIds yang sudah disimpan
+    final selectedOutletIds = discount.outletIds;
+
+    print('Editing discount ${discount.id} with outlets: $selectedOutletIds');
 
     await showDialog(
       context: context,
       barrierDismissible: true,
-      useSafeArea:
-          false, // Penting! Untuk memungkinkan dialog keluar dari SafeArea
-      builder: (context) {
-        return Stack(
-          children: [
-            Positioned(
-              top: MediaQuery.of(context).size.height * 0.1, // Posisi tetap
-              left: 16,
-              right: 16,
-              child: Material(
-                color: Colors.transparent,
-                child: _DiscountFormDialog(
-                  outlets: _outlets,
-                  discount: discount,
-                  selectedOutletIds: selectedOutletIds,
-                  onSubmit: (name, type, amount, [outletIds]) async {
-                    try {
-                      final success = await _updateDiscount(
-                        id: discount.id!,
-                        name: name,
-                        type: type,
-                        amount: amount,
-                        outletIds: outletIds ?? [],
-                      );
-                      if (success) {
-                        _showSuccessSnackBar('Discount updated successfully');
-                        _loadData();
-                        return true;
-                      } else {
-                        _showErrorSnackBar('Failed to update discount');
-                        return false;
-                      }
-                    } catch (e) {
-                      _showErrorSnackBar('Error updating discount: $e');
-                      return false;
-                    }
-                  },
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+      builder: (context) => _DiscountFormDialog(
+        outlets: _outlets,
+        discount: discount,
+        selectedOutletIds:
+            selectedOutletIds, // Gunakan data yang sudah disimpan
+        onSubmit: (name, type, amount, [outletIds]) async {
+          try {
+            final success = await _updateDiscount(
+              id: discount.id!,
+              name: name,
+              type: type,
+              amount: amount,
+              outletIds: outletIds ?? [],
+            );
+            if (success) {
+              _showSuccessSnackBar('Discount updated successfully');
+              _loadData();
+              return true;
+            } else {
+              _showErrorSnackBar('Failed to update discount');
+              return false;
+            }
+          } catch (e) {
+            _showErrorSnackBar('Error updating discount: $e');
+            return false;
+          }
+        },
+      ),
     );
   }
 
@@ -389,7 +370,8 @@ class _DiscountPageState extends State<DiscountPage> {
             ),
           ],
         ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        actionsPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         actions: [
           Row(
             children: [
@@ -465,19 +447,74 @@ class _DiscountPageState extends State<DiscountPage> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final discountData = data['data'];
 
+        // Tambahkan print statement untuk melihat response lengkap
+        print('API Response: ${response.body}');
+
+        final discountData = data['data'];
         if (discountData != null && discountData['outlets'] != null) {
           final List<dynamic> outletList = discountData['outlets'];
-          return outletList
+
+          // Konversi secara eksplisit ke String
+          final List<String> result = outletList
               .map<String>((outlet) => outlet['id'].toString())
               .toList();
+
+          print('Outlet IDs dari API: $result');
+          return result;
         }
       }
       return [];
     } catch (e) {
-      debugPrint('Error fetching outlet IDs for discount: $e');
+      print('Error fetching outlet IDs: $e');
       return [];
+    }
+  }
+
+  Future<void> _fetchDiscounts() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/discount'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        // Debug: print full response
+        print('Full response from /api/discount: ${response.body}');
+
+        if (data['data'] != null) {
+          final List<dynamic> discountList = data['data'];
+
+          setState(() {
+            _discounts = discountList
+                .map((discount) => Diskon.fromJson(discount))
+                .toList();
+
+            // Debug: print parsed discounts with outlet IDs
+            for (var discount in _discounts) {
+              print(
+                  'Discount ${discount.id} has outlets: ${discount.outletIds}');
+            }
+
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching discounts: $e');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -857,7 +894,8 @@ class _DiscountFormDialog extends StatefulWidget {
   final Diskon? discount;
   final List<Outlet> outlets;
   final List<String>? selectedOutletIds;
-  final Future<bool> Function(String name, String type, int amount, [List<String>? outletIds]) onSubmit;
+  final Future<bool> Function(String name, String type, int amount,
+      [List<String>? outletIds]) onSubmit;
 
   const _DiscountFormDialog({
     this.discount,
@@ -870,7 +908,8 @@ class _DiscountFormDialog extends StatefulWidget {
   State<_DiscountFormDialog> createState() => _DiscountFormDialogState();
 }
 
-class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTickerProviderStateMixin {
+class _DiscountFormDialogState extends State<_DiscountFormDialog>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
@@ -883,12 +922,24 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
   @override
   void initState() {
     super.initState();
+
+    print(
+        'Edit dialog received selectedOutletIds: ${widget.selectedOutletIds}');
+
+    _selectedOutletIds = [];
+
     if (widget.discount != null) {
       _nameController.text = widget.discount!.name;
       _amountController.text = widget.discount!.amount.toString();
       _selectedType = widget.discount!.type;
-      _selectedOutletIds = widget.selectedOutletIds ?? [];
     }
+
+    // Pastikan data diassign dengan benar
+    if (widget.selectedOutletIds != null) {
+      _selectedOutletIds = List<String>.from(widget.selectedOutletIds!);
+      print('Initialized _selectedOutletIds: $_selectedOutletIds');
+    }
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -950,7 +1001,9 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                   // Header
                   Center(
                     child: Text(
-                      widget.discount != null ? 'Edit Discount' : 'New Discount',
+                      widget.discount != null
+                          ? 'Edit Discount'
+                          : 'New Discount',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -978,10 +1031,12 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
                       filled: true,
                       fillColor: Colors.white,
-                      prefixIcon: Icon(Icons.discount, color: Color.fromARGB(255, 53, 150, 105)),
+                      prefixIcon: Icon(Icons.discount,
+                          color: Color.fromARGB(255, 53, 150, 105)),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -1041,19 +1096,20 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                   TextFormField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       hintText: 'Enter amount',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
                       filled: true,
                       fillColor: Colors.white,
                       prefixIcon: Icon(
-                        _selectedType == 'fixed' ? Icons.attach_money : Icons.percent,
+                        _selectedType == 'fixed'
+                            ? Icons.attach_money
+                            : Icons.percent,
                         color: Color.fromARGB(255, 53, 150, 105),
                       ),
                       suffixText: _selectedType == 'percent' ? '%' : '',
@@ -1107,30 +1163,54 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                       itemBuilder: (context, index) {
                         final outlet = widget.outlets[index];
                         return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 4, horizontal: 4),
                           child: Row(
                             children: [
                               SizedBox(
                                 width: 24,
                                 height: 24,
-                                child: Checkbox(
-                                  value: _selectedOutletIds.contains(outlet.id.toString()),
-                                  onChanged: (bool? selected) {
-                                    setState(() {
-                                      if (selected == true) {
-                                        if (!_selectedOutletIds.contains(outlet.id.toString())) {
-                                          _selectedOutletIds.add(outlet.id.toString());
+                                child: Builder(builder: (context) {
+                                  // Pastikan kedua nilai dalam format yang sama untuk perbandingan
+                                  final outletIdStr = outlet.id.toString();
+
+                                  // Print untuk debugging
+                                  print(
+                                      'Comparing outlet $outletIdStr (${outlet.outlet_name}) with selected $_selectedOutletIds');
+
+                                  // Periksa apakah ID ada dalam list dengan perbandingan yang lebih ketat
+                                  bool isChecked = false;
+                                  for (String id in _selectedOutletIds) {
+                                    if (id == outletIdStr) {
+                                      isChecked = true;
+                                      break;
+                                    }
+                                  }
+                                  print('Result: $isChecked');
+
+                                  return Checkbox(
+                                    value: isChecked,
+                                    onChanged: (bool? selected) {
+                                      setState(() {
+                                        if (selected == true) {
+                                          if (!_selectedOutletIds
+                                              .contains(outletIdStr)) {
+                                            _selectedOutletIds.add(outletIdStr);
+                                            print('Added outlet: $outletIdStr');
+                                          }
+                                        } else {
+                                          _selectedOutletIds
+                                              .remove(outletIdStr);
+                                          print('Removed outlet: $outletIdStr');
                                         }
-                                      } else {
-                                        _selectedOutletIds.removeWhere((id) => id == outlet.id.toString());
-                                      }
-                                    });
-                                  },
-                                  activeColor: const Color.fromARGB(255, 53, 150, 105),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
+                                      });
+                                    },
+                                    activeColor:
+                                        const Color.fromARGB(255, 53, 150, 105),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4)),
+                                  );
+                                }),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -1155,7 +1235,9 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                     children: [
                       Expanded(
                         child: TextButton(
-                          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => Navigator.pop(context),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -1178,7 +1260,8 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                         child: ElevatedButton(
                           onPressed: _isSubmitting ? null : _handleSubmit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                            backgroundColor:
+                                const Color.fromARGB(255, 53, 150, 105),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),

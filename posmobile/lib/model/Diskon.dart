@@ -2,26 +2,40 @@ class Diskon {
   final int? id;
   final String name;
   final String type;
-  final int amount;
+  final double amount;
   final DateTime? created_at;
-  final DateTime? updated_at;
 
-  Diskon(
-      {this.id,
-      required this.name,
-      required this.type,
-      required this.amount,
-      this.created_at,
-      this.updated_at});
+  final List<String> outletIds;
+
+  Diskon({
+    this.id,
+    required this.name,
+    required this.type,
+    required this.amount,
+    this.created_at,
+    this.outletIds = const [], // Default empty list
+  });
 
   factory Diskon.fromJson(Map<String, dynamic> json) {
+    List<String> outletIds = [];
+
+    // Parse outlet IDs jika ada
+    if (json['outlets'] != null) {
+      outletIds = (json['outlets'] as List)
+          .map((outlet) => outlet['id'].toString())
+          .toList();
+    }
+
     return Diskon(
-        id: json['id'] as int,
-        name: json['name'] as String,
-        type: json['type'] as String,
-        amount: json['amount'] as int,
-        created_at: DateTime.parse(json['created_at'] as String),
-        updated_at: DateTime.parse(json['updated_at'] as String));
+      id: json['id'],
+      name: json['name'],
+      type: json['type'],
+      amount: double.parse(json['amount'].toString()),
+      created_at: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      outletIds: outletIds,
+    );
   }
 }
 
