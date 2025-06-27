@@ -412,6 +412,7 @@ class _PaymentState extends State<Payment> {
                     isManager: widget.isManager,
                   ));
                 },
+
               ),
               Divider(),
               _buildMenuOption(

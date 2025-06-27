@@ -4,16 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:posmobile/Auth/login.dart';
 import 'package:posmobile/Model/Model.dart';
 import 'package:flutter/services.dart';
-import 'package:posmobile/Model/Modifier.dart';
-import 'package:posmobile/Model/Category.dart';
 import 'package:posmobile/Components/Navbar.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:posmobile/Pages/CategoryPage.dart';
-import 'package:posmobile/Pages/CreateOrderPage.dart';
+
 import 'package:posmobile/Pages/Dashboard/Home.dart';
-import 'package:posmobile/Pages/DiscountPage.dart';
-import 'package:posmobile/Pages/HistoryPage.dart';
-import 'package:posmobile/Pages/ModifierPage.dart';
+
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -1131,6 +1126,7 @@ class _ProductPageState extends State<ProductPage> {
                     isManager: widget.isManager,
                   ));
                 },
+
               ),
               Divider(),
 
