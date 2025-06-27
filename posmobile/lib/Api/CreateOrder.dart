@@ -77,7 +77,7 @@ Future<PaymentMethodResponse> fetchPaymentMethod(token, outletId) async {
 }
 
 Future<ProductResponse> fetchAllProduct(token, outletId) async {
-  final url = Uri.parse('$baseUrl/api/product/ext/available');
+  final url = Uri.parse('$baseUrl/api/product/ext/outlet/${outletId}');
   try {
     final response = await http.get(url, headers: {
       'Authorization': 'Bearer $token',

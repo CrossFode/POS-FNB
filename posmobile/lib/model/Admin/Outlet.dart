@@ -3,7 +3,7 @@ class Outlet {
   final String outlet_name;
   final String email;
   final String? image;
-  final int? isActive;
+  int? isActive;
   final String? longitude; // Tambahkan field longitude (opsional)
   final String? latitude;  // Tambahkan field latitude (opsional)
 
@@ -12,7 +12,7 @@ class Outlet {
     required this.outlet_name,
     required this.email,
     this.image,
-    required this.isActive,
+    this.isActive,
     this.longitude, // Tambahkan di constructor
     this.latitude,  // Tambahkan di constructor
   });
@@ -23,7 +23,7 @@ class Outlet {
       outlet_name: json['outlet_name'] ?? '',
       email: json['email'] ?? '',
       image: json['image'],
-      isActive: int.tryParse(json['is_active'].toString()) ?? 0,
+      isActive: json['is_active'] ?? json['isActive'],
       longitude: json['longitude']?.toString(), // Ambil dari json jika ada
       latitude: json['latitude']?.toString(),   // Ambil dari json jika ada
     );

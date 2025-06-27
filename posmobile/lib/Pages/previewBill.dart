@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 class Previewbill extends StatefulWidget {
   final String outletName;
-  final String orderId;
+  final String? orderId;
   final String customerName;
   final String orderType;
   final int tableNumber;
@@ -12,6 +12,7 @@ class Previewbill extends StatefulWidget {
   final int subtotal;
   final int discountVoucher;
   final int discountRef;
+  final String discountType;
   final int total;
   final String paymentMethod;
   final DateTime orderTime;
@@ -19,13 +20,14 @@ class Previewbill extends StatefulWidget {
   const Previewbill({
     super.key,
     required this.outletName,
-    required this.orderId,
+    this.orderId,
     required this.customerName,
     required this.orderType,
     required this.tableNumber,
     required this.items,
     required this.subtotal,
     required this.discountVoucher,
+    required this.discountType,
     required this.discountRef,
     required this.total,
     required this.paymentMethod,
@@ -111,7 +113,7 @@ class _PreviewBillState extends State<Previewbill> {
                     // Order Info
                     Center(
                       child: Text(
-                        widget.orderId,
+                        widget.orderId ?? "",
                         style: TextStyle(fontSize: 18, height: 1.2),
                       ),
                     ),
@@ -247,15 +249,37 @@ class _PreviewBillState extends State<Previewbill> {
                     ),
                     SizedBox(height: 4),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Diskon:',
-                            style: TextStyle(fontSize: 20, height: 1.2)),
-                        Text(
-                            '${widget.discountVoucher}% + ${widget.discountRef}%',
-                            style: TextStyle(fontSize: 20, height: 1.2)),
-                      ],
-                    ),
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (widget.discountType == "fixed" &&
+                              widget.discountRef == 0) ...[
+                            Text('Diskon:',
+                                style: TextStyle(fontSize: 20, height: 1.2)),
+                            Text('Rp.${widget.discountVoucher}',
+                                style: TextStyle(fontSize: 20, height: 1.2)),
+                          ] else if (widget.discountType == "fixed" &&
+                              widget.discountRef != 0) ...[
+                            Text('Diskon:',
+                                style: TextStyle(fontSize: 20, height: 1.2)),
+                            Text(
+                                'Rp.${widget.discountVoucher} + ${widget.discountRef}%',
+                                style: TextStyle(fontSize: 20, height: 1.2)),
+                          ] else if (widget.discountType == "percent" &&
+                              widget.discountRef == 0) ...[
+                            Text('Diskon:',
+                                style: TextStyle(fontSize: 20, height: 1.2)),
+                            Text('${widget.discountVoucher}%',
+                                style: TextStyle(fontSize: 20, height: 1.2)),
+                          ]
+                          // Kosongin, atau bisa tambahkan widget khusus jika mau
+                          else ...[
+                            Text('Diskon:',
+                                style: TextStyle(fontSize: 20, height: 1.2)),
+                            Text(
+                                '${widget.discountVoucher}% + ${widget.discountRef}%',
+                                style: TextStyle(fontSize: 20, height: 1.2)),
+                          ]
+                        ]),
                     const Divider(thickness: 1, color: Colors.black),
 
                     // Total

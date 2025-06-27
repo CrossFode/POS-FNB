@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 import 'Auth/login.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -18,7 +17,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         title: 'Flutter Demo',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
+          fontFamily: 'RobotoMono',
           // This is the theme of your application.
           //
           // TRY THIS: Try running your application with "flutter run". You'll see

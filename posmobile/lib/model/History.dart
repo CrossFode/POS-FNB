@@ -1,3 +1,5 @@
+import 'package:flutter/src/widgets/framework.dart';
+
 class History {
   final String id;
   final String customerId;
@@ -13,6 +15,15 @@ class History {
   final String outlet;
   final String? tableNumber;
 
+  // Tambahkan properti untuk diskon dan harga
+  final int subtotalPrice; // total sebelum diskon
+  final int totalPrice; // total setelah diskon
+  final String? discountName;
+  final int? discountAmount;
+  final String? discountType;
+  final String? referralCode;
+  final int? referralDiscount;
+
   History({
     required this.id,
     required this.customerId,
@@ -27,6 +38,13 @@ class History {
     required this.status,
     required this.outlet,
     this.tableNumber,
+    required this.subtotalPrice,
+    required this.totalPrice,
+    this.discountName,
+    this.discountAmount,
+    this.discountType,
+    this.referralCode,
+    this.referralDiscount,
   });
 
   History copyWith({
@@ -42,6 +60,13 @@ class History {
     String? status,
     String? outlet,
     String? tableNumber,
+    int? subtotalPrice,
+    int? totalPrice,
+    String? discountName,
+    int? discountAmount,
+    String? discountType,
+    String? referralCode,
+    int? referralDiscount,
   }) {
     return History(
       id: id ?? this.id,
@@ -58,16 +83,21 @@ class History {
       status: status ?? this.status,
       outlet: outlet ?? this.outlet,
       tableNumber: tableNumber ?? this.tableNumber,
+      subtotalPrice: subtotalPrice ?? this.subtotalPrice,
+      totalPrice: totalPrice ?? this.totalPrice,
+      discountName: discountName ?? this.discountName,
+      discountAmount: discountAmount ?? this.discountAmount,
+      discountType: discountType ?? this.discountType,
+      referralCode: referralCode ?? this.referralCode,
+      referralDiscount: referralDiscount ?? this.referralDiscount,
     );
   }
-
-  int get totalPrice =>
-      products.fold(0, (sum, item) => sum + (item.price * item.quantity));
 
   factory History.fromJson(Map<String, dynamic> json) {
     final orderDetails = (json['order_details'] is List)
         ? json['order_details'] as List
         : <dynamic>[];
+
     return History(
       id: json['id']?.toString() ?? '',
       customerId: json['customer']?['id']?.toString() ?? '',
@@ -90,6 +120,23 @@ class History {
       status: (json['status']?.toString() ?? '').toUpperCase(),
       outlet: json['outlet']?['outlet_name']?.toString() ?? '-',
       tableNumber: json['order_table']?.toString(),
+
+      // Tambahkan informasi diskon dan subtotal
+      subtotalPrice: json['order_subtotal'] != null
+          ? int.tryParse(json['order_subtotal'].toString()) ?? 0
+          : 0,
+      totalPrice: json['order_total'] != null
+          ? int.tryParse(json['order_total'].toString()) ?? 0
+          : 0,
+      discountName: json['discount']?['name']?.toString(),
+      discountAmount: json['discount']?['amount'] != null
+          ? int.tryParse(json['discount']['amount'].toString()) ?? 0
+          : null,
+      discountType: json['discount']?['type']?.toString(),
+      referralCode: json['referral']?['code']?.toString(),
+      referralDiscount: json['referral']?['discount'] != null
+          ? int.tryParse(json['referral']['discount'].toString()) ?? 0
+          : null,
     );
   }
 }
