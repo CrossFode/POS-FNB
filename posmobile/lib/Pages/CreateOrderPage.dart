@@ -1713,14 +1713,12 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           ),
                           value: _selectedPaymentMethod,
                           hint: const Text('Select Payment Method'),
-                          hint: const Text('Select Payment Method'),
                           items: paymentMethods
                               .map<DropdownMenuItem<PaymentMethod>>((method) {
                             return DropdownMenuItem<PaymentMethod>(
                               value: method,
                               child: Text(
                                 method.payment_name,
-                                style: const TextStyle(fontSize: 14),
                                 style: const TextStyle(fontSize: 14),
                               ),
                             );
@@ -1759,37 +1757,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                             ),
                             ElevatedButton(
                               onPressed: () async {
-                                Navigator.pop(context);
-
                                 final outletResponse = await _outletFuture;
                                 final outletName =
                                     outletResponse.data.outlet_name;
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => Previewbill(
-                                            outletName: outletName,
-                                            orderId:
-                                                'ORDER-${DateTime.now().millisecondsSinceEpoch}',
-                                            customerName: order.customer_name,
-                                            orderType: order.order_type,
-                                            tableNumber: order.order_table ?? 0,
-                                            items: _cartItems,
-                                            subtotal: _calculateOrderTotal(
-                                                _cartItems), // Tambahkan subtotal
 
-                                            discountVoucher:
-                                                (_selectedDiskon?.amount ?? 0),
-                                            discountType: _selectedDiskon!.type,
-                                            discountRef: (_besarDiskon ?? 0),
-                                            total: _finalTotalWithDiscount,
-                                            paymentMethod:
-                                                _selectedPaymentMethod
-                                                        ?.payment_name ??
-                                                    'N/A',
-                                            orderTime: DateTime.now(),
-                                          )),
-                                );
                                 try {
                                   final result = await makeOrder(
                                     token: widget.token,
@@ -1797,9 +1768,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       outlet_id: widget.outletId,
                                       customer_name: order.customer_name,
                                       phone_number: order.phone_number,
-                                      order_payment: _selectedPaymentMethod
-                                              ?.id ??
-                                          1, // Use selected payment ID or default
+                                      order_payment:
+                                          _selectedPaymentMethod?.id ?? 1,
                                       order_table: order.order_table,
                                       discount_id: _selectedDiskon?.id,
                                       referral_code: refCode,
@@ -1809,8 +1779,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       order_details: order.order_details,
                                     ),
                                   );
-                                  if (mounted)
-                                    setState(() => _cartItems.clear());
+
                                   if (result['success'] == true) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -1818,15 +1787,46 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         backgroundColor: Colors.green,
                                       ),
                                     );
-                                    setState(() => _cartItems.clear());
+
+                                    // Pindahkan pushReplacement ke dalam blok if
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Previewbill(
+                                          outletName: outletName,
+                                          orderId:
+                                              'ORDER-${DateTime.now().millisecondsSinceEpoch}',
+                                          customerName: order.customer_name,
+                                          orderType: order.order_type,
+                                          tableNumber: order.order_table ?? 0,
+                                          items: _cartItems,
+                                          subtotal:
+                                              _calculateOrderTotal(_cartItems),
+                                          discountVoucher:
+                                              (_selectedDiskon?.amount ?? 0),
+                                          discountType: _selectedDiskon!.type,
+                                          discountRef: (_besarDiskon ?? 0),
+                                          total: _finalTotalWithDiscount,
+                                          paymentMethod: _selectedPaymentMethod
+                                                  ?.payment_name ??
+                                              'N/A',
+                                          orderTime: DateTime.now(),
+                                        ),
+                                      ),
+                                    );
+                                    if (!mounted)
+                                      setState(() => _cartItems.clear());
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(result['message']),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
                                   }
                                 } catch (e) {
                                   if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(
-                                            'Failed to process order: $e')),
-                                  );
+                                  print(e);
                                 }
                               },
                               style: ElevatedButton.styleFrom(
