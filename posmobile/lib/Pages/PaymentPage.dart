@@ -415,7 +415,6 @@ class _PaymentState extends State<Payment> {
                 label: 'Discount',
                 onTap: () => _navigateTo(DiscountPage(
                   token: widget.token,
-                  userRoleId: 2,
                   outletId: widget.outletId,
                   isManager: widget.isManager,
                 )),

@@ -1807,8 +1807,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                           items: _cartItems,
                                           subtotal:
                                               _calculateOrderTotal(_cartItems),
-                                          discountVoucher:
-                                              (_selectedDiskon?.amount ?? 0),
+                                          discountVoucher: (_selectedDiskon
+                                                  ?.amount
+                                                  .toInt() ??
+                                              0),
                                           discountType: _selectedDiskon!.type,
                                           discountRef: (_besarDiskon ?? 0),
                                           total: _finalTotalWithDiscount,
@@ -1906,15 +1908,16 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     // 2. Then apply main discount (fixed or percentage)
     if (discount != null && discount != noDiscountOption) {
       if (discount.type == 'fixed') {
-        tempTotal -= discount.amount;
+        tempTotal -= discount.amount.toInt();
         tempTotal -= (tempTotal * discountPercent ~/ 100);
         // Untuk diskon fixed, langsung kurangi amount
       } else {
         if (referralDiscount > 0) {
           tempTotal -= (orderTotal * discountPercent ~/ 100);
         }
-        tempTotal -=
-            (tempTotal * discount.amount ~/ 100); // Untuk diskon persentase
+        tempTotal -= (tempTotal *
+            discount.amount.toInt() ~/
+            100); // Untuk diskon persentase
       }
     }
 
