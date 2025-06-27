@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:posmobile/Auth/login.dart';
 import 'package:posmobile/Components/Navbar.dart';
+import 'package:posmobile/Pages/Dashboard/Home.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Model/Model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CategoryPage extends StatefulWidget {
   final String token;
@@ -17,7 +20,7 @@ class CategoryPage extends StatefulWidget {
       {Key? key,
       required this.token,
       required this.outletId,
-      this.navIndex = 2, // Default index
+      this.navIndex = 3, // Default index
       this.onNavItemTap,
       required this.isManager})
       : super(key: key);
@@ -106,7 +109,8 @@ class _CategoryPageState extends State<CategoryPage> {
             'Apakah anda yakin akan menghapus "${category.category_name}"?',
             textAlign: TextAlign.center,
           ),
-          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           actions: [
             Row(
               children: [
@@ -223,8 +227,8 @@ class _CategoryPageState extends State<CategoryPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
                         filled: true,
                         fillColor: Colors.white,
                       ),
@@ -254,8 +258,8 @@ class _CategoryPageState extends State<CategoryPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
                         filled: true,
                         fillColor: Colors.white,
                       ),
@@ -324,14 +328,16 @@ class _CategoryPageState extends State<CategoryPage> {
 
                                 try {
                                   final uri = isEdit
-                                      ? Uri.parse('$baseUrl/api/category/${category!.id}')
+                                      ? Uri.parse(
+                                          '$baseUrl/api/category/${category!.id}')
                                       : Uri.parse('$baseUrl/api/category');
 
                                   final response = await (isEdit
                                       ? http.put(
                                           uri,
                                           headers: {
-                                            'Authorization': 'Bearer ${widget.token}',
+                                            'Authorization':
+                                                'Bearer ${widget.token}',
                                             'Content-Type': 'application/json',
                                           },
                                           body: jsonEncode(payload),
@@ -339,7 +345,8 @@ class _CategoryPageState extends State<CategoryPage> {
                                       : http.post(
                                           uri,
                                           headers: {
-                                            'Authorization': 'Bearer ${widget.token}',
+                                            'Authorization':
+                                                'Bearer ${widget.token}',
                                             'Content-Type': 'application/json',
                                           },
                                           body: jsonEncode(payload),
@@ -359,7 +366,9 @@ class _CategoryPageState extends State<CategoryPage> {
                                     });
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Failed to save category')),
+                                      SnackBar(
+                                          content:
+                                              Text('Failed to save category')),
                                     );
                                   }
                                 } catch (e) {
@@ -537,19 +546,19 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   Widget _buildNavbar() {
-    // Anda bisa membuat navbar khusus atau menggunakan yang sudah ada
-    // Contoh dengan NavbarManager:
     return FlexibleNavbar(
       currentIndex: widget.navIndex,
       isManager: widget.isManager,
       onTap: (index) {
+        if (widget.outletId == null && index != 3) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please select an outlet first')),
+          );
+          return;
+        }
         if (index != widget.navIndex) {
-          if (widget.onNavItemTap != null) {
-            widget.onNavItemTap!(index);
-          } else {
-            // Default navigation behavior
-            _handleNavigation(index);
-          }
+          print("Tapping on index: $index");
+          _handleNavigation(index);
         }
       },
       onMorePressed: () {
@@ -560,6 +569,7 @@ class _CategoryPageState extends State<CategoryPage> {
 
   void _showMoreOptions(BuildContext context) {
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
       builder: (context) {
         return Container(
@@ -567,55 +577,147 @@ class _CategoryPageState extends State<CategoryPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Menu untuk semua user (baik manager maupun staff)
               _buildMenuOption(
                 icon: Icons.settings,
+                color: Colors.grey,
                 label: 'Modifier',
-                onTap: () => _navigateTo(ModifierPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(ModifierPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
               _buildMenuOption(
-                icon: Icons.card_giftcard,
-                label: 'Referral Code',
-                onTap: () => _navigateTo(ReferralCodePage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                icon: Icons.category,
+                color: Colors.green,
+                label: 'Category',
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(CategoryPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
+
+              // Menu tambahan khusus untuk manager
+              if (widget.isManager) ...[
+                _buildMenuOption(
+                  icon: Icons.card_giftcard,
+                  color: Colors.grey,
+                  label: 'Referral Code',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(ReferralCodePage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.discount,
+                  color: Colors.grey,
+                  label: 'Discount',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(DiscountPage(
+                      token: widget.token,
+                      userRoleId: 2,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                      isOpened: true,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.history,
+                  color: Colors.grey,
+                  label: 'History',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(HistoryPage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.payment,
+                  color: Colors.grey,
+                  label: 'Payment',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(Payment(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+              ],
+
+              // Menu logout untuk semua user
               _buildMenuOption(
-                icon: Icons.discount,
-                label: 'Discount',
-                onTap: () => _navigateTo(DiscountPage(
-                  token: widget.token,
-                  userRoleId: 2,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.history,
-                label: 'History',
-                onTap: () => _navigateTo(HistoryPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.payment,
-                label: 'Payment',
-                onTap: () => _navigateTo(Payment(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                icon: Icons.logout,
+                color: Colors.red,
+                label: 'Logout',
+                onTap: () async {
+                  SharedPreferences pref =
+                      await SharedPreferences.getInstance();
+                  pref.remove('token');
+                  pref.remove('role');
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
               ),
             ],
           ),
@@ -626,14 +728,15 @@ class _CategoryPageState extends State<CategoryPage> {
 
   Widget _buildMenuOption({
     required IconData icon,
+    required MaterialColor color,
     required String label,
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon),
+      leading: Icon(icon, color: color),
       title: Text(label),
       onTap: () {
-        Navigator.pop(context); // Tutup bottom sheet
+        Navigator.pop(context);
         onTap();
       },
     );
@@ -646,18 +749,16 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
-  void _handleNavigation(int index) {
-    // Implementasi navigasi berdasarkan index
+  Future<void> _handleNavigation(int index) async {
     if (widget.isManager == true) {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
+            builder: (context) => Home(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: null,
               isManager: widget.isManager,
-              // isManager: widget.isManager,
             ),
           ),
         );
@@ -667,7 +768,7 @@ class _CategoryPageState extends State<CategoryPage> {
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
@@ -676,32 +777,24 @@ class _CategoryPageState extends State<CategoryPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CategoryPage(
+            builder: (context) => ProductPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
         );
       } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
-          ),
-        );
+        _showMoreOptions(context);
       }
     } else {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
+            builder: (context) => Home(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: null,
               isManager: widget.isManager,
             ),
           ),
@@ -712,7 +805,7 @@ class _CategoryPageState extends State<CategoryPage> {
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
@@ -721,24 +814,17 @@ class _CategoryPageState extends State<CategoryPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CategoryPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId!,
+              isManager: widget.isManager,
+            ),
           ),
         );
       } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
-          ),
-        );
+        _showMoreOptions(context);
+        print('More options pressed');
       }
     }
-    // Tambahkan case lainnya sesuai kebutuhan
   }
 }

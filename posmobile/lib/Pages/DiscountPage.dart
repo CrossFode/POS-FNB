@@ -7,6 +7,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posmobile/Components/Navbar.dart';
 import 'package:posmobile/model/model.dart';
 import 'package:posmobile/Pages/Pages.dart';
+import 'package:posmobile/Auth/login.dart';
+import 'package:posmobile/Pages/Dashboard/Home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DiscountPage extends StatefulWidget {
   final String token;
@@ -14,6 +17,7 @@ class DiscountPage extends StatefulWidget {
   final String outletId;
   final bool isManager;
   final int navIndex;
+  final bool? isOpened;
   final Function(int)? onNavItemTap;
 
   const DiscountPage({
@@ -23,6 +27,7 @@ class DiscountPage extends StatefulWidget {
     this.userRoleId,
     this.navIndex = 3, // Default ke tab History (index 3)
     this.onNavItemTap,
+    this.isOpened = true, // Default ke false
     required this.isManager,
   }) : super(key: key);
 
@@ -389,7 +394,8 @@ class _DiscountPageState extends State<DiscountPage> {
             ),
           ],
         ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        actionsPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         actions: [
           Row(
             children: [
@@ -652,19 +658,19 @@ class _DiscountPageState extends State<DiscountPage> {
   }
 
   Widget _buildNavbar() {
-    // Anda bisa membuat navbar khusus atau menggunakan yang sudah ada
-    // Contoh dengan NavbarManager:
     return FlexibleNavbar(
       currentIndex: widget.navIndex,
       isManager: widget.isManager,
       onTap: (index) {
+        if (widget.outletId == null && index != 3) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please select an outlet first')),
+          );
+          return;
+        }
         if (index != widget.navIndex) {
-          if (widget.onNavItemTap != null) {
-            widget.onNavItemTap!(index);
-          } else {
-            // Default navigation behavior
-            _handleNavigation(index);
-          }
+          print("Tapping on index: $index");
+          _handleNavigation(index);
         }
       },
       onMorePressed: () {
@@ -675,6 +681,7 @@ class _DiscountPageState extends State<DiscountPage> {
 
   void _showMoreOptions(BuildContext context) {
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
       builder: (context) {
         return Container(
@@ -682,50 +689,147 @@ class _DiscountPageState extends State<DiscountPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Menu untuk semua user (baik manager maupun staff)
               _buildMenuOption(
                 icon: Icons.settings,
+                color: Colors.grey,
                 label: 'Modifier',
-                onTap: () => _navigateTo(ModifierPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(ModifierPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
               _buildMenuOption(
-                icon: Icons.card_giftcard,
-                label: 'Referral Code',
-                onTap: () => _navigateTo(ReferralCodePage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                icon: Icons.category,
+                color: Colors.grey,
+                label: 'Category',
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(CategoryPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
+
+              // Menu tambahan khusus untuk manager
+              if (widget.isManager) ...[
+                _buildMenuOption(
+                  icon: Icons.card_giftcard,
+                  color: Colors.grey,
+                  label: 'Referral Code',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(ReferralCodePage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.discount,
+                  color: Colors.green,
+                  label: 'Discount',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(DiscountPage(
+                      token: widget.token,
+                      userRoleId: 2,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                      isOpened: true,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.history,
+                  color: Colors.grey,
+                  label: 'History',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(HistoryPage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.payment,
+                  color: Colors.grey,
+                  label: 'Payment',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(Payment(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+              ],
+
+              // Menu logout untuk semua user
               _buildMenuOption(
-                icon: Icons.discount,
-                label: 'Discount',
-                onTap: () {},
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.history,
-                label: 'History',
-                onTap: () => _navigateTo(HistoryPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.payment,
-                label: 'Payment',
-                onTap: () => _navigateTo(Payment(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                icon: Icons.logout,
+                color: Colors.red,
+                label: 'Logout',
+                onTap: () async {
+                  SharedPreferences pref =
+                      await SharedPreferences.getInstance();
+                  pref.remove('token');
+                  pref.remove('role');
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
               ),
             ],
           ),
@@ -736,38 +840,37 @@ class _DiscountPageState extends State<DiscountPage> {
 
   Widget _buildMenuOption({
     required IconData icon,
+    required MaterialColor color,
     required String label,
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon),
+      leading: Icon(icon, color: color),
       title: Text(label),
       onTap: () {
-        Navigator.pop(context); // Tutup bottom sheet
+        Navigator.pop(context);
         onTap();
       },
     );
   }
 
   void _navigateTo(Widget page) {
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => page),
     );
   }
 
-  void _handleNavigation(int index) {
-    // Implementasi navigasi berdasarkan index
+  Future<void> _handleNavigation(int index) async {
     if (widget.isManager == true) {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
+            builder: (context) => Home(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: null,
               isManager: widget.isManager,
-              // isManager: widget.isManager,
             ),
           ),
         );
@@ -777,7 +880,7 @@ class _DiscountPageState extends State<DiscountPage> {
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
@@ -786,32 +889,24 @@ class _DiscountPageState extends State<DiscountPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CategoryPage(
+            builder: (context) => ProductPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
         );
       } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
-          ),
-        );
+        _showMoreOptions(context);
       }
     } else {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
+            builder: (context) => Home(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: null,
               isManager: widget.isManager,
             ),
           ),
@@ -822,7 +917,7 @@ class _DiscountPageState extends State<DiscountPage> {
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
@@ -831,25 +926,18 @@ class _DiscountPageState extends State<DiscountPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CategoryPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId!,
+              isManager: widget.isManager,
+            ),
           ),
         );
       } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
-          ),
-        );
+        _showMoreOptions(context);
+        print('More options pressed');
       }
     }
-    // Tambahkan case lainnya sesuai kebutuhan
   }
 }
 
@@ -857,7 +945,8 @@ class _DiscountFormDialog extends StatefulWidget {
   final Diskon? discount;
   final List<Outlet> outlets;
   final List<String>? selectedOutletIds;
-  final Future<bool> Function(String name, String type, int amount, [List<String>? outletIds]) onSubmit;
+  final Future<bool> Function(String name, String type, int amount,
+      [List<String>? outletIds]) onSubmit;
 
   const _DiscountFormDialog({
     this.discount,
@@ -870,7 +959,8 @@ class _DiscountFormDialog extends StatefulWidget {
   State<_DiscountFormDialog> createState() => _DiscountFormDialogState();
 }
 
-class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTickerProviderStateMixin {
+class _DiscountFormDialogState extends State<_DiscountFormDialog>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
@@ -950,7 +1040,9 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                   // Header
                   Center(
                     child: Text(
-                      widget.discount != null ? 'Edit Discount' : 'New Discount',
+                      widget.discount != null
+                          ? 'Edit Discount'
+                          : 'New Discount',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -978,10 +1070,12 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
                       filled: true,
                       fillColor: Colors.white,
-                      prefixIcon: Icon(Icons.discount, color: Color.fromARGB(255, 53, 150, 105)),
+                      prefixIcon: Icon(Icons.discount,
+                          color: Color.fromARGB(255, 53, 150, 105)),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -1041,19 +1135,20 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                   TextFormField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       hintText: 'Enter amount',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
                       filled: true,
                       fillColor: Colors.white,
                       prefixIcon: Icon(
-                        _selectedType == 'fixed' ? Icons.attach_money : Icons.percent,
+                        _selectedType == 'fixed'
+                            ? Icons.attach_money
+                            : Icons.percent,
                         color: Color.fromARGB(255, 53, 150, 105),
                       ),
                       suffixText: _selectedType == 'percent' ? '%' : '',
@@ -1107,26 +1202,32 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                       itemBuilder: (context, index) {
                         final outlet = widget.outlets[index];
                         return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 4, horizontal: 4),
                           child: Row(
                             children: [
                               SizedBox(
                                 width: 24,
                                 height: 24,
                                 child: Checkbox(
-                                  value: _selectedOutletIds.contains(outlet.id.toString()),
+                                  value: _selectedOutletIds
+                                      .contains(outlet.id.toString()),
                                   onChanged: (bool? selected) {
                                     setState(() {
                                       if (selected == true) {
-                                        if (!_selectedOutletIds.contains(outlet.id.toString())) {
-                                          _selectedOutletIds.add(outlet.id.toString());
+                                        if (!_selectedOutletIds
+                                            .contains(outlet.id.toString())) {
+                                          _selectedOutletIds
+                                              .add(outlet.id.toString());
                                         }
                                       } else {
-                                        _selectedOutletIds.removeWhere((id) => id == outlet.id.toString());
+                                        _selectedOutletIds.removeWhere(
+                                            (id) => id == outlet.id.toString());
                                       }
                                     });
                                   },
-                                  activeColor: const Color.fromARGB(255, 53, 150, 105),
+                                  activeColor:
+                                      const Color.fromARGB(255, 53, 150, 105),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4),
                                   ),
@@ -1155,7 +1256,9 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                     children: [
                       Expanded(
                         child: TextButton(
-                          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => Navigator.pop(context),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -1178,7 +1281,8 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog> with SingleTic
                         child: ElevatedButton(
                           onPressed: _isSubmitting ? null : _handleSubmit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                            backgroundColor:
+                                const Color.fromARGB(255, 53, 150, 105),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),

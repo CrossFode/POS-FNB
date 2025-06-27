@@ -5,7 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posmobile/Components/Navbar.dart';
 import 'package:posmobile/model/model.dart';
-import 'package:posmobile/Pages/Pages.dart'; // Ganti import model
+import 'package:posmobile/Pages/Pages.dart';
+import 'package:posmobile/Auth/login.dart';
+import 'package:posmobile/Pages/Dashboard/Home.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Ganti import model
 
 class ReferralCodePage extends StatefulWidget {
   final String token;
@@ -86,7 +89,8 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
           'Apakah anda yakin ingin menghapus kode ini?',
           textAlign: TextAlign.center,
         ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        actionsPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         actions: [
           Row(
             children: [
@@ -291,298 +295,323 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                 DateTime? expiredDate;
 
                 return StatefulBuilder(
-                  builder: (context, setState) => Dialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header
-                            const Center(
-                              child: Text(
-                                'Create Referral Code',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
+                    builder: (context, setState) => Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
                             ),
-                            const SizedBox(height: 24),
-
-                            // Referral Code
-                            const Text(
-                              "REFERRAL CODE",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                                fontSize: 13,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            TextField(
-                              controller: codeController,
-                              decoration: InputDecoration(
-                                hintText: 'Referral Code',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 12),
-                                filled: true,
-                                fillColor: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-
-                            // Description
-                            const Text(
-                              "DESCRIPTION",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                                fontSize: 13,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            TextField(
-                              controller: descController,
-                              maxLines: 2,
-                              decoration: InputDecoration(
-                                hintText: 'Description',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 12),
-                                filled: true,
-                                fillColor: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-
-                            // Discount & Quotas
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "DISCOUNT (%)",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1,
-                                          fontSize: 13,
-                                          color: Colors.black54,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      TextField(
-                                        controller: discountController,
-                                        keyboardType: TextInputType.number,
-                                        decoration: InputDecoration(
-                                          hintText: 'Discount',
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          contentPadding: const EdgeInsets.symmetric(
-                                              horizontal: 12, vertical: 12),
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "QUOTAS",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1,
-                                          fontSize: 13,
-                                          color: Colors.black54,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      TextField(
-                                        controller: quotasController,
-                                        keyboardType: TextInputType.number,
-                                        decoration: InputDecoration(
-                                          hintText: 'Quotas',
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          contentPadding: const EdgeInsets.symmetric(
-                                              horizontal: 12, vertical: 12),
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 18),
-
-                            // Date Picker
-                            const Text(
-                              "EXPIRED DATE",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                                fontSize: 13,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            GestureDetector(
-                              onTap: () async {
-                                final pickedDate = await showDatePicker(
-                                  context: context,
-                                  initialDate: expiredDate ??
-                                      DateTime.now().add(
-                                          const Duration(days: 30)),
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime(2101),
-                                  builder: (context, child) {
-                                    return Theme(
-                                      data: Theme.of(context).copyWith(
-                                        colorScheme: ColorScheme.light(
-                                          primary: Color.fromARGB(255, 53, 150, 105),
-                                        ),
-                                      ),
-                                      child: child!,
-                                    );
-                                  },
-                                );
-                                if (pickedDate != null) {
-                                  setState(() {
-                                    expiredDate = pickedDate;
-                                  });
-                                }
-                              },
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey[300]!),
-                                ),
-                                child: Text(
-                                  expiredDate != null
-                                      ? DateFormat('dd/MM/yyyy').format(expiredDate!)
-                                      : 'Select Expiry Date',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: expiredDate != null
-                                        ? Colors.black87
-                                        : Colors.grey[600],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-
-                            // Action Buttons
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        side: BorderSide(color: Colors.grey[300]!),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Cancel',
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Header
+                                  const Center(
+                                    child: Text(
+                                      'Create Referral Code',
                                       style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color.fromARGB(255, 53, 150, 105),
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      if (codeController.text.isNotEmpty &&
-                                          expiredDate != null &&
-                                          discountController.text.isNotEmpty &&
-                                          quotasController.text.isNotEmpty) {
-                                        addReferralCode(
-                                          code: codeController.text,
-                                          description: descController.text,
-                                          discount: int.tryParse(
-                                                  discountController.text) ??
-                                              0,
-                                          quotas: int.tryParse(
-                                                  quotasController.text) ??
-                                              0,
-                                          expiredDate: expiredDate!,
-                                        );
-                                        Navigator.pop(context);
+                                  const SizedBox(height: 24),
+
+                                  // Referral Code
+                                  const Text(
+                                    "REFERRAL CODE",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                      fontSize: 13,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextField(
+                                    controller: codeController,
+                                    decoration: InputDecoration(
+                                      hintText: 'Referral Code',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 12),
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 18),
+
+                                  // Description
+                                  const Text(
+                                    "DESCRIPTION",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                      fontSize: 13,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextField(
+                                    controller: descController,
+                                    maxLines: 2,
+                                    decoration: InputDecoration(
+                                      hintText: 'Description',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 12),
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 18),
+
+                                  // Discount & Quotas
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              "DISCOUNT (%)",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 1,
+                                                fontSize: 13,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            TextField(
+                                              controller: discountController,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              decoration: InputDecoration(
+                                                hintText: 'Discount',
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 12),
+                                                filled: true,
+                                                fillColor: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              "QUOTAS",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 1,
+                                                fontSize: 13,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            TextField(
+                                              controller: quotasController,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              decoration: InputDecoration(
+                                                hintText: 'Quotas',
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 12),
+                                                filled: true,
+                                                fillColor: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 18),
+
+                                  // Date Picker
+                                  const Text(
+                                    "EXPIRED DATE",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                      fontSize: 13,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  GestureDetector(
+                                    onTap: () async {
+                                      final pickedDate = await showDatePicker(
+                                        context: context,
+                                        initialDate: expiredDate ??
+                                            DateTime.now()
+                                                .add(const Duration(days: 30)),
+                                        firstDate: DateTime.now(),
+                                        lastDate: DateTime(2101),
+                                        builder: (context, child) {
+                                          return Theme(
+                                            data: Theme.of(context).copyWith(
+                                              colorScheme: ColorScheme.light(
+                                                primary: Color.fromARGB(
+                                                    255, 53, 150, 105),
+                                              ),
+                                            ),
+                                            child: child!,
+                                          );
+                                        },
+                                      );
+                                      if (pickedDate != null) {
+                                        setState(() {
+                                          expiredDate = pickedDate;
+                                        });
                                       }
                                     },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color.fromARGB(
-                                          255, 53, 150, 105),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Create',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
                                         color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                            color: Colors.grey[300]!),
+                                      ),
+                                      child: Text(
+                                        expiredDate != null
+                                            ? DateFormat('dd/MM/yyyy')
+                                                .format(expiredDate!)
+                                            : 'Select Expiry Date',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: expiredDate != null
+                                              ? Colors.black87
+                                              : Colors.grey[600],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 24),
+
+                                  // Action Buttons
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 16),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              side: BorderSide(
+                                                  color: Colors.grey[300]!),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color.fromARGB(
+                                                  255, 53, 150, 105),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            if (codeController
+                                                    .text.isNotEmpty &&
+                                                expiredDate != null &&
+                                                discountController
+                                                    .text.isNotEmpty &&
+                                                quotasController
+                                                    .text.isNotEmpty) {
+                                              addReferralCode(
+                                                code: codeController.text,
+                                                description:
+                                                    descController.text,
+                                                discount: int.tryParse(
+                                                        discountController
+                                                            .text) ??
+                                                    0,
+                                                quotas: int.tryParse(
+                                                        quotasController
+                                                            .text) ??
+                                                    0,
+                                                expiredDate: expiredDate!,
+                                              );
+                                              Navigator.pop(context);
+                                            }
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                const Color.fromARGB(
+                                                    255, 53, 150, 105),
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 16),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Create',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                 ) );
+                          ),
+                        ));
               },
             );
           },
           backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           child: const Icon(Icons.add, color: Colors.white),
         ),
-
-                backgroundColor: const Color.fromARGB(255, 245, 244, 244),
-
+        backgroundColor: const Color.fromARGB(255, 245, 244, 244),
         body: Stack(
           children: [
             // Background image dengan opacity 0.5
@@ -628,8 +657,8 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                           style: const TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
-                                            color: Color.fromARGB(255, 53, 150, 105
-),
+                                            color: Color.fromARGB(
+                                                255, 53, 150, 105),
                                           ),
                                         ),
                                       ),
@@ -709,8 +738,6 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
                                                                         padding: const EdgeInsets
                                                                             .all(
                                                                             12),
-                                                                       
-                                                                      
                                                                       ),
                                                                       const SizedBox(
                                                                           width:
@@ -1121,19 +1148,19 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
   }
 
   Widget _buildNavbar() {
-    // Anda bisa membuat navbar khusus atau menggunakan yang sudah ada
-    // Contoh dengan NavbarManager:
     return FlexibleNavbar(
       currentIndex: widget.navIndex,
       isManager: widget.isManager,
       onTap: (index) {
+        if (widget.outletId == null && index != 3) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please select an outlet first')),
+          );
+          return;
+        }
         if (index != widget.navIndex) {
-          if (widget.onNavItemTap != null) {
-            widget.onNavItemTap!(index);
-          } else {
-            // Default navigation behavior
-            _handleNavigation(index);
-          }
+          print("Tapping on index: $index");
+          _handleNavigation(index);
         }
       },
       onMorePressed: () {
@@ -1144,6 +1171,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
 
   void _showMoreOptions(BuildContext context) {
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
       builder: (context) {
         return Container(
@@ -1151,50 +1179,147 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Menu untuk semua user (baik manager maupun staff)
               _buildMenuOption(
                 icon: Icons.settings,
+                color: Colors.grey,
                 label: 'Modifier',
-                onTap: () => _navigateTo(ModifierPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(ModifierPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
               _buildMenuOption(
-                icon: Icons.card_giftcard,
-                label: 'Referral Code',
-                onTap: () {},
+                icon: Icons.category,
+                color: Colors.grey,
+                label: 'Category',
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(CategoryPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
+
+              // Menu tambahan khusus untuk manager
+              if (widget.isManager) ...[
+                _buildMenuOption(
+                  icon: Icons.card_giftcard,
+                  color: Colors.green,
+                  label: 'Referral Code',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(ReferralCodePage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.discount,
+                  color: Colors.grey,
+                  label: 'Discount',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(DiscountPage(
+                      token: widget.token,
+                      userRoleId: 2,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                      isOpened: true,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.history,
+                  color: Colors.grey,
+                  label: 'History',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(HistoryPage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.payment,
+                  color: Colors.grey,
+                  label: 'Payment',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(Payment(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+              ],
+
+              // Menu logout untuk semua user
               _buildMenuOption(
-                icon: Icons.discount,
-                label: 'Discount',
-                onTap: () => _navigateTo(DiscountPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.history,
-                label: 'History',
-                onTap: () => _navigateTo(HistoryPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.payment,
-                label: 'Payment',
-                onTap: () => _navigateTo(Payment(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                icon: Icons.logout,
+                color: Colors.red,
+                label: 'Logout',
+                onTap: () async {
+                  SharedPreferences pref =
+                      await SharedPreferences.getInstance();
+                  pref.remove('token');
+                  pref.remove('role');
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
               ),
             ],
           ),
@@ -1205,38 +1330,37 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
 
   Widget _buildMenuOption({
     required IconData icon,
+    required MaterialColor color,
     required String label,
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon),
+      leading: Icon(icon, color: color),
       title: Text(label),
       onTap: () {
-        Navigator.pop(context); // Tutup bottom sheet
+        Navigator.pop(context);
         onTap();
       },
     );
   }
 
   void _navigateTo(Widget page) {
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => page),
     );
   }
 
-  void _handleNavigation(int index) {
-    // Implementasi navigasi berdasarkan index
+  Future<void> _handleNavigation(int index) async {
     if (widget.isManager == true) {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
+            builder: (context) => Home(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: null,
               isManager: widget.isManager,
-              // isManager: widget.isManager,
             ),
           ),
         );
@@ -1246,7 +1370,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
@@ -1255,32 +1379,24 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CategoryPage(
+            builder: (context) => ProductPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
         );
       } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
-          ),
-        );
+        _showMoreOptions(context);
       }
     } else {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
+            builder: (context) => Home(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: null,
               isManager: widget.isManager,
             ),
           ),
@@ -1291,7 +1407,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
@@ -1300,24 +1416,17 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CategoryPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId!,
+              isManager: widget.isManager,
+            ),
           ),
         );
       } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
-          ),
-        );
+        _showMoreOptions(context);
+        print('More options pressed');
       }
     }
-    // Tambahkan case lainnya sesuai kebutuhan
   }
 }

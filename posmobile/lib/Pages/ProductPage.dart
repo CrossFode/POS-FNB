@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:posmobile/Auth/login.dart';
 import 'package:posmobile/Model/Model.dart';
 import 'package:flutter/services.dart';
 import 'package:posmobile/Model/Modifier.dart';
@@ -9,10 +10,12 @@ import 'package:posmobile/Components/Navbar.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posmobile/Pages/CategoryPage.dart';
 import 'package:posmobile/Pages/CreateOrderPage.dart';
+import 'package:posmobile/Pages/Dashboard/Home.dart';
 import 'package:posmobile/Pages/DiscountPage.dart';
 import 'package:posmobile/Pages/HistoryPage.dart';
 import 'package:posmobile/Pages/ModifierPage.dart';
 import 'package:posmobile/Pages/Pages.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Fungsi format harga agar seperti "20.0K" dan "5.5K" tanpa "Rp" dan underline
 String formatPrice(int price) {
@@ -34,7 +37,7 @@ class ProductPage extends StatefulWidget {
     Key? key,
     required this.token,
     required this.outletId,
-    this.navIndex = 0,
+    this.navIndex = 2,
     this.onNavItemTap,
     required this.isManager,
   }) : super(key: key);
@@ -195,7 +198,8 @@ class _ProductPageState extends State<ProductPage> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
                             filled: true,
                             fillColor: Colors.white,
                           ),
@@ -221,8 +225,10 @@ class _ProductPageState extends State<ProductPage> {
                           future:
                               fetchCategories(widget.token, widget.outletId),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else if (!snapshot.hasData ||
@@ -242,7 +248,8 @@ class _ProductPageState extends State<ProductPage> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
                                 filled: true,
                                 fillColor: Colors.white,
                               ),
@@ -254,8 +261,10 @@ class _ProductPageState extends State<ProductPage> {
                                   child: Text(category.category_name),
                                 );
                               }).toList(),
-                              onChanged: (value) => setStateDialog(() => _selectedCategory = value),
-                              validator: (value) => value == null ? 'Select a category' : null,
+                              onChanged: (value) => setStateDialog(
+                                  () => _selectedCategory = value),
+                              validator: (value) =>
+                                  value == null ? 'Select a category' : null,
                             );
                           },
                         ),
@@ -278,7 +287,8 @@ class _ProductPageState extends State<ProductPage> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
                             filled: true,
                             fillColor: Colors.white,
                           ),
@@ -310,7 +320,8 @@ class _ProductPageState extends State<ProductPage> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
                               filled: true,
                               fillColor: Colors.white,
                             ),
@@ -340,14 +351,19 @@ class _ProductPageState extends State<ProductPage> {
                                         decoration: InputDecoration(
                                           hintText: 'Variant Name',
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 12, vertical: 12),
                                           filled: true,
                                           fillColor: Colors.white,
                                         ),
                                         validator: (value) =>
-                                            value?.isEmpty ?? true ? 'Required' : null,
+                                            value?.isEmpty ?? true
+                                                ? 'Required'
+                                                : null,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -360,9 +376,12 @@ class _ProductPageState extends State<ProductPage> {
                                           hintText: 'Price',
                                           prefixText: 'Rp ',
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 12, vertical: 12),
                                           filled: true,
                                           fillColor: Colors.white,
                                         ),
@@ -370,14 +389,18 @@ class _ProductPageState extends State<ProductPage> {
                                           FilteringTextInputFormatter.digitsOnly
                                         ],
                                         validator: (value) =>
-                                            value?.isEmpty ?? true ? 'Required' : null,
+                                            value?.isEmpty ?? true
+                                                ? 'Required'
+                                                : null,
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.close, color: Colors.red),
+                                      icon: const Icon(Icons.close,
+                                          color: Colors.red),
                                       onPressed: () {
                                         setStateDialog(() {
-                                          _variantControllers.remove(controller);
+                                          _variantControllers
+                                              .remove(controller);
                                           if (_variantControllers.isEmpty) {
                                             _showSinglePrice = true;
                                           }
@@ -391,18 +414,21 @@ class _ProductPageState extends State<ProductPage> {
                           ),
 
                         // Tambahkan jarak sebelum tombol
-                        const SizedBox(height: 10), // <--- Tambahkan ini sebelum tombol
+                        const SizedBox(
+                            height: 10), // <--- Tambahkan ini sebelum tombol
                         // Add Variant Button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(255, 53, 150, 105),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 53, 150, 105),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              minimumSize: const Size(0, 44), // tinggi 44, lebar penuh
+                              minimumSize:
+                                  const Size(0, 44), // tinggi 44, lebar penuh
                               elevation: 0,
                             ),
                             onPressed: () {
@@ -442,11 +468,14 @@ class _ProductPageState extends State<ProductPage> {
                         FutureBuilder<ModifierResponse>(
                           future: fetchModifiers(widget.token, widget.outletId),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
-                            } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.data.isEmpty) {
                               return const Text('No modifiers available');
                             }
 
@@ -467,15 +496,18 @@ class _ProductPageState extends State<ProductPage> {
                                       _selectedModifiers[modifier.id] ?? false,
                                   onChanged: (bool? value) {
                                     setStateDialog(() {
-                                      _selectedModifiers[modifier.id] = value ?? false;
+                                      _selectedModifiers[modifier.id] =
+                                          value ?? false;
                                     });
                                   },
                                   controlAffinity:
                                       ListTileControlAffinity.leading,
                                   dense: true,
                                   contentPadding: EdgeInsets.zero,
-                                  visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-                                  activeColor: const Color.fromARGB(255, 53, 150, 105),
+                                  visualDensity: const VisualDensity(
+                                      horizontal: -4, vertical: -4),
+                                  activeColor:
+                                      const Color.fromARGB(255, 53, 150, 105),
                                   checkColor: Colors.white,
                                 );
                               }).toList(),
@@ -491,7 +523,8 @@ class _ProductPageState extends State<ProductPage> {
                               child: TextButton(
                                 onPressed: () => Navigator.of(context).pop(),
                                 style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     side: BorderSide(color: Colors.grey[300]!),
@@ -511,8 +544,10 @@ class _ProductPageState extends State<ProductPage> {
                             Expanded(
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(255, 53, 150, 105),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 53, 150, 105),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -521,12 +556,14 @@ class _ProductPageState extends State<ProductPage> {
                                   if (_formKey.currentState!.validate()) {
                                     _formKey.currentState!.save();
 
-                                    final modifier_ids = _selectedModifiers.entries
+                                    final modifier_ids = _selectedModifiers
+                                        .entries
                                         .where((e) => e.value)
                                         .map((e) => e.key)
                                         .toList();
 
-                                    final variants = _variantControllers.map((c) {
+                                    final variants =
+                                        _variantControllers.map((c) {
                                       return {
                                         'name': c['name']!.text,
                                         'price': int.parse(c['price']!.text),
@@ -536,48 +573,76 @@ class _ProductPageState extends State<ProductPage> {
                                     if (isEdit) {
                                       // Update product
                                       try {
-                                        final url = Uri.parse('$baseUrl/api/product/${product!.id}');
-                                        final categoryResponse = await fetchCategories(widget.token, widget.outletId);
-                                        final categoryData = categoryResponse.data.firstWhere(
-                                          (cat) => cat.category_name.trim().toLowerCase() == _selectedCategory!.trim().toLowerCase(),
-                                          orElse: () => categoryResponse.data.first,
+                                        final url = Uri.parse(
+                                            '$baseUrl/api/product/${product!.id}');
+                                        final categoryResponse =
+                                            await fetchCategories(
+                                                widget.token, widget.outletId);
+                                        final categoryData =
+                                            categoryResponse.data.firstWhere(
+                                          (cat) =>
+                                              cat.category_name
+                                                  .trim()
+                                                  .toLowerCase() ==
+                                              _selectedCategory!
+                                                  .trim()
+                                                  .toLowerCase(),
+                                          orElse: () =>
+                                              categoryResponse.data.first,
                                         );
                                         final category_id = categoryData.id;
 
                                         final response = await http.put(
                                           url,
                                           headers: {
-                                            'Authorization': 'Bearer ${widget.token}',
+                                            'Authorization':
+                                                'Bearer ${widget.token}',
                                             'Content-Type': 'application/json',
                                           },
                                           body: jsonEncode({
                                             'name': _productName,
                                             'category_id': category_id,
                                             'description': _description,
-                                            'price': _showSinglePrice ? int.tryParse(_price) : null,
+                                            'price': _showSinglePrice
+                                                ? int.tryParse(_price)
+                                                : null,
                                             'is_active': 1,
                                             'outlet_id': product.outlet_id,
-                                            if (variants.isNotEmpty) 'variants': variants,
-                                            if (modifier_ids.isNotEmpty) 'modifiers': modifier_ids,
-                                            'updated_at': DateTime.now().toIso8601String(),
+                                            if (variants.isNotEmpty)
+                                              'variants': variants,
+                                            if (modifier_ids.isNotEmpty)
+                                              'modifiers': modifier_ids,
+                                            'updated_at': DateTime.now()
+                                                .toIso8601String(),
                                           }),
                                         );
 
                                         if (response.statusCode == 200) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Product updated successfully!')),
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    'Product updated successfully!')),
                                           );
                                           setState(() {
-                                            _productFuture = fetchAllProduct(widget.token, widget.outletId);
+                                            _productFuture = fetchAllProduct(
+                                                widget.token, widget.outletId);
                                           });
                                         } else {
-                                          final error = jsonDecode(response.body);
-                                          final errorMsg = error['message'] ?? error['error'] ?? response.body;
-                                          throw Exception('Server responded with: $errorMsg');
+                                          final error =
+                                              jsonDecode(response.body);
+                                          final errorMsg = error['message'] ??
+                                              error['error'] ??
+                                              response.body;
+                                          throw Exception(
+                                              'Server responded with: $errorMsg');
                                         }
                                       } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Update failed: ${e.toString()}')),
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                              content: Text(
+                                                  'Update failed: ${e.toString()}')),
                                         );
                                       }
                                     } else {
@@ -767,15 +832,21 @@ class _ProductPageState extends State<ProductPage> {
                                                     backgroundColor:
                                                         const Color.fromARGB(
                                                             255, 255, 255, 255),
-                                                     title: const Center( // <-- Add Center here
-    child: Text(
-      'Delete Product',
-      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-    ),
-  ),
+                                                    title: const Center(
+                                                      // <-- Add Center here
+                                                      child: Text(
+                                                        'Delete Product',
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 20),
+                                                      ),
+                                                    ),
                                                     content: const Text(
-                                                        'Apakah anda yakin ingin menghapus produk ini?',          textAlign: TextAlign.center,
-),
+                                                      'Apakah anda yakin ingin menghapus produk ini?',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
                                                     actions: [
                                                       Row(
                                                         children: [
@@ -783,9 +854,11 @@ class _ProductPageState extends State<ProductPage> {
                                                             child: TextButton(
                                                               style: TextButton
                                                                   .styleFrom(
-                                                                padding: const EdgeInsets
-                                                                    .symmetric(
-                                                                    vertical: 16),
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            16),
                                                                 shape:
                                                                     RoundedRectangleBorder(
                                                                   borderRadius:
@@ -794,7 +867,8 @@ class _ProductPageState extends State<ProductPage> {
                                                                               12),
                                                                   side: BorderSide(
                                                                       color: Colors
-                                                                          .grey[300]!),
+                                                                              .grey[
+                                                                          300]!),
                                                                 ),
                                                               ),
                                                               onPressed: () =>
@@ -804,7 +878,8 @@ class _ProductPageState extends State<ProductPage> {
                                                                           false),
                                                               child: const Text(
                                                                 'Cancel',
-                                                                style: TextStyle(
+                                                                style:
+                                                                    TextStyle(
                                                                   fontSize: 16,
                                                                   fontWeight:
                                                                       FontWeight
@@ -822,18 +897,23 @@ class _ProductPageState extends State<ProductPage> {
                                                           const SizedBox(
                                                               width: 12),
                                                           Expanded(
-                                                            child: ElevatedButton(
+                                                            child:
+                                                                ElevatedButton(
                                                               onPressed: () =>
                                                                   Navigator.of(
                                                                           context)
-                                                                      .pop(true),
-                                                              style: ElevatedButton
-                                                                  .styleFrom(
+                                                                      .pop(
+                                                                          true),
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
                                                                 backgroundColor:
                                                                     Colors.red,
-                                                                padding: const EdgeInsets
-                                                                    .symmetric(
-                                                                    vertical: 16),
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .symmetric(
+                                                                        vertical:
+                                                                            16),
                                                                 shape:
                                                                     RoundedRectangleBorder(
                                                                   borderRadius:
@@ -844,7 +924,8 @@ class _ProductPageState extends State<ProductPage> {
                                                               ),
                                                               child: const Text(
                                                                 'Delete',
-                                                                style: TextStyle(
+                                                                style:
+                                                                    TextStyle(
                                                                   fontSize: 16,
                                                                   fontWeight:
                                                                       FontWeight
@@ -987,25 +1068,25 @@ class _ProductPageState extends State<ProductPage> {
       currentIndex: widget.navIndex,
       isManager: widget.isManager,
       onTap: (index) {
-        if (!mounted) return;
+        if (widget.outletId == null && index != 3) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please select an outlet first')),
+          );
+          return;
+        }
         if (index != widget.navIndex) {
-          if (widget.onNavItemTap != null) {
-            widget.onNavItemTap!(index);
-          } else {
-            _handleNavigation(index);
-          }
+          _handleNavigation(index);
         }
       },
       onMorePressed: () {
-        if (mounted) {
-          _showMoreOptions(context);
-        }
+        _showMoreOptions(context);
       },
     );
   }
 
   void _showMoreOptions(BuildContext context) {
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
       builder: (context) {
         return Container(
@@ -1013,55 +1094,147 @@ class _ProductPageState extends State<ProductPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Menu untuk semua user (baik manager maupun staff)
               _buildMenuOption(
                 icon: Icons.settings,
+                color: Colors.grey,
                 label: 'Modifier',
-                onTap: () => _navigateTo(ModifierPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(ModifierPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
               _buildMenuOption(
-                icon: Icons.card_giftcard,
-                label: 'Referral Code',
-                onTap: () => _navigateTo(ModifierPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                icon: Icons.category,
+                color: Colors.grey,
+                label: 'Category',
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(CategoryPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
+
+              // Menu tambahan khusus untuk manager
+              if (widget.isManager) ...[
+                _buildMenuOption(
+                  icon: Icons.card_giftcard,
+                  color: Colors.grey,
+                  label: 'Referral Code',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(ReferralCodePage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.discount,
+                  color: Colors.grey,
+                  label: 'Discount',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(DiscountPage(
+                      token: widget.token,
+                      userRoleId: 2,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                      isOpened: true,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.history,
+                  color: Colors.grey,
+                  label: 'History',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(HistoryPage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.payment,
+                  color: Colors.grey,
+                  label: 'Payment',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(Payment(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+              ],
+
+              // Menu logout untuk semua user
               _buildMenuOption(
-                icon: Icons.discount,
-                label: 'Discount',
-                onTap: () => _navigateTo(DiscountPage(
-                  token: widget.token,
-                  userRoleId: 2,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.history,
-                label: 'History',
-                onTap: () => _navigateTo(HistoryPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.payment,
-                label: 'Payment',
-                onTap: () => _navigateTo(Payment(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                icon: Icons.logout,
+                color: Colors.red,
+                label: 'Logout',
+                onTap: () async {
+                  SharedPreferences pref =
+                      await SharedPreferences.getInstance();
+                  pref.remove('token');
+                  pref.remove('role');
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
               ),
             ],
           ),
@@ -1072,11 +1245,12 @@ class _ProductPageState extends State<ProductPage> {
 
   Widget _buildMenuOption({
     required IconData icon,
+    required MaterialColor color,
     required String label,
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon),
+      leading: Icon(icon, color: color),
       title: Text(label),
       onTap: () {
         Navigator.pop(context);
@@ -1086,113 +1260,87 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   void _navigateTo(Widget page) {
-    try {
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => page),
-      );
-    } catch (e) {
-      debugPrint('Navigation error: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Navigation failed: ${e.toString()}')),
-        );
-      }
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
   }
 
-  void _handleNavigation(int index) {
-    try {
-      if (index == widget.navIndex) return; // Already on this page
-
-      Widget page;
-      if (widget.isManager) {
-        switch (index) {
-          case 0:
-            page = ProductPage(
+  Future<void> _handleNavigation(int index) async {
+    if (widget.isManager == true) {
+      if (index == 0) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(
               token: widget.token,
-              outletId: widget.outletId,
-              navIndex: index,
+              outletId: null,
               isManager: widget.isManager,
-            );
-            break;
-          case 1:
-            page = CreateOrderPage(
+            ),
+          ),
+        );
+      } else if (index == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId,
-              navIndex: index,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
-            );
-            break;
-          case 2:
-            page = CategoryPage(
+            ),
+          ),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(
               token: widget.token,
-              outletId: widget.outletId,
-              navIndex: index,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
-            );
-            break;
-          case 3:
-            page = ModifierPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              navIndex: index,
-              isManager: widget.isManager,
-            );
-            break;
-          default:
-            return;
-        }
-      } else {
-        switch (index) {
-          case 0:
-            page = ProductPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              navIndex: index,
-              isManager: widget.isManager,
-            );
-            break;
-          case 1:
-            page = CreateOrderPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              navIndex: index,
-              isManager: widget.isManager,
-            );
-            break;
-          case 2:
-            page = CategoryPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              navIndex: index,
-              isManager: widget.isManager,
-            );
-            break;
-          case 3:
-            page = ModifierPage(
-              token: widget.token,
-              outletId: widget.outletId,
-              navIndex: index,
-              isManager: widget.isManager,
-            );
-            break;
-          default:
-            return;
-        }
+            ),
+          ),
+        );
+      } else if (index == 3) {
+        _showMoreOptions(context);
       }
-
-      // Use pushReplacement only if we're replacing the current page in the stack
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => page),
-      );
-    } catch (e) {
-      debugPrint('Navigation error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Navigation failed: ${e.toString()}')),
-      );
+    } else {
+      if (index == 0) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(
+              token: widget.token,
+              outletId: null,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
+              token: widget.token,
+              outletId: widget.outletId!,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId!,
+              isManager: widget.isManager,
+            ),
+          ),
+        );
+      } else if (index == 3) {
+        _showMoreOptions(context);
+      }
     }
   }
 

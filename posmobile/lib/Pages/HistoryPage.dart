@@ -6,6 +6,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:posmobile/Components/Navbar.dart';
 import 'package:posmobile/model/model.dart';
 import 'package:posmobile/Pages/Pages.dart';
+import 'package:posmobile/Auth/login.dart';
+import 'package:posmobile/Pages/Dashboard/Home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HistoryPage extends StatefulWidget {
   final String token;
@@ -169,7 +172,8 @@ class _HistoryPageState extends State<HistoryPage>
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey[600]),
         ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        actionsPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         actions: [
           Row(
             children: [
@@ -215,7 +219,8 @@ class _HistoryPageState extends State<HistoryPage>
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Order ${order.customer} berhasil dihapus'),
+                          content:
+                              Text('Order ${order.customer} berhasil dihapus'),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -223,7 +228,8 @@ class _HistoryPageState extends State<HistoryPage>
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Gagal menghapus order: ${response.body}'),
+                          content:
+                              Text('Gagal menghapus order: ${response.body}'),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -415,8 +421,9 @@ class _HistoryPageState extends State<HistoryPage>
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 12),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 12),
                                       filled: true,
                                       fillColor: Colors.white,
                                       errorText: errors['customer_id'] ??
@@ -584,8 +591,9 @@ class _HistoryPageState extends State<HistoryPage>
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 12),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 12),
                                       filled: true,
                                       fillColor: Colors.white,
                                       suffixIcon:
@@ -602,13 +610,16 @@ class _HistoryPageState extends State<HistoryPage>
                                 children: [
                                   Expanded(
                                     child: TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
                                       style: TextButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 16),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          side: BorderSide(color: Colors.grey[300]!),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          side: BorderSide(
+                                              color: Colors.grey[300]!),
                                         ),
                                       ),
                                       child: const Text(
@@ -616,7 +627,8 @@ class _HistoryPageState extends State<HistoryPage>
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
-                                          color: Color.fromARGB(255, 53, 150, 105),
+                                          color:
+                                              Color.fromARGB(255, 53, 150, 105),
                                         ),
                                       ),
                                     ),
@@ -627,18 +639,21 @@ class _HistoryPageState extends State<HistoryPage>
                                       onPressed: () async {
                                         setState(() => errors = {});
                                         if (editedCustomerName.trim().isEmpty) {
-                                          setState(() => errors['customer_name'] =
-                                              'Customer wajib diisi');
+                                          setState(() =>
+                                              errors['customer_name'] =
+                                                  'Customer wajib diisi');
                                           return;
                                         }
                                         if (editedCashierId == null) {
-                                          setState(() => errors['order_cashier'] =
-                                              'Cashier wajib diisi');
+                                          setState(() =>
+                                              errors['order_cashier'] =
+                                                  'Cashier wajib diisi');
                                           return;
                                         }
                                         if (editedPaymentId == null) {
-                                          setState(() => errors['order_payment'] =
-                                              'Payment wajib diisi');
+                                          setState(() =>
+                                              errors['order_payment'] =
+                                                  'Payment wajib diisi');
                                           return;
                                         }
 
@@ -647,7 +662,8 @@ class _HistoryPageState extends State<HistoryPage>
                                           if (editedCustomerName.trim() !=
                                               order.customer) {
                                             // Update customer lama (PUT)
-                                            final updated = await _updateCustomer(
+                                            final updated =
+                                                await _updateCustomer(
                                               editedCustomerId!,
                                               editedCustomerName.trim(),
                                               order.customerPhone, // nomor lama
@@ -675,7 +691,8 @@ class _HistoryPageState extends State<HistoryPage>
                                         };
                                         if (editedCustomerId != null &&
                                             editedCustomerId!.isNotEmpty) {
-                                          body['customer_id'] = editedCustomerId;
+                                          body['customer_id'] =
+                                              editedCustomerId;
                                         }
                                         if (editedCustomerId == null ||
                                             editedCustomerId!.isEmpty) {
@@ -699,15 +716,17 @@ class _HistoryPageState extends State<HistoryPage>
                                             orders[orders.indexWhere(
                                                     (o) => o.id == order.id)] =
                                                 order.copyWith(
-                                              customer: editedCustomerName.trim(),
-                                              cashier: cashiers.firstWhere((c) =>
-                                                  c['id'].toString() ==
-                                                  editedCashierId)['name'],
-                                              paymentMethod:
-                                                  paymentMethods.firstWhere((p) =>
+                                              customer:
+                                                  editedCustomerName.trim(),
+                                              cashier: cashiers.firstWhere(
+                                                  (c) =>
+                                                      c['id'].toString() ==
+                                                      editedCashierId)['name'],
+                                              paymentMethod: paymentMethods
+                                                      .firstWhere((p) =>
                                                           p['id'].toString() ==
                                                           editedPaymentId)[
-                                                      'payment_name'],
+                                                  'payment_name'],
                                               orderType: orderTypes.firstWhere(
                                                   (t) =>
                                                       t['value'] ==
@@ -734,7 +753,8 @@ class _HistoryPageState extends State<HistoryPage>
                                               final errorsData =
                                                   errorData['errors'];
                                               if (errorsData is Map) {
-                                                errorsData.forEach((key, value) {
+                                                errorsData
+                                                    .forEach((key, value) {
                                                   if (value is List &&
                                                       value.isNotEmpty) {
                                                     errors[key] =
@@ -759,12 +779,13 @@ class _HistoryPageState extends State<HistoryPage>
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color.fromARGB(255, 53, 150, 105),
+                                        backgroundColor: const Color.fromARGB(
+                                            255, 53, 150, 105),
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 16),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
                                       child: const Text(
@@ -774,9 +795,10 @@ class _HistoryPageState extends State<HistoryPage>
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                         ),
+                                      ),
                                     ),
-                                  ),
-                               ) ],
+                                  )
+                                ],
                               ),
                             ],
                           ),
@@ -1242,9 +1264,7 @@ class _HistoryPageState extends State<HistoryPage>
           const SizedBox(width: 8),
         ],
       ),
-
-              backgroundColor: const Color.fromARGB(255, 245, 244, 244),
-
+      backgroundColor: const Color.fromARGB(255, 245, 244, 244),
       body: Stack(
         children: [
           // Background image (hanya di belakang konten)
@@ -1470,7 +1490,6 @@ class _HistoryPageState extends State<HistoryPage>
                                                     offset: const Offset(0, 35),
                                                     color: Colors.white,
                                                     shape:
-                                                    
                                                         RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -1602,7 +1621,12 @@ class _HistoryPageState extends State<HistoryPage>
                                                             const Icon(
                                                                 Icons.edit,
                                                                 size: 18,
-                                                                color: Color.fromARGB(255, 98, 101, 103)),
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        98,
+                                                                        101,
+                                                                        103)),
                                                             const SizedBox(
                                                                 width: 12),
                                                             const Text(
@@ -1644,7 +1668,12 @@ class _HistoryPageState extends State<HistoryPage>
                                                             const Icon(
                                                                 Icons.print,
                                                                 size: 18,
-                                                                color: Color.fromARGB(255, 108, 115, 120)),
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        108,
+                                                                        115,
+                                                                        120)),
                                                             const SizedBox(
                                                                 width: 12),
                                                             const Text(
@@ -1743,19 +1772,19 @@ class _HistoryPageState extends State<HistoryPage>
   }
 
   Widget _buildNavbar() {
-    // Anda bisa membuat navbar khusus atau menggunakan yang sudah ada
-    // Contoh dengan NavbarManager:
     return FlexibleNavbar(
       currentIndex: widget.navIndex,
       isManager: widget.isManager,
       onTap: (index) {
+        if (widget.outletId == null && index != 3) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please select an outlet first')),
+          );
+          return;
+        }
         if (index != widget.navIndex) {
-          if (widget.onNavItemTap != null) {
-            widget.onNavItemTap!(index);
-          } else {
-            // Default navigation behavior
-            _handleNavigation(index);
-          }
+          print("Tapping on index: $index");
+          _handleNavigation(index);
         }
       },
       onMorePressed: () {
@@ -1766,6 +1795,7 @@ class _HistoryPageState extends State<HistoryPage>
 
   void _showMoreOptions(BuildContext context) {
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
       builder: (context) {
         return Container(
@@ -1773,50 +1803,147 @@ class _HistoryPageState extends State<HistoryPage>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Menu untuk semua user (baik manager maupun staff)
               _buildMenuOption(
                 icon: Icons.settings,
+                color: Colors.grey,
                 label: 'Modifier',
-                onTap: () => _navigateTo(ModifierPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(ModifierPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
               _buildMenuOption(
-                icon: Icons.card_giftcard,
-                label: 'Referral Code',
-                onTap: () => _navigateTo(ReferralCodePage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                icon: Icons.category,
+                color: Colors.grey,
+                label: 'Category',
+                onTap: () {
+                  if (widget.outletId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please select an outlet first')),
+                    );
+                    return;
+                  }
+                  _navigateTo(CategoryPage(
+                    token: widget.token,
+                    outletId: widget.outletId!,
+                    isManager: widget.isManager,
+                  ));
+                },
               ),
               Divider(),
+
+              // Menu tambahan khusus untuk manager
+              if (widget.isManager) ...[
+                _buildMenuOption(
+                  icon: Icons.card_giftcard,
+                  color: Colors.grey,
+                  label: 'Referral Code',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(ReferralCodePage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.discount,
+                  color: Colors.grey,
+                  label: 'Discount',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(DiscountPage(
+                      token: widget.token,
+                      userRoleId: 2,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                      isOpened: true,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.history,
+                  color: Colors.green,
+                  label: 'History',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(HistoryPage(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+                _buildMenuOption(
+                  icon: Icons.payment,
+                  color: Colors.grey,
+                  label: 'Payment',
+                  onTap: () {
+                    if (widget.outletId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Please select an outlet first')),
+                      );
+                      return;
+                    }
+                    _navigateTo(Payment(
+                      token: widget.token,
+                      outletId: widget.outletId!,
+                      isManager: widget.isManager,
+                    ));
+                  },
+                ),
+                Divider(),
+              ],
+
+              // Menu logout untuk semua user
               _buildMenuOption(
-                icon: Icons.discount,
-                label: 'Discount',
-                onTap: () => _navigateTo(DiscountPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.history,
-                label: 'History',
-                onTap: () {},
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.payment,
-                label: 'Payment',
-                onTap: () => _navigateTo(Payment(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
+                icon: Icons.logout,
+                color: Colors.red,
+                label: 'Logout',
+                onTap: () async {
+                  SharedPreferences pref =
+                      await SharedPreferences.getInstance();
+                  pref.remove('token');
+                  pref.remove('role');
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
               ),
             ],
           ),
@@ -1827,38 +1954,37 @@ class _HistoryPageState extends State<HistoryPage>
 
   Widget _buildMenuOption({
     required IconData icon,
+    required MaterialColor color,
     required String label,
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon),
+      leading: Icon(icon, color: color),
       title: Text(label),
       onTap: () {
-        Navigator.pop(context); // Tutup bottom sheet
+        Navigator.pop(context);
         onTap();
       },
     );
   }
 
   void _navigateTo(Widget page) {
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => page),
     );
   }
 
-  void _handleNavigation(int index) {
-    // Implementasi navigasi berdasarkan index
+  Future<void> _handleNavigation(int index) async {
     if (widget.isManager == true) {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
+            builder: (context) => Home(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: null,
               isManager: widget.isManager,
-              // isManager: widget.isManager,
             ),
           ),
         );
@@ -1868,7 +1994,7 @@ class _HistoryPageState extends State<HistoryPage>
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
@@ -1877,32 +2003,24 @@ class _HistoryPageState extends State<HistoryPage>
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CategoryPage(
+            builder: (context) => ProductPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
         );
       } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
-          ),
-        );
+        _showMoreOptions(context);
       }
     } else {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
+            builder: (context) => Home(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: null,
               isManager: widget.isManager,
             ),
           ),
@@ -1913,7 +2031,7 @@ class _HistoryPageState extends State<HistoryPage>
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId,
+              outletId: widget.outletId!,
               isManager: widget.isManager,
             ),
           ),
@@ -1922,24 +2040,17 @@ class _HistoryPageState extends State<HistoryPage>
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CategoryPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
+            builder: (context) => ProductPage(
+              token: widget.token,
+              outletId: widget.outletId!,
+              isManager: widget.isManager,
+            ),
           ),
         );
       } else if (index == 3) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ModifierPage(
-                token: widget.token,
-                outletId: widget.outletId,
-                isManager: widget.isManager),
-          ),
-        );
+        _showMoreOptions(context);
+        print('More options pressed');
       }
     }
-    // Tambahkan case lainnya sesuai kebutuhan
   }
 }
