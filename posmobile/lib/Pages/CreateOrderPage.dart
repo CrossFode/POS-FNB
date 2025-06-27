@@ -1415,7 +1415,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                if (_formKey.currentState!.validate()) {
+                                if (_localFormKey.currentState!.validate()) {
                                   final orderDetails =
                                       _convertCartItemsToOrderDetails(
                                           _cartItems);
