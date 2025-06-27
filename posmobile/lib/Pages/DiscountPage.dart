@@ -1257,7 +1257,6 @@ class _DiscountFormDialogState extends State<_DiscountFormDialog>
                               SizedBox(
                                 width: 24,
                                 height: 24,
-
                                 child: Builder(builder: (context) {
                                   // Pastikan kedua nilai dalam format yang sama untuk perbandingan
                                   final outletIdStr = outlet.id.toString();

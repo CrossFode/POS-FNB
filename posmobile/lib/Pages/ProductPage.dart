@@ -1126,7 +1126,6 @@ class _ProductPageState extends State<ProductPage> {
                     isManager: widget.isManager,
                   ));
                 },
-
               ),
               Divider(),
 

@@ -1904,8 +1904,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         ),
                                       ),
                                     );
-                                    if (!mounted)
-                                      setState(() => _cartItems.clear());
+                                    // Clear cart items after successful order
+                                    setState(() {
+                                      _cartItems.clear();
+                                    });
+
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
