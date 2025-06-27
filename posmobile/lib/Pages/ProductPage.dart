@@ -6,15 +6,9 @@ import 'package:posmobile/Model/Model.dart';
 import 'package:flutter/services.dart';
 import 'package:posmobile/Components/Navbar.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-<<<<<<< HEAD
-import 'package:posmobile/Pages/CategoryPage.dart';
-import 'package:posmobile/Pages/CreateOrderPage.dart';
+
 import 'package:posmobile/Pages/Dashboard/Home.dart';
-import 'package:posmobile/Pages/DiscountPage.dart';
-import 'package:posmobile/Pages/HistoryPage.dart';
-import 'package:posmobile/Pages/ModifierPage.dart';
-=======
->>>>>>> f626ef4ed168edf331c6365893ec9a1e7a8f01a0
+
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -1223,7 +1217,6 @@ class _ProductPageState extends State<ProductPage> {
 
               // Menu logout untuk semua user
               _buildMenuOption(
-<<<<<<< HEAD
                 icon: Icons.logout,
                 color: Colors.red,
                 label: 'Logout',
@@ -1237,35 +1230,6 @@ class _ProductPageState extends State<ProductPage> {
                     MaterialPageRoute(builder: (context) => LoginPage()),
                   );
                 },
-=======
-                icon: Icons.discount,
-                label: 'Discount',
-                onTap: () => _navigateTo(DiscountPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.history,
-                label: 'History',
-                onTap: () => _navigateTo(HistoryPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.payment,
-                label: 'Payment',
-                onTap: () => _navigateTo(Payment(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
->>>>>>> f626ef4ed168edf331c6365893ec9a1e7a8f01a0
               ),
             ],
           ),

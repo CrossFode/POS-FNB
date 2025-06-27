@@ -522,7 +522,6 @@ class _PaymentState extends State<Payment> {
 
               // Menu logout untuk semua user
               _buildMenuOption(
-<<<<<<< HEAD
                 icon: Icons.logout,
                 color: Colors.red,
                 label: 'Logout',
@@ -536,35 +535,6 @@ class _PaymentState extends State<Payment> {
                     MaterialPageRoute(builder: (context) => LoginPage()),
                   );
                 },
-=======
-                icon: Icons.discount,
-                label: 'Discount',
-                onTap: () => _navigateTo(DiscountPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.history,
-                label: 'History',
-                onTap: () => _navigateTo(HistoryPage(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
-              ),
-              Divider(),
-              _buildMenuOption(
-                icon: Icons.payment,
-                label: 'Payment',
-                onTap: () => _navigateTo(Payment(
-                  token: widget.token,
-                  outletId: widget.outletId,
-                  isManager: widget.isManager,
-                )),
->>>>>>> f626ef4ed168edf331c6365893ec9a1e7a8f01a0
               ),
             ],
           ),
