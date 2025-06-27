@@ -259,13 +259,13 @@ class _OutletPageState extends State<OutletPage> {
         // Updated Positioned widget with larger toggle button
         Positioned(
           top: 8,
-          right: 8,
+          right: 6,
           child: GestureDetector(
             onTap: () async {
               await _toggleOutletStatus(outlet, outlet.isActive != 1);
             },
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6), // Increased padding
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4), // Increased padding
               decoration: BoxDecoration(
                 color: (outlet.isActive == 1 ? Colors.green : Colors.grey).withOpacity(0.2),
                 borderRadius: BorderRadius.circular(16), // Slightly larger border radius
