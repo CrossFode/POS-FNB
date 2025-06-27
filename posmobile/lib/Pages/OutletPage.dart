@@ -55,6 +55,36 @@ class _OutletPageState extends State<OutletPage> {
       setState(() => isLoading = false);
     }
   }
+  Future<void> _toggleOutletStatus(Outlet outlet, bool newStatus) async {
+  try {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/outlet/status/${outlet.id}'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'is_active': newStatus ? 1 : 0,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      fetchOutletData(widget.token, widget.outletId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Outlet status updated successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update outlet status')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -83,86 +113,121 @@ class _OutletPageState extends State<OutletPage> {
   }
 
   Widget _buildOutletCard(Outlet outlet) {
-    return Card(
-      margin: EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Outlet Image
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: outlet.image != null
-                        ? DecorationImage(
-                            image: NetworkImage(outlet.image!),
-                            fit: BoxFit.cover,
-                          )
+  return Card(
+    margin: EdgeInsets.only(bottom: 16),
+    child: Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Outlet Image
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      image: outlet.image != null
+                          ? DecorationImage(
+                              image: NetworkImage(outlet.image!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                      color: Colors.grey[300],
+                    ),
+                    child: outlet.image == null
+                        ? Icon(Icons.store, color: Colors.grey[500], size: 40)
                         : null,
-                    color: Colors.grey[300],
                   ),
-                  child: outlet.image == null
-                      ? Icon(Icons.store, color: Colors.grey[500], size: 40)
-                      : null,
-                ),
-                SizedBox(width: 16),
-                // Outlet Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        outlet.outlet_name,  // Changed from name to outlet_name
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  SizedBox(width: 16),
+                  // Outlet Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          outlet.outlet_name,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        outlet.email,
-                        style: TextStyle(color: Colors.blue[600]),
-                      ),
-                    ],
+                        SizedBox(height: 4),
+                        Text(
+                          outlet.email,
+                          style: TextStyle(color: Colors.blue[600]),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Latitude: ${outlet.latitude ?? 'N/A'}',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Longitude: ${outlet.longitude ?? 'N/A'}',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            // Action Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () => _showEditOutletDialog(outlet),
-                  icon: Icon(Icons.edit, size: 18),
-                  label: Text('Edit'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.blue[600],
+                ],
+              ),
+              SizedBox(height: 16),
+              // Action Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => _showEditOutletDialog(outlet),
+                    icon: Icon(Icons.edit, size: 18),
+                    label: Text('Edit'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue[600],
+                    ),
                   ),
-                ),
-                SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () => _confirmDelete(outlet),
-                  icon: Icon(Icons.delete, size: 18),
-                  label: Text('Delete'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red[600],
+                  SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => _confirmDelete(outlet),
+                    icon: Icon(Icons.delete, size: 18),
+                    label: Text('Delete'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red[600],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+        // Slide Toggle Button (Top Right)
+        Positioned(
+          top: 12,
+          right: 12,
+          child: SizedBox(
+            width: 60, // Adjust width as needed
+            height: 30, // Adjust height as needed
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: Switch(
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                value: outlet.isActive == 1,
+                onChanged: (value) => _toggleOutletStatus(outlet, value),
+                activeColor: Colors.green,
+                inactiveThumbColor: Colors.grey[200],
+                inactiveTrackColor: Colors.grey[400],
+                activeTrackColor: Colors.green[200],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   // Add dialog implementations and other helper methods here
   Future<void> _showEditOutletDialog(Outlet outlet) async {
@@ -365,9 +430,9 @@ class _OutletPageState extends State<OutletPage> {
     TextEditingController emailController = TextEditingController();
     TextEditingController longitudeController = TextEditingController(); // Tambahan
     TextEditingController latitudeController = TextEditingController();  // Tambahan
-    bool isDineIn = false;
-    bool isLabel = false;
-    bool isKitchen = false;
+    // bool isDineIn = false;
+    // bool isLabel = false;
+    // bool isKitchen = false;
     File? imageFile;
     bool isSubmitting = false;
 
@@ -431,22 +496,22 @@ class _OutletPageState extends State<OutletPage> {
                       decoration: InputDecoration(labelText: 'Longitude (optional)'),
                       keyboardType: TextInputType.numberWithOptions(decimal: true, signed: true),
                     ),
-                    SizedBox(height: 16),
-                    CheckboxListTile(
-                      title: Text('DINE IN'),
-                      value: isDineIn,
-                      onChanged: (val) => setState(() => isDineIn = val ?? false),
-                    ),
-                    CheckboxListTile(
-                      title: Text('PRINT LABEL'),
-                      value: isLabel,
-                      onChanged: (val) => setState(() => isLabel = val ?? false),
-                    ),
-                    CheckboxListTile(
-                      title: Text('PRINT KITCHEN'),
-                      value: isKitchen,
-                      onChanged: (val) => setState(() => isKitchen = val ?? false),
-                    ),
+                    // SizedBox(height: 16),
+                    // CheckboxListTile(
+                    //   title: Text('DINE IN'),
+                    //   value: isDineIn,
+                    //   onChanged: (val) => setState(() => isDineIn = val ?? false),
+                    // ),
+                    // CheckboxListTile(
+                    //   title: Text('PRINT LABEL'),
+                    //   value: isLabel,
+                    //   onChanged: (val) => setState(() => isLabel = val ?? false),
+                    // ),
+                    // CheckboxListTile(
+                    //   title: Text('PRINT KITCHEN'),
+                    //   value: isKitchen,
+                    //   onChanged: (val) => setState(() => isKitchen = val ?? false),
+                    // ),
                   ],
                 ),
               ),
@@ -473,9 +538,9 @@ class _OutletPageState extends State<OutletPage> {
                             });
                             request.fields['outlet_name'] = nameController.text;
                             request.fields['email'] = emailController.text;
-                            request.fields['is_dinein'] = isDineIn ? '1' : '0';
-                            request.fields['is_label'] = isLabel ? '1' : '0';
-                            request.fields['is_kitchen'] = isKitchen ? '1' : '0';
+                            // request.fields['is_dinein'] = isDineIn ? '1' : '0';
+                            // request.fields['is_label'] = isLabel ? '1' : '0';
+                            // request.fields['is_kitchen'] = isKitchen ? '1' : '0';
                             // Tambahkan longitude dan latitude jika diisi
                             if (latitudeController.text.isNotEmpty) {
                               request.fields['latitude'] = latitudeController.text;
