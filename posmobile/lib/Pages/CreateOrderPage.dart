@@ -1713,7 +1713,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                           ),
                           value: _selectedPaymentMethod,
                           hint: const Text('Select Payment Method'),
-                          hint: const Text('Select Payment Method'),
+                          // hint: const Text('Select Payment Method'),
                           items: paymentMethods
                               .map<DropdownMenuItem<PaymentMethod>>((method) {
                             return DropdownMenuItem<PaymentMethod>(
@@ -1721,7 +1721,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               child: Text(
                                 method.payment_name,
                                 style: const TextStyle(fontSize: 14),
-                                style: const TextStyle(fontSize: 14),
+                                // style: const TextStyle(fontSize: 14),
                               ),
                             );
                           }).toList(),
