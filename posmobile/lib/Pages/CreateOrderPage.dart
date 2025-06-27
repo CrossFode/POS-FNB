@@ -1068,6 +1068,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         TextEditingController();
     final TextEditingController _phoneNumberController =
         TextEditingController();
+    final _localFormKey = GlobalKey<FormState>();
 
     showModalBottomSheet(
       context: context,
@@ -1088,7 +1089,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
             child: StatefulBuilder(
               builder: (context, setModalState) {
                 return Form(
-                  key: _formKey,
+                  key: _localFormKey,
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
