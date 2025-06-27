@@ -20,33 +20,36 @@ class FlexibleNavbar extends StatelessWidget {
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: (index) {
-        if (isManager && index == 3 && onMorePressed != null) {
+        if (index == 3 && onMorePressed != null) {
           onMorePressed!(); // Panggil callback khusus untuk More
         } else {
           onTap(index); // Untuk item navbar lainnya
         }
       },
       type: BottomNavigationBarType.fixed,
-    backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Navbar background
-    selectedItemColor: Color.fromARGB(255, 53, 150, 105), // Selected icon/text color
-    unselectedItemColor: const Color.fromARGB(179, 67, 67, 67), // Unselected icon/text color
-    items: isManager ? _buildManagerItems() : _buildStaffItems(),
- );
+      backgroundColor:
+          const Color.fromARGB(255, 255, 255, 255), // Navbar background
+      selectedItemColor:
+          Color.fromARGB(255, 53, 150, 105), // Selected icon/text color
+      unselectedItemColor:
+          const Color.fromARGB(179, 67, 67, 67), // Unselected icon/text color
+      items: isManager ? _buildManagerItems() : _buildStaffItems(),
+    );
   }
 
   List<BottomNavigationBarItem> _buildManagerItems() {
     return [
       BottomNavigationBarItem(
-        icon: Icon(Icons.inventory_2),
-        label: 'Products',
+        icon: Icon(Icons.store),
+        label: 'Outlet',
       ),
       BottomNavigationBarItem(
         icon: Icon(Icons.add_shopping_cart),
         label: 'Create Order',
       ),
       BottomNavigationBarItem(
-        icon: Icon(Icons.category),
-        label: 'Category',
+        icon: Icon(Icons.inventory_2),
+        label: 'Products',
       ),
       BottomNavigationBarItem(
         icon: Icon(Icons.more_horiz),
@@ -58,20 +61,20 @@ class FlexibleNavbar extends StatelessWidget {
   List<BottomNavigationBarItem> _buildStaffItems() {
     return [
       BottomNavigationBarItem(
-        icon: Icon(Icons.inventory_2),
-        label: 'Products',
+        icon: Icon(Icons.store),
+        label: 'Outlet',
       ),
       BottomNavigationBarItem(
         icon: Icon(Icons.add_shopping_cart),
         label: 'Create Order',
       ),
       BottomNavigationBarItem(
-        icon: Icon(Icons.category),
-        label: 'Category',
+        icon: Icon(Icons.inventory_2),
+        label: 'Products',
       ),
       BottomNavigationBarItem(
-        icon: Icon(Icons.settings),
-        label: 'Modifier',
+        icon: Icon(Icons.more_horiz),
+        label: 'More',
       ),
     ];
   }
