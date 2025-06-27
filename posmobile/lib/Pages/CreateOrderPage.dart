@@ -1520,18 +1520,12 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
                 final orderTotal =
                     int.tryParse(order.order_totals.toString()) ?? 0;
-                final diskon = _selectedDiskon == noDiscountOption
-                    ? 0
-                    : (_selectedDiskon?.amount ?? 0);
-                if (_selectedDiskon?.type == 'fixed') {
-                  _finalTotalWithDiscount =
-                      (orderTotal - _selectedDiskon!.amount.toInt()) -
-                          _referralDiscount;
-                } else {
-                  _finalTotalWithDiscount =
-                      (orderTotal - (orderTotal * diskon) ~/ 100) -
-                          _referralDiscount;
-                }
+                _finalTotalWithDiscount = _calculateFinalTotal(
+                  orderTotal,
+                  _selectedDiskon,
+                  _referralDiscount,
+                  _besarDiskon ?? 0,
+                );
 
                 return Padding(
                   padding: EdgeInsets.only(
@@ -1672,19 +1666,22 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                                 response.data.discount.toInt();
 
                                             setModalState(() {
-                                              refCode =
-                                                  referralCode.text.trim();
-                                              _besarDiskon = discountPercent;
-                                              _referralDiscount =
-                                                  (_finalTotalWithDiscount *
-                                                          discountPercent) ~/
-                                                      100;
-                                              _finalTotalWithDiscount =
-                                                  _calculateFinalTotal(
-                                                orderTotal,
-                                                _selectedDiskon,
-                                                _referralDiscount,
-                                              );
+                                              // Di dalam onPressed untuk search referral code:
+                                              setModalState(() {
+                                                refCode =
+                                                    referralCode.text.trim();
+                                                _besarDiskon = discountPercent;
+                                                _referralDiscount = (orderTotal *
+                                                        discountPercent) ~/
+                                                    100; // Hitung dari orderTotal awal
+                                                _finalTotalWithDiscount =
+                                                    _calculateFinalTotal(
+                                                  orderTotal,
+                                                  _selectedDiskon,
+                                                  _referralDiscount,
+                                                  discountPercent,
+                                                );
+                                              });
                                             });
                                           }
                                         } catch (e) {
@@ -1759,36 +1756,14 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                             ),
                             ElevatedButton(
                               onPressed: () async {
-                                Navigator.pop(context);
-
                                 final outletResponse = await _outletFuture;
                                 final outletName =
                                     outletResponse.data.outlet_name;
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => Previewbill(
-                                            outletName: outletName,
-                                            orderId:
-                                                'ORDER-${DateTime.now().millisecondsSinceEpoch}',
-                                            customerName: order.customer_name,
-                                            orderType: order.order_type,
-                                            tableNumber: order.order_table ?? 0,
-                                            items: _cartItems,
-                                            subtotal: _calculateOrderTotal(
-                                                _cartItems), // Tambahkan subtotal
-
-                                            discountVoucher:
-                                                (_selectedDiskon?.amount ?? 0),
-                                            discountType: _selectedDiskon!.type,
-                                            discountRef: (_besarDiskon ?? 0),
-                                            total: _finalTotalWithDiscount,
-                                            paymentMethod:
-                                                _selectedPaymentMethod
-                                                        ?.payment_name ??
-                                                    'N/A',
-                                            orderTime: DateTime.now(),
-                                          )),
+                                final recalculatedTotal = _calculateFinalTotal(
+                                  int.parse(order.order_totals),
+                                  _selectedDiskon,
+                                  _referralDiscount,
+                                  _besarDiskon ?? 0,
                                 );
                                 try {
                                   final result = await makeOrder(
@@ -1797,20 +1772,18 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                       outlet_id: widget.outletId,
                                       customer_name: order.customer_name,
                                       phone_number: order.phone_number,
-                                      order_payment: _selectedPaymentMethod
-                                              ?.id ??
-                                          1, // Use selected payment ID or default
+                                      order_payment:
+                                          _selectedPaymentMethod?.id ?? 1,
                                       order_table: order.order_table,
                                       discount_id: _selectedDiskon?.id,
                                       referral_code: refCode,
                                       order_totals:
-                                          _finalTotalWithDiscount.toString(),
+                                          recalculatedTotal.toString(),
                                       order_type: order.order_type,
                                       order_details: order.order_details,
                                     ),
                                   );
-                                  if (mounted)
-                                    setState(() => _cartItems.clear());
+
                                   if (result['success'] == true) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
@@ -1818,15 +1791,46 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                         backgroundColor: Colors.green,
                                       ),
                                     );
-                                    setState(() => _cartItems.clear());
+
+                                    // Pindahkan pushReplacement ke dalam blok if
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Previewbill(
+                                          outletName: outletName,
+                                          orderId:
+                                              'ORDER-${DateTime.now().millisecondsSinceEpoch}',
+                                          customerName: order.customer_name,
+                                          orderType: order.order_type,
+                                          tableNumber: order.order_table ?? 0,
+                                          items: _cartItems,
+                                          subtotal:
+                                              _calculateOrderTotal(_cartItems),
+                                          discountVoucher:
+                                              (_selectedDiskon?.amount ?? 0),
+                                          discountType: _selectedDiskon!.type,
+                                          discountRef: (_besarDiskon ?? 0),
+                                          total: _finalTotalWithDiscount,
+                                          paymentMethod: _selectedPaymentMethod
+                                                  ?.payment_name ??
+                                              'N/A',
+                                          orderTime: DateTime.now(),
+                                        ),
+                                      ),
+                                    );
+                                    if (!mounted)
+                                      setState(() => _cartItems.clear());
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(result['message']),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
                                   }
                                 } catch (e) {
                                   if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(
-                                            'Failed to process order: $e')),
-                                  );
+                                  print(e);
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -1892,27 +1896,27 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     return total;
   }
 
-  int _calculateFinalTotal(
-      int orderTotal, Diskon? discount, int referralDiscount) {
+  int _calculateFinalTotal(int orderTotal, Diskon? discount,
+      int referralDiscount, int discountPercent) {
     int tempTotal = orderTotal;
-    print('Initial Order Total: $tempTotal');
-    print(
-        'Selected Discount: ${discount?.name} (${discount?.type} ${discount?.amount}) ');
-    print('Referral Discount: $referralDiscount');
 
-    // Apply main discount first
+    // 1. Apply referral discount first (percentage of original order total)
+
+    // 2. Then apply main discount (fixed or percentage)
     if (discount != null && discount != noDiscountOption) {
       if (discount.type == 'fixed') {
         tempTotal -= discount.amount;
+        tempTotal -= (tempTotal * discountPercent ~/ 100);
+        // Untuk diskon fixed, langsung kurangi amount
       } else {
-        tempTotal -= (tempTotal * discount.amount ~/ 100);
+        if (referralDiscount > 0) {
+          tempTotal -= (orderTotal * discountPercent ~/ 100);
+        }
+        tempTotal -=
+            (tempTotal * discount.amount ~/ 100); // Untuk diskon persentase
       }
     }
-    print('Total after discount: $tempTotal');
-    // Then apply referral discount
-    tempTotal -= referralDiscount;
-    print('Total after referral discount: $tempTotal');
-    // Ensure total doesn't go negative
+
     return tempTotal > 0 ? tempTotal : 0;
   }
 }
