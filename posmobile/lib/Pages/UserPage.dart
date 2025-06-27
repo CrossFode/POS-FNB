@@ -54,7 +54,8 @@ class _UserPageState extends State<UserPage> {
       } else {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load users: ${response.statusCode}')),
+          SnackBar(
+              content: Text('Failed to load users: ${response.statusCode}')),
         );
       }
     } catch (error) {
@@ -66,28 +67,29 @@ class _UserPageState extends State<UserPage> {
   }
 
   Future<void> fetchRoles(String token) async {
-  setState(() => isRoleLoading = true);
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/roles'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> responseData = json.decode(response.body)['data'];
-      setState(() {
-        roleOptions = responseData.map((role) => RoleModel.fromJson(role)).toList();
-        isRoleLoading = false;
-      });
-    } else {
+    setState(() => isRoleLoading = true);
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/roles'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = json.decode(response.body)['data'];
+        setState(() {
+          roleOptions =
+              responseData.map((role) => RoleModel.fromJson(role)).toList();
+          isRoleLoading = false;
+        });
+      } else {
+        setState(() => isRoleLoading = false);
+      }
+    } catch (e) {
       setState(() => isRoleLoading = false);
     }
-  } catch (e) {
-    setState(() => isRoleLoading = false);
   }
-}
 
   Future<void> fetchOutlets(String token) async {
     setState(() => isOutletLoading = true);
@@ -99,9 +101,10 @@ class _UserPageState extends State<UserPage> {
           'Accept': 'application/json',
         },
       );
-      
+
       if (response.statusCode == 200) {
-        final OutletResponse outletResponse = OutletResponse.fromJson(json.decode(response.body));
+        final OutletResponse outletResponse =
+            OutletResponse.fromJson(json.decode(response.body));
         setState(() {
           outletOptions = outletResponse.data;
           isOutletLoading = false;
@@ -109,7 +112,8 @@ class _UserPageState extends State<UserPage> {
       } else {
         setState(() => isOutletLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load outlets: ${response.statusCode}')),
+          SnackBar(
+              content: Text('Failed to load outlets: ${response.statusCode}')),
         );
       }
     } catch (e) {
@@ -120,12 +124,44 @@ class _UserPageState extends State<UserPage> {
     }
   }
 
+  Future<void> _toggleUserStatus(User user, bool newStatus) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/user/${user.id}/status'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'is_active': newStatus ? 1 : 0,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        fetchUsers(widget.token, widget.outletId);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('User status updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update user status')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
   Future<void> _showEditUserDialog(User user) async {
   final _formKey = GlobalKey<FormState>();
   TextEditingController nameController = TextEditingController(text: user.name);
   TextEditingController emailController = TextEditingController(text: user.email);
   int selectedRoleId = user.roleId;
-  String? selectedOutletId = user.outlets.isNotEmpty ? user.outlets.first.id : null;
+
+  Set<String> selectedOutletIds = user.outlets.map((outlet) => outlet.id).toSet();
   bool isSubmitting = false;
 
   await showDialog(
@@ -251,11 +287,11 @@ class _UserPageState extends State<UserPage> {
                         ),
                   const SizedBox(height: 18),
 
-                  // Outlet
+                  // Changed: Outlet checkboxes instead of dropdown
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      "ASSIGN OUTLET",
+                      "ASSIGN OUTLETS",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1,
@@ -267,30 +303,54 @@ class _UserPageState extends State<UserPage> {
                   const SizedBox(height: 6),
                   isOutletLoading
                       ? const CircularProgressIndicator()
-                      : DropdownButtonFormField<String>(
-                          value: selectedOutletId,
-                          decoration: InputDecoration(
-                            hintText: 'Outlet',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            filled: true,
-                            fillColor: Colors.white,
+                      : Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[400]!),
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white,
                           ),
-                          items: outletOptions
-                              .map((outlet) => DropdownMenuItem(
-                                    value: outlet.id,
-                                    child: Text(outlet.outlet_name),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedOutletId = value;
-                            });
-                          },
-                          validator: (value) => value == null ? 'Please select an outlet' : null,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (outletOptions.isEmpty)
+                                const Text('No outlets available')
+                              else
+                                ...outletOptions.map((outlet) => CheckboxListTile(
+                                  value: selectedOutletIds.contains(outlet.id),
+                                  title: Text(
+                                    outlet.outlet_name,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        selectedOutletIds.add(outlet.id);
+                                      } else {
+                                        selectedOutletIds.remove(outlet.id);
+                                      }
+                                    });
+                                  },
+                                  contentPadding: EdgeInsets.zero,
+                                  controlAffinity: ListTileControlAffinity.leading,
+                                  activeColor: const Color.fromARGB(255, 53, 150, 105),
+                                )).toList(),
+                            ],
+                          ),
                         ),
+                  // Add validation message for outlets
+                  if (selectedOutletIds.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Please select at least one outlet',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -325,7 +385,8 @@ class _UserPageState extends State<UserPage> {
                     onPressed: isSubmitting
                         ? null
                         : () async {
-                            if (_formKey.currentState!.validate()) {
+                            // Changed: Validate that at least one outlet is selected
+                            if (_formKey.currentState!.validate() && selectedOutletIds.isNotEmpty) {
                               setState(() => isSubmitting = true);
                               try {
                                 final response = await http.put(
@@ -339,7 +400,8 @@ class _UserPageState extends State<UserPage> {
                                     'name': nameController.text,
                                     'email': emailController.text,
                                     'role_id': selectedRoleId,
-                                    'outlets_id': selectedOutletId != null ? [selectedOutletId] : [],
+                                    // Changed: Send list of selected outlet IDs
+                                    'outlets_id': selectedOutletIds.toList(),
                                   }),
                                 );
                                 if (response.statusCode == 200) {
@@ -361,6 +423,10 @@ class _UserPageState extends State<UserPage> {
                               } finally {
                                 setState(() => isSubmitting = false);
                               }
+                            } else if (selectedOutletIds.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please select at least one outlet')),
+                              );
                             }
                           },
                     style: ElevatedButton.styleFrom(
@@ -400,7 +466,9 @@ class _UserPageState extends State<UserPage> {
     TextEditingController emailController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
     int? selectedRoleId;
-    String? selectedOutletId;
+    
+    // Changed: Use Set to store multiple selected outlet IDs
+    Set<String> selectedOutletIds = <String>{};
     bool isSubmitting = false;
 
     await showDialog(
@@ -552,15 +620,16 @@ class _UserPageState extends State<UserPage> {
                                 selectedRoleId = value;
                               });
                             },
-                            validator: (value) => value == null ? 'Please select a role' : null,
+                            validator: (value) =>
+                                value == null ? 'Please select a role' : null,
                           ),
                     const SizedBox(height: 18),
 
-                    // Outlet
+                    // Changed: Outlet checkboxes instead of dropdown
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "ASSIGN OUTLET",
+                        "ASSIGN OUTLETS",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1,
@@ -572,30 +641,54 @@ class _UserPageState extends State<UserPage> {
                     const SizedBox(height: 6),
                     isOutletLoading
                         ? const CircularProgressIndicator()
-                        : DropdownButtonFormField<String>(
-                            value: selectedOutletId,
-                            decoration: InputDecoration(
-                              hintText: 'Outlet',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                              filled: true,
-                              fillColor: Colors.white,
+                        : Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[400]!),
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.white,
                             ),
-                            items: outletOptions
-                                .map((outlet) => DropdownMenuItem(
-                                      value: outlet.id,
-                                      child: Text(outlet.outlet_name),
-                                    ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedOutletId = value;
-                              });
-                            },
-                            validator: (value) => value == null ? 'Please select an outlet' : null,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (outletOptions.isEmpty)
+                                  const Text('No outlets available')
+                                else
+                                  ...outletOptions.map((outlet) => CheckboxListTile(
+                                    value: selectedOutletIds.contains(outlet.id),
+                                    title: Text(
+                                      outlet.outlet_name,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    onChanged: (bool? value) {
+                                      setState(() {
+                                        if (value == true) {
+                                          selectedOutletIds.add(outlet.id);
+                                        } else {
+                                          selectedOutletIds.remove(outlet.id);
+                                        }
+                                      });
+                                    },
+                                    contentPadding: EdgeInsets.zero,
+                                    controlAffinity: ListTileControlAffinity.leading,
+                                    activeColor: const Color.fromARGB(255, 53, 150, 105),
+                                  )).toList(),
+                              ],
+                            ),
                           ),
+                    // Add validation message for outlets
+                    if (selectedOutletIds.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Please select at least one outlet',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -630,7 +723,8 @@ class _UserPageState extends State<UserPage> {
                       onPressed: isSubmitting
                           ? null
                           : () async {
-                              if (_formKey.currentState!.validate()) {
+                              // Changed: Validate that at least one outlet is selected
+                              if (_formKey.currentState!.validate() && selectedOutletIds.isNotEmpty) {
                                 setState(() => isSubmitting = true);
                                 try {
                                   final response = await http.post(
@@ -645,7 +739,8 @@ class _UserPageState extends State<UserPage> {
                                       'email': emailController.text,
                                       'password': passwordController.text,
                                       'role_id': selectedRoleId,
-                                      'outlets_id': selectedOutletId != null ? [selectedOutletId] : [],
+                                      // Changed: Send list of selected outlet IDs
+                                      'outlets_id': selectedOutletIds.toList(),
                                     }),
                                   );
                                   if (response.statusCode == 201 || response.statusCode == 200) {
@@ -667,6 +762,10 @@ class _UserPageState extends State<UserPage> {
                                 } finally {
                                   setState(() => isSubmitting = false);
                                 }
+                              } else if (selectedOutletIds.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please select at least one outlet')),
+                                );
                               }
                             },
                       style: ElevatedButton.styleFrom(
@@ -891,46 +990,53 @@ class _UserPageState extends State<UserPage> {
                             .toList();
                         final user = filteredUsers[idx];
                         return Card(
-                          color: Colors.white,
-                          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              child: Text(
-                                user.name.isNotEmpty ? user.name[0] : '?',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            title: Text(user.name),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(user.email),
-                                Text('Role: ${user.role}', style: TextStyle(fontSize: 12)),
-                                if (user.outlets.isNotEmpty)
-                                  Text(
-                                    'Outlet: ${user.outlets.first.outletName}',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                              ],
-                            ),
-                            onTap: () => _showEditUserDialog(user),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.edit, color: const Color.fromARGB(255, 101, 104, 106)),
-                                  onPressed: () => _showEditUserDialog(user),
-                                  tooltip: 'Edit',
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _deleteUser(user),
-                                  tooltip: 'Delete',
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+  color: Colors.white,
+  margin: EdgeInsets.symmetric(horizontal: 4, vertical: 5),
+  child: ListTile(
+    leading: CircleAvatar(
+      child: Text(
+        user.name.isNotEmpty ? user.name[0] : '?',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+    ),
+    title: Text(user.name),
+    subtitle: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(user.email),
+        Text('Role: ${user.role}', style: TextStyle(fontSize: 12)),
+        if (user.outlets.isNotEmpty)
+          Text(
+            'Outlet: ${user.outlets.map((o) => o.outletName).join(", ")}',
+            style: TextStyle(fontSize: 12),
+          ),
+      ],
+    ),
+    trailing: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Transform.scale(
+          scale: 0.8,
+          child: Switch(
+            value: user.isActive == 1,
+            onChanged: (value) => _toggleUserStatus(user, value),
+            activeColor: const Color.fromARGB(255, 53, 150, 105),
+          ),
+        ),
+        IconButton(
+          icon: Icon(Icons.edit, color: const Color.fromARGB(255, 101, 104, 106)),
+          onPressed: () => _showEditUserDialog(user),
+          tooltip: 'Edit',
+        ),
+        IconButton(
+          icon: Icon(Icons.delete, color: Colors.red),
+          onPressed: () => _deleteUser(user),
+          tooltip: 'Delete',
+        ),
+      ],
+    ),
+  ),
+);
                       },
                     ),
                   ),
