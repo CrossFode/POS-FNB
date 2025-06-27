@@ -510,41 +510,7 @@ class _HistoryPageState extends State<HistoryPage>
                                 onChanged: (value) =>
                                     setState(() => editedPaymentId = value),
                               ),
-                              const SizedBox(height: 18),
 
-                              // Order Type
-                              const Text(
-                                "ORDER TYPE",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              DropdownButtonFormField<String>(
-                                value: editedOrderType,
-                                isExpanded: true,
-                                decoration: InputDecoration(
-                                  hintText: 'Order Type',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 12),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                ),
-                                items: orderTypes.map((type) {
-                                  return DropdownMenuItem<String>(
-                                    value: type['value'],
-                                    child: Text(type['label']),
-                                  );
-                                }).toList(),
-                                onChanged: (value) =>
-                                    setState(() => editedOrderType = value),
-                              ),
                               const SizedBox(height: 18),
 
                               // Order Date
@@ -1035,7 +1001,7 @@ class _HistoryPageState extends State<HistoryPage>
                                       style:
                                           const TextStyle(color: Colors.green)),
                                   Text(
-                                    '-${_formatPrice((order.subtotalPrice * order.referralDiscount!) ~/ 100)}',
+                                    '-${_formatPrice(_calculateReferralDiscount(order))}',
                                     style: const TextStyle(color: Colors.green),
                                   ),
                                 ],
@@ -1152,6 +1118,28 @@ class _HistoryPageState extends State<HistoryPage>
       decimalDigits: 0,
     );
     return formatter.format(price).replaceAll(',', '.');
+  }
+
+  int _calculateReferralDiscount(History order) {
+    // Jika tidak ada referral atau persentase diskon
+    if (order.referralCode == null || order.referralDiscount == null) {
+      return 0;
+    }
+
+    int priceAfterDiscount = order.subtotalPrice;
+
+    // Jika ada diskon reguler, hitung harga setelah diskon
+    if (order.discountName != null && order.discountAmount != null) {
+      if (order.discountType == 'percent') {
+        priceAfterDiscount -=
+            (order.subtotalPrice * order.discountAmount!) ~/ 100;
+      } else {
+        priceAfterDiscount -= order.discountAmount!;
+      }
+    }
+
+    // Hitung diskon referral dari harga setelah diskon reguler
+    return (priceAfterDiscount * order.referralDiscount!) ~/ 100;
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
