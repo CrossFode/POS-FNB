@@ -55,6 +55,44 @@ class _OutletPageState extends State<OutletPage> {
     }
   }
 
+  Future<void> _toggleOutletStatus(Outlet outlet, bool newStatus) async {
+  try {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/outlet/status/${outlet.id}'), // Changed from /status endpoint
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'is_active': newStatus,
+      }),
+    );
+
+    print('Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      // Update local state immediately for better UX
+      setState(() {
+        outlet.isActive = newStatus ? 1 : 0;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Outlet status updated successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update status: ${response.body}')),
+      );
+    }
+  } catch (e) {
+    print('Error updating outlet status: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: ${e.toString()}')),
+    );
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,121 +133,173 @@ class _OutletPageState extends State<OutletPage> {
   }
 
   Widget _buildOutletCard(Outlet outlet) {
-    return Card(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Colors.grey[300]!, width: 1),
-      ),
-      margin: EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Outlet Image
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: outlet.image != null
-                        ? DecorationImage(
-                            image: NetworkImage(outlet.image!),
-                            fit: BoxFit.cover,
-                          )
+  return Card(
+    color: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+      side: BorderSide(color: Colors.grey[300]!, width: 1),
+    ),
+    margin: EdgeInsets.only(bottom: 16),
+    child: Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Outlet Image remains the same
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      image: outlet.image != null
+                          ? DecorationImage(
+                              image: NetworkImage(outlet.image!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                      color: Colors.grey[300],
+                    ),
+                    child: outlet.image == null
+                        ? Icon(Icons.store, color: Colors.grey[500], size: 40)
                         : null,
-                    color: Colors.grey[300],
                   ),
-                  child: outlet.image == null
-                      ? Icon(Icons.store, color: Colors.grey[500], size: 40)
-                      : null,
-                ),
-                SizedBox(width: 16),
-                // Outlet Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        outlet.outlet_name, // Changed from name to outlet_name
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  SizedBox(width: 16),
+                  // Outlet Details remain the same
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          outlet.outlet_name,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          outlet.email,
+                          style: TextStyle(color: Colors.blue[600]),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          outlet.latitude != null
+                              ? 'Latitude: ${outlet.latitude}'
+                              : 'Latitude: Not set',
+                          style: TextStyle(color: const Color.fromARGB(255, 105, 105, 105))),
+                        SizedBox(height: 4),
+                        Text(
+                          outlet.longitude != null
+                              ? 'Longitude: ${outlet.longitude}'
+                              : 'Longitude: Not set',
+                          style: TextStyle(color: const Color.fromARGB(255, 105, 105, 105)),)
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              // Action Buttons remain the same
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => _showEditOutletDialog(outlet),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        minimumSize: const Size(0, 36),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(color: Colors.grey[300]!),
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        outlet.email,
-                        style: TextStyle(color: Colors.blue[600]),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            // Action Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => _showEditOutletDialog(outlet),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10), // lebih kecil
-                      minimumSize: const Size(
-                          0, 36), // tinggi 36, lebar mengikuti parent
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(10), // sudut lebih kecil
-                        side: BorderSide(color: Colors.grey[300]!),
-                      ),
-                    ),
-                    child: const Text(
-                      'Edit',
-                      style: TextStyle(
-                        fontSize: 14, // lebih kecil
-                        fontWeight: FontWeight.w600,
-                        color: Color.fromARGB(255, 53, 150, 105),
+                      child: const Text(
+                        'Edit',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color.fromARGB(255, 53, 150, 105),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8), // lebih kecil
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _confirmDelete(outlet),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10), // lebih kecil
-                      minimumSize: const Size(0, 36), // tinggi 36
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _confirmDelete(outlet),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        minimumSize: const Size(0, 36),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Delete',
-                      style: TextStyle(
-                        fontSize: 14, // lebih kecil
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                      child: const Text(
+                        'Delete',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+        // Updated Positioned widget with larger toggle button
+        Positioned(
+          top: 8,
+          right: 8,
+          child: GestureDetector(
+            onTap: () async {
+              await _toggleOutletStatus(outlet, outlet.isActive != 1);
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6), // Increased padding
+              decoration: BoxDecoration(
+                color: (outlet.isActive == 1 ? Colors.green : Colors.grey).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(16), // Slightly larger border radius
+                border: Border.all(
+                  color: outlet.isActive == 1 ? Colors.green : Colors.grey,
+                  width: 1.5, // Slightly thicker border
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    outlet.isActive == 1 ? Icons.check_circle : Icons.circle,
+                    size: 18, // Slightly larger icon
+                    color: outlet.isActive == 1 ? Colors.green : Colors.grey,
+                  ),
+                  SizedBox(width: 6), // Increased spacing
+                  Text(
+                    outlet.isActive == 1 ? 'ACTIVE' : 'INACTIVE',
+                    style: TextStyle(
+                      fontSize: 14, // Increased font size
+                      fontWeight: FontWeight.bold,
+                      color: outlet.isActive == 1 ? Colors.green : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   // Add dialog implementations and other helper methods here
   Future<void> _showEditOutletDialog(Outlet outlet) async {
@@ -432,11 +522,12 @@ class _OutletPageState extends State<OutletPage> {
     final _formKey = GlobalKey<FormState>();
     TextEditingController nameController = TextEditingController();
     TextEditingController emailController = TextEditingController();
-    TextEditingController longitudeController = TextEditingController();
-    TextEditingController latitudeController = TextEditingController();
-    bool isDineIn = false;
-    bool isLabel = false;
-    bool isKitchen = false;
+    TextEditingController longitudeController = TextEditingController(); // Tambahan
+    TextEditingController latitudeController = TextEditingController();  // Tambahan
+    // bool isDineIn = false;
+    // bool isLabel = false;
+    // bool isKitchen = false;
+  
     File? imageFile;
     bool isSubmitting = false;
 
@@ -615,31 +706,31 @@ class _OutletPageState extends State<OutletPage> {
                       const SizedBox(height: 18),
 
                       // CheckboxListTile untuk fitur lain
-                      CheckboxListTile(
-                        title: const Text('DINE IN'),
-                        value: isDineIn,
-                        onChanged: (val) => setState(() => isDineIn = val ?? false),
-                        controlAffinity: ListTileControlAffinity.leading,
-                        activeColor: const Color.fromARGB(255, 53, 150, 105),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      CheckboxListTile(
-                        title: const Text('PRINT LABEL'),
-                        value: isLabel,
-                        onChanged: (val) => setState(() => isLabel = val ?? false),
-                        controlAffinity: ListTileControlAffinity.leading,
-                        activeColor: const Color.fromARGB(255, 53, 150, 105),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      CheckboxListTile(
-                        title: const Text('PRINT KITCHEN'),
-                        value: isKitchen,
-                        onChanged: (val) => setState(() => isKitchen = val ?? false),
-                        controlAffinity: ListTileControlAffinity.leading,
-                        activeColor: const Color.fromARGB(255, 53, 150, 105),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      const SizedBox(height: 24),
+                      // CheckboxListTile(
+                      //   title: const Text('DINE IN'),
+                      //   value: isDineIn,
+                      //   onChanged: (val) => setState(() => isDineIn = val ?? false),
+                      //   controlAffinity: ListTileControlAffinity.leading,
+                      //   activeColor: const Color.fromARGB(255, 53, 150, 105),
+                      //   contentPadding: EdgeInsets.zero,
+                      // ),
+                      // CheckboxListTile(
+                      //   title: const Text('PRINT LABEL'),
+                      //   value: isLabel,
+                      //   onChanged: (val) => setState(() => isLabel = val ?? false),
+                      //   controlAffinity: ListTileControlAffinity.leading,
+                      //   activeColor: const Color.fromARGB(255, 53, 150, 105),
+                      //   contentPadding: EdgeInsets.zero,
+                      // ),
+                      // CheckboxListTile(
+                      //   title: const Text('PRINT KITCHEN'),
+                      //   value: isKitchen,
+                      //   onChanged: (val) => setState(() => isKitchen = val ?? false),
+                      //   controlAffinity: ListTileControlAffinity.leading,
+                      //   activeColor: const Color.fromARGB(255, 53, 150, 105),
+                      //   contentPadding: EdgeInsets.zero,
+                      // ),
+                      // const SizedBox(height: 24),
 
                       // Action Buttons
                       Row(
@@ -683,9 +774,9 @@ class _OutletPageState extends State<OutletPage> {
                                           });
                                           request.fields['outlet_name'] = nameController.text;
                                           request.fields['email'] = emailController.text;
-                                          request.fields['is_dinein'] = isDineIn ? '1' : '0';
-                                          request.fields['is_label'] = isLabel ? '1' : '0';
-                                          request.fields['is_kitchen'] = isKitchen ? '1' : '0';
+                                          // request.fields['is_dinein'] = isDineIn ? '1' : '0';
+                                          // request.fields['is_label'] = isLabel ? '1' : '0';
+                                          // request.fields['is_kitchen'] = isKitchen ? '1' : '0';
                                           if (latitudeController.text.isNotEmpty) {
                                             request.fields['latitude'] = latitudeController.text;
                                           }
