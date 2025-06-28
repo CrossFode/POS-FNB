@@ -8,6 +8,7 @@ import 'package:posmobile/Components/Navbar.dart';
 import 'package:posmobile/Pages/Dashboard/Home.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Model/Model.dart';
+import 'package:posmobile/Api/CreateOrder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CategoryPage extends StatefulWidget {
@@ -31,11 +32,25 @@ class CategoryPage extends StatefulWidget {
 class _CategoryPageState extends State<CategoryPage> {
   final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
   late Future<CategoryResponse> _categoryFuture;
+  String _outletName = '';
 
   @override
   void initState() {
     super.initState();
     _categoryFuture = fetchCategoryinOutlet(widget.token, widget.outletId);
+    _loadOutletName();
+  }
+
+  Future<void> _loadOutletName() async {
+    try {
+      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      setState(() {
+        _outletName = outletResponse.data.outlet_name;
+      });
+    } catch (e) {
+      debugPrint('Error fetching outlet name: $e');
+      // Don't show error to user, just keep empty outlet name
+    }
   }
 
   Future<CategoryResponse> fetchCategoryinOutlet(token, outletId) async {
@@ -399,13 +414,38 @@ class _CategoryPageState extends State<CategoryPage> {
           automaticallyImplyLeading: false,
           title: Padding(
             padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
-            child: Text(
-              "Category",
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 255, 255, 255),
-              ),
+            child: Row(
+              children: [
+                Text(
+                  "CATEGORY",
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                  ),
+                ),
+                if (_outletName.isNotEmpty) ...[
+                  Text(
+                    " ",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Color.fromARGB(255, 230, 230, 230),
+                    ),
+                  ),
+                  Flexible(
+                    child: Text(
+                      _outletName,
+                     style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           backgroundColor: const Color.fromARGB(255, 53, 150, 105),
