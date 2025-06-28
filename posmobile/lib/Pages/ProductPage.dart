@@ -6,6 +6,7 @@ import 'package:posmobile/Model/Model.dart';
 import 'package:flutter/services.dart';
 import 'package:posmobile/Components/Navbar.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:posmobile/Api/CreateOrder.dart';
 
 import 'package:posmobile/Pages/Dashboard/Home.dart';
 
@@ -48,12 +49,26 @@ class _ProductPageState extends State<ProductPage> {
   Map<String, bool> productStatus = {};
   Map<int, bool> _productActiveStatus = {};
   bool _isLoading = true;
+  String _outletName = '';
 
   @override
   void initState() {
     super.initState();
     _productFuture = fetchAllProduct(widget.token, widget.outletId);
     _loadProducts();
+    _loadOutletName();
+  }
+
+  Future<void> _loadOutletName() async {
+    try {
+      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      setState(() {
+        _outletName = outletResponse.data.outlet_name;
+      });
+    } catch (e) {
+      debugPrint('Error fetching outlet name: $e');
+      // Don't show error to user, just keep empty outlet name
+    }
   }
 
   Future<void> _loadProducts() async {
@@ -686,13 +701,32 @@ class _ProductPageState extends State<ProductPage> {
           automaticallyImplyLeading: false,
           title: Padding(
             padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
-            child: Text(
-              "Menu",
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 255, 255, 255),
-              ),
+            child: Row(
+              children: [
+                Text(
+                  "PRODUCT",
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                  ),
+                ),
+                if (_outletName.isNotEmpty) ...[
+                  SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      "$_outletName",
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           backgroundColor: const Color.fromARGB(255, 53, 150, 105),

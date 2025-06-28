@@ -9,6 +9,7 @@ import 'package:posmobile/model/model.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Auth/login.dart';
 import 'package:posmobile/Pages/Dashboard/Home.dart';
+import 'package:posmobile/Api/CreateOrder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DiscountPage extends StatefulWidget {
@@ -40,6 +41,7 @@ class _DiscountPageState extends State<DiscountPage> {
   List<Outlet> _outlets = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  String _outletName = '';
 
   String get baseUrl => dotenv.env['API_BASE_URL'] ?? '';
 
@@ -65,7 +67,21 @@ class _DiscountPageState extends State<DiscountPage> {
         setState(() => _isLoading = false);
       } else {
         _loadData();
+        _loadOutletName();
       }
+    }
+  }
+
+  Future<void> _loadOutletName() async {
+    try {
+      final outletResponse =
+          await fetchOutletById(widget.token, widget.outletId);
+      setState(() {
+        _outletName = outletResponse.data.outlet_name;
+      });
+    } catch (e) {
+      debugPrint('Error fetching outlet name: $e');
+      // Don't show error to user, just keep empty outlet name
     }
   }
 
@@ -528,7 +544,34 @@ class _DiscountPageState extends State<DiscountPage> {
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text("Discount", style: TextStyle(fontSize: 30)),
+          title: Padding(
+            padding: const EdgeInsets.only(left: 30.0),
+            child: Row(
+              children: [
+                Text(
+                  "DISCOUNT ",
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                if (_outletName.isNotEmpty) ...[
+                  Flexible(
+                    child: Text(
+                      _outletName,
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
           backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           foregroundColor: const Color.fromARGB(255, 255, 255, 255),
         ),
@@ -765,7 +808,7 @@ class _DiscountPageState extends State<DiscountPage> {
               ),
               Divider(),
 
-              // Menu tambahan khusus untuk manager
+              //Menu tambahan khusus untuk manager
               if (widget.isManager) ...[
                 _buildMenuOption(
                   icon: Icons.card_giftcard,
