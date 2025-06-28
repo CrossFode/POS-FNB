@@ -181,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         child: Center(
                           child: Image.asset(
-                            'assets/images/LogoFix.png',
+                            'assets/images/LogoApkFixV2.png',
                             width: keyboardVisible ? 85 : 105,
                             height: keyboardVisible ? 85 : 105,
                             errorBuilder: (context, error, stackTrace) {
@@ -194,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       SizedBox(height: keyboardVisible ? 15 : 20),
                       Text(
-                        'POS.in',
+                        'Kasir.in',
                         style: TextStyle(
                           fontSize: keyboardVisible ? 32 : 40,
                           fontWeight: FontWeight.bold,

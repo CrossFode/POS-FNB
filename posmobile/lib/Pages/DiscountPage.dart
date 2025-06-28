@@ -74,7 +74,8 @@ class _DiscountPageState extends State<DiscountPage> {
 
   Future<void> _loadOutletName() async {
     try {
-      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      final outletResponse =
+          await fetchOutletById(widget.token, widget.outletId);
       setState(() {
         _outletName = outletResponse.data.outlet_name;
       });
@@ -556,14 +557,13 @@ class _DiscountPageState extends State<DiscountPage> {
                   ),
                 ),
                 if (_outletName.isNotEmpty) ...[
-                
                   Flexible(
                     child: Text(
                       _outletName,
                       style: TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 255, 255, 255),  
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -808,7 +808,7 @@ class _DiscountPageState extends State<DiscountPage> {
               ),
               Divider(),
 
-              // Menu tambahan khusus untuk manager
+              //Menu tambahan khusus untuk manager
               if (widget.isManager) ...[
                 _buildMenuOption(
                   icon: Icons.card_giftcard,
