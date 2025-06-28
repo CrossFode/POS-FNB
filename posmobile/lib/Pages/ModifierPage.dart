@@ -3,12 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:posmobile/Auth/login.dart';
 import 'package:posmobile/Components/Navbar.dart';
-import 'package:posmobile/Pages/Dashboard/Home.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/model/Model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:posmobile/Api/CreateOrder.dart';
 
 class ModifierPage extends StatefulWidget {
   final String token;
@@ -33,11 +31,25 @@ class ModifierPage extends StatefulWidget {
 class _ModifierPageState extends State<ModifierPage> {
   late Future<ModifierResponse> _modifierFuture;
   final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
+  String _outletName = '';
 
   @override
   void initState() {
     super.initState();
     _modifierFuture = fetchModifiers();
+    _loadOutletName();
+  }
+
+  Future<void> _loadOutletName() async {
+    try {
+      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      setState(() {
+        _outletName = outletResponse.data.outlet_name;
+      });
+    } catch (e) {
+      debugPrint('Error fetching outlet name: $e');
+      // Don't show error to user, just keep empty outlet name
+    }
   }
 
   Future<ModifierResponse> fetchModifiers() async {
@@ -177,251 +189,257 @@ class _ModifierPageState extends State<ModifierPage> {
                   color: Colors.white,
                 ),
                 child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header
-                      const Center(
-                        child: Text(
-                          'Create Modifier',
+                  child: Form( // <-- Tambahkan Form di sini!
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        const Center(
+                          child: Text(
+                            'Create Modifier',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Modifier Group
+                        const Text(
+                          "MODIFIER GROUP",
                           style: TextStyle(
-                            fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Modifier Group
-                      const Text(
-                        "MODIFIER GROUP",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          hintText: 'Modifier Name',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          decoration: InputDecoration(
+                            hintText: 'Modifier Name',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
+                            filled: true,
+                            fillColor: Colors.white,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 12),
-                          filled: true,
-                          fillColor: Colors.white,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter modifier name';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) => _name = value,
                         ),
-                        onSaved: (value) => _name = value ?? '',
-                      ),
-                      const SizedBox(height: 18),
+                        const SizedBox(height: 18),
 
-                      // Modifier Options
-                      const Text(
-                        "MODIFIER OPTIONS",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                          fontSize: 13,
-                          color: Colors.black54,
+                        // Modifier Options
+                        const Text(
+                          "MODIFIER OPTIONS",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      ..._options.asMap().entries.map((entry) {
-                        int index = entry.key;
-                        var option = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  initialValue: option['name'],
-                                  decoration: InputDecoration(
-                                    hintText: 'Option Name',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 6),
+                        ..._options.asMap().entries.map((entry) {
+                          int index = entry.key;
+                          var option = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    initialValue: option['name'],
+                                    decoration: InputDecoration(
+                                      hintText: 'Option Name',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 12),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                     ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 12),
-                                    filled: true,
-                                    fillColor: Colors.white,
+                                    onChanged: (val) {
+                                      setState(() => option['name'] = val);
+                                    },
                                   ),
-                                  onChanged: (val) {
-                                    setState(() => option['name'] = val);
-                                  },
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _priceControllers[index],
-                                  decoration: InputDecoration(
-                                    hintText: 'Price',
-                                    prefixText: 'Rp ',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _priceControllers[index],
+                                    decoration: InputDecoration(
+                                      hintText: 'Price',
+                                      prefixText: 'Rp ',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 12),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                     ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 12),
-                                    filled: true,
-                                    fillColor: Colors.white,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly
+                                    ],
+                                    onChanged: (val) {
+                                      final cleaned = val.replaceFirst(
+                                          RegExp(r'^0+(?=\d)'), '');
+                                      if (val != cleaned) {
+                                        _priceControllers[index].text = cleaned;
+                                        _priceControllers[index].selection =
+                                            TextSelection.fromPosition(
+                                          TextPosition(offset: cleaned.length),
+                                        );
+                                      }
+                                      setState(() {
+                                        _options[index]['price'] =
+                                            int.tryParse(cleaned) ?? 0;
+                                      });
+                                    },
                                   ),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly
-                                  ],
-                                  onChanged: (val) {
-                                    final cleaned = val.replaceFirst(
-                                        RegExp(r'^0+(?=\d)'), '');
-                                    if (val != cleaned) {
-                                      _priceControllers[index].text = cleaned;
-                                      _priceControllers[index].selection =
-                                          TextSelection.fromPosition(
-                                        TextPosition(offset: cleaned.length),
-                                      );
-                                    }
+                                ),
+                                IconButton(
+                                  icon:
+                                      const Icon(Icons.close, color: Colors.red),
+                                  onPressed: () {
                                     setState(() {
-                                      _options[index]['price'] =
-                                          int.tryParse(cleaned) ?? 0;
+                                      _options.removeAt(index);
+                                      _priceControllers.removeAt(index);
                                     });
                                   },
                                 ),
-                              ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.close, color: Colors.red),
-                                onPressed: () {
-                                  setState(() {
-                                    _options.removeAt(index);
-                                    _priceControllers.removeAt(index);
-                                  });
-                                },
-                              ),
-                            ],
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _options.add({'name': '', 'price': 0});
+                              _priceControllers
+                                  .add(TextEditingController(text: ''));
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 53, 150, 105),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            minimumSize: const Size(400, 44),
+                            elevation: 0,
                           ),
-                        );
-                      }).toList(),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _options.add({'name': '', 'price': 0});
-                            _priceControllers
-                                .add(TextEditingController(text: ''));
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 53, 150, 105),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          child: const Text(
+                            'ADD MODIFIER OPTION',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                          minimumSize: const Size(400, 44),
-                          elevation: 0,
                         ),
-                        child: const Text(
-                          'ADD MODIFIER OPTION',
+                        const SizedBox(height: 18),
+
+                        // Modifier Limit
+                        const Text(
+                          "MODIFIER LIMIT",
                           style: TextStyle(
-                            fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 18),
-
-                      // Modifier Limit
-                      const Text(
-                        "MODIFIER LIMIT",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'REQUIRED?',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _isRequired == true,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isRequired = true;
-                                  });
-                                },
-                                activeColor: Color.fromARGB(255, 53, 150, 105),
-                              ),
-                              const Text('Yes'),
-                            ],
+                        const SizedBox(height: 6),
+                        const Text(
+                          'REQUIRED?',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(width: 24),
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _isRequired == false,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isRequired = false;
-                                  });
-                                },
-                                activeColor: Color.fromARGB(255, 53, 150, 105),
-                              ),
-                              const Text('No'),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Action Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              style: TextButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isRequired == true,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isRequired = true;
+                                    });
+                                  },
+                                  activeColor: Color.fromARGB(255, 53, 150, 105),
                                 ),
-                              ),
-                              child: const Text(
-                                'Cancel',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color.fromARGB(255, 53, 150, 105),
+                                const Text('Yes'),
+                              ],
+                            ),
+                            const SizedBox(width: 24),
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isRequired == false,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isRequired = false;
+                                    });
+                                  },
+                                  activeColor: Color.fromARGB(255, 53, 150, 105),
+                                ),
+                                const Text('No'),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Action Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: TextButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color.fromARGB(255, 53, 150, 105),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                if (_formKey.currentState!.validate()) {
-                                  _formKey.currentState!.save();
-
-                                  bool hasInvalidOptions = _options.any(
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    bool hasInvalidOptions = _options.any(
                                       (option) =>
                                           (option['name']
                                                   ?.toString()
@@ -429,60 +447,62 @@ class _ModifierPageState extends State<ModifierPage> {
                                                   .isEmpty ??
                                               true) ||
                                           (option['price'] == null ||
-                                              option['price'] < 0));
-
-                                  if (_options.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Please add at least one modifier option')),
+                                              option['price'] < 0),
                                     );
-                                    return;
-                                  }
 
-                                  if (hasInvalidOptions) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Please fill all option names and provide valid prices')),
-                                    );
-                                    return;
-                                  }
+                                    if (_options.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Please add at least one modifier option')),
+                                      );
+                                      return;
+                                    }
 
-                                  try {
-                                    await createModifier(
-                                      name: _name,
-                                      isRequired: _isRequired,
-                                      options: _options,
-                                    );
-                                    Navigator.of(context).pop();
-                                  } catch (e) {
-                                    // Error is already handled in createModifier
+                                    if (hasInvalidOptions) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Please fill all option names and provide valid prices')),
+                                      );
+                                      return;
+                                    }
+
+                                    try {
+                                      await createModifier(
+                                        name: _name,
+                                        isRequired: _isRequired,
+                                        options: _options,
+                                      );
+                                      Navigator.of(context).pop();
+                                    } catch (e) {
+                                      // Error is already handled in createModifier
+                                    }
                                   }
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 53, 150, 105),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 53, 150, 105),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
-                              ),
-                              child: const Text(
-                                'Create',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                child: const Text(
+                                  'Create',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -525,252 +545,258 @@ class _ModifierPageState extends State<ModifierPage> {
                   color: Colors.white,
                 ),
                 child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header
-                      const Center(
-                        child: Text(
-                          'Edit Modifier',
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        const Center(
+                          child: Text(
+                            'Edit Modifier',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Modifier Group
+                        const Text(
+                          "MODIFIER GROUP",
                           style: TextStyle(
-                            fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Modifier Group
-                      const Text(
-                        "MODIFIER GROUP",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        initialValue: _name,
-                        decoration: InputDecoration(
-                          hintText: 'Modifier Name',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          initialValue: _name,
+                          decoration: InputDecoration(
+                            hintText: 'Modifier Name',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
+                            filled: true,
+                            fillColor: Colors.white,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 12),
-                          filled: true,
-                          fillColor: Colors.white,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter modifier name';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) => _name = value,
                         ),
-                        onChanged: (value) => _name = value,
-                      ),
-                      const SizedBox(height: 18),
+                        const SizedBox(height: 18),
 
-                      // Modifier Options
-                      const Text(
-                        "MODIFIER OPTIONS",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                          fontSize: 13,
-                          color: Colors.black54,
+                        // Modifier Options
+                        const Text(
+                          "MODIFIER OPTIONS",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      ..._options.asMap().entries.map((entry) {
-                        int index = entry.key;
-                        var option = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  initialValue: option['name'],
-                                  decoration: InputDecoration(
-                                    hintText: 'Option Name',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 6),
+                        ..._options.asMap().entries.map((entry) {
+                          int index = entry.key;
+                          var option = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    initialValue: option['name'],
+                                    decoration: InputDecoration(
+                                      hintText: 'Option Name',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 12),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                     ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 12),
-                                    filled: true,
-                                    fillColor: Colors.white,
+                                    onChanged: (val) {
+                                      setState(() => option['name'] = val);
+                                    },
                                   ),
-                                  onChanged: (val) {
-                                    setState(() => option['name'] = val);
-                                  },
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _priceControllers[index],
-                                  decoration: InputDecoration(
-                                    hintText: 'Price',
-                                    prefixText: 'Rp ',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _priceControllers[index],
+                                    decoration: InputDecoration(
+                                      hintText: 'Price',
+                                      prefixText: 'Rp ',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 12),
+                                      filled: true,
+                                      fillColor: Colors.white,
                                     ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 12),
-                                    filled: true,
-                                    fillColor: Colors.white,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly
+                                    ],
+                                    onChanged: (val) {
+                                      final cleaned = val.replaceFirst(
+                                          RegExp(r'^0+(?=\d)'), '');
+                                      if (val != cleaned) {
+                                        _priceControllers[index].text = cleaned;
+                                        _priceControllers[index].selection =
+                                            TextSelection.fromPosition(
+                                          TextPosition(offset: cleaned.length),
+                                        );
+                                      }
+                                      setState(() {
+                                        _options[index]['price'] =
+                                            int.tryParse(cleaned) ?? 0;
+                                      });
+                                    },
                                   ),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly
-                                  ],
-                                  onChanged: (val) {
-                                    final cleaned = val.replaceFirst(
-                                        RegExp(r'^0+(?=\d)'), '');
-                                    if (val != cleaned) {
-                                      _priceControllers[index].text = cleaned;
-                                      _priceControllers[index].selection =
-                                          TextSelection.fromPosition(
-                                        TextPosition(offset: cleaned.length),
-                                      );
-                                    }
+                                ),
+                                IconButton(
+                                  icon:
+                                      const Icon(Icons.close, color: Colors.red),
+                                  onPressed: () {
                                     setState(() {
-                                      _options[index]['price'] =
-                                          int.tryParse(cleaned) ?? 0;
+                                      _options.removeAt(index);
+                                      _priceControllers.removeAt(index);
                                     });
                                   },
                                 ),
-                              ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.close, color: Colors.red),
-                                onPressed: () {
-                                  setState(() {
-                                    _options.removeAt(index);
-                                    _priceControllers.removeAt(index);
-                                  });
-                                },
-                              ),
-                            ],
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _options.add({'name': '', 'price': 0});
+                              _priceControllers
+                                  .add(TextEditingController(text: ''));
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 53, 150, 105),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            minimumSize: const Size(400, 44),
+                            elevation: 0,
                           ),
-                        );
-                      }).toList(),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _options.add({'name': '', 'price': 0});
-                            _priceControllers
-                                .add(TextEditingController(text: ''));
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 53, 150, 105),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          child: const Text(
+                            'ADD MODIFIER OPTION',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                          minimumSize: const Size(400, 44),
-                          elevation: 0,
                         ),
-                        child: const Text(
-                          'ADD MODIFIER OPTION',
+                        const SizedBox(height: 18),
+
+                        // Modifier Limit
+                        const Text(
+                          "MODIFIER LIMIT",
                           style: TextStyle(
-                            fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            letterSpacing: 1,
+                            fontSize: 13,
+                            color: Colors.black54,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 18),
-
-                      // Modifier Limit
-                      const Text(
-                        "MODIFIER LIMIT",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'REQUIRED?',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _isRequired == true,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isRequired = true;
-                                  });
-                                },
-                                activeColor: Color.fromARGB(255, 53, 150, 105),
-                              ),
-                              const Text('Yes'),
-                            ],
+                        const SizedBox(height: 6),
+                        const Text(
+                          'REQUIRED?',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(width: 24),
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _isRequired == false,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isRequired = false;
-                                  });
-                                },
-                                activeColor: Color.fromARGB(255, 53, 150, 105),
-                              ),
-                              const Text('No'),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Action Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              style: TextButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isRequired == true,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isRequired = true;
+                                    });
+                                  },
+                                  activeColor: Color.fromARGB(255, 53, 150, 105),
                                 ),
-                              ),
-                              child: const Text(
-                                'Cancel',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color.fromARGB(255, 53, 150, 105),
+                                const Text('Yes'),
+                              ],
+                            ),
+                            const SizedBox(width: 24),
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isRequired == false,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isRequired = false;
+                                    });
+                                  },
+                                  activeColor: Color.fromARGB(255, 53, 150, 105),
+                                ),
+                                const Text('No'),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Action Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: TextButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color.fromARGB(255, 53, 150, 105),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                if (_formKey.currentState!.validate()) {
-                                  _formKey.currentState!.save();
-
-                                  bool hasInvalidOptions = _options.any(
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    bool hasInvalidOptions = _options.any(
                                       (option) =>
                                           (option['name']
                                                   ?.toString()
@@ -778,61 +804,63 @@ class _ModifierPageState extends State<ModifierPage> {
                                                   .isEmpty ??
                                               true) ||
                                           (option['price'] == null ||
-                                              option['price'] < 0));
-
-                                  if (_options.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Please add at least one modifier option')),
+                                              option['price'] < 0),
                                     );
-                                    return;
-                                  }
 
-                                  if (hasInvalidOptions) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Please fill all option names and provide valid prices')),
-                                    );
-                                    return;
-                                  }
+                                    if (_options.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Please add at least one modifier option')),
+                                      );
+                                      return;
+                                    }
 
-                                  try {
-                                    await updateModifier(
-                                      modifierId: modifier.id,
-                                      name: _name,
-                                      isRequired: _isRequired,
-                                      options: _options,
-                                    );
-                                    Navigator.of(context).pop();
-                                  } catch (e) {
-                                    // Error is already handled in updateModifier
+                                    if (hasInvalidOptions) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Please fill all option names and provide valid prices')),
+                                      );
+                                      return;
+                                    }
+
+                                    try {
+                                      await updateModifier(
+                                        modifierId: modifier.id,
+                                        name: _name,
+                                        isRequired: _isRequired,
+                                        options: _options,
+                                      );
+                                      Navigator.of(context).pop();
+                                    } catch (e) {
+                                      // Error is already handled in updateModifier
+                                    }
                                   }
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 53, 150, 105),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 53, 150, 105),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
-                              ),
-                              child: const Text(
-                                'Save',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                child: const Text(
+                                  'Save',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1022,13 +1050,32 @@ class _ModifierPageState extends State<ModifierPage> {
         automaticallyImplyLeading: false,
         title: Padding(
           padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
-          child: Text(
-            "Modifiers",
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 255, 255, 255),
-            ),
+          child: Row(
+            children: [
+              Text(
+                "MODIFIER",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
+              ),
+              if (_outletName.isNotEmpty) ...[
+                SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    "$_outletName",
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
         backgroundColor: const Color.fromARGB(255, 53, 150, 105),
@@ -1139,9 +1186,8 @@ class _ModifierPageState extends State<ModifierPage> {
                                         title: const Center(
                                             child: Text('Delete Modifier')),
                                         content: const Text(
-                                          'Apakah anda yakin ingin menghapus modifier ini?',
-                                          textAlign: TextAlign.center,
-                                        ),
+                                            'Apakah anda yakin ingin menghapus modifier ini?',          textAlign: TextAlign.center,
+),
                                         actionsPadding:
                                             const EdgeInsets.symmetric(
                                                 horizontal: 16, vertical: 16),
@@ -1307,19 +1353,19 @@ class _ModifierPageState extends State<ModifierPage> {
   }
 
   Widget _buildNavbar() {
+    // Anda bisa membuat navbar khusus atau menggunakan yang sudah ada
+    // Contoh dengan NavbarManager:
     return FlexibleNavbar(
       currentIndex: widget.navIndex,
       isManager: widget.isManager,
       onTap: (index) {
-        if (widget.outletId == null && index != 3) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Please select an outlet first')),
-          );
-          return;
-        }
         if (index != widget.navIndex) {
-          print("Tapping on index: $index");
-          _handleNavigation(index);
+          if (widget.onNavItemTap != null) {
+            widget.onNavItemTap!(index);
+          } else {
+            // Default navigation behavior
+            _handleNavigation(index);
+          }
         }
       },
       onMorePressed: () {
@@ -1330,7 +1376,6 @@ class _ModifierPageState extends State<ModifierPage> {
 
   void _showMoreOptions(BuildContext context) {
     showModalBottomSheet(
-      isScrollControlled: true,
       context: context,
       builder: (context) {
         return Container(
@@ -1338,147 +1383,41 @@ class _ModifierPageState extends State<ModifierPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Menu untuk semua user (baik manager maupun staff)
               _buildMenuOption(
                 icon: Icons.settings,
-                color: Colors.green,
                 label: 'Modifier',
-                onTap: () {
-                  if (widget.outletId == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please select an outlet first')),
-                    );
-                    return;
-                  }
-                  _navigateTo(ModifierPage(
-                    token: widget.token,
-                    outletId: widget.outletId!,
-                    isManager: widget.isManager,
-                  ));
-                },
+                onTap: () {},
               ),
               Divider(),
               _buildMenuOption(
-                icon: Icons.category,
-                color: Colors.grey,
-                label: 'Category',
-                onTap: () {
-                  if (widget.outletId == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please select an outlet first')),
-                    );
-                    return;
-                  }
-                  _navigateTo(CategoryPage(
-                    token: widget.token,
-                    outletId: widget.outletId!,
-                    isManager: widget.isManager,
-                  ));
-                },
+                icon: Icons.card_giftcard,
+                label: 'Referral Code',
+                onTap: () => _navigateTo(ReferralCodePage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
               ),
               Divider(),
-
-              // Menu tambahan khusus untuk manager
-              if (widget.isManager) ...[
-                _buildMenuOption(
-                  icon: Icons.card_giftcard,
-                  color: Colors.grey,
-                  label: 'Referral Code',
-                  onTap: () {
-                    if (widget.outletId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text('Please select an outlet first')),
-                      );
-                      return;
-                    }
-                    _navigateTo(ReferralCodePage(
-                      token: widget.token,
-                      outletId: widget.outletId!,
-                      isManager: widget.isManager,
-                    ));
-                  },
-                ),
-                Divider(),
-                _buildMenuOption(
-                  icon: Icons.discount,
-                  color: Colors.grey,
-                  label: 'Discount',
-                  onTap: () {
-                    if (widget.outletId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text('Please select an outlet first')),
-                      );
-                      return;
-                    }
-                    _navigateTo(DiscountPage(
-                      token: widget.token,
-                      userRoleId: 2,
-                      outletId: widget.outletId!,
-                      isManager: widget.isManager,
-                      isOpened: true,
-                    ));
-                  },
-                ),
-                Divider(),
-                _buildMenuOption(
-                  icon: Icons.history,
-                  color: Colors.grey,
-                  label: 'History',
-                  onTap: () {
-                    if (widget.outletId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text('Please select an outlet first')),
-                      );
-                      return;
-                    }
-                    _navigateTo(HistoryPage(
-                      token: widget.token,
-                      outletId: widget.outletId!,
-                      isManager: widget.isManager,
-                    ));
-                  },
-                ),
-                Divider(),
-                _buildMenuOption(
-                  icon: Icons.payment,
-                  color: Colors.grey,
-                  label: 'Payment',
-                  onTap: () {
-                    if (widget.outletId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text('Please select an outlet first')),
-                      );
-                      return;
-                    }
-                    _navigateTo(Payment(
-                      token: widget.token,
-                      outletId: widget.outletId!,
-                      isManager: widget.isManager,
-                    ));
-                  },
-                ),
-                Divider(),
-              ],
-
-              // Menu logout untuk semua user
               _buildMenuOption(
-                icon: Icons.logout,
-                color: Colors.red,
-                label: 'Logout',
-                onTap: () async {
-                  SharedPreferences pref =
-                      await SharedPreferences.getInstance();
-                  pref.remove('token');
-                  pref.remove('role');
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                  );
-                },
+                icon: Icons.discount,
+                label: 'Discount',
+                onTap: () => _navigateTo(DiscountPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                )),
+              ),
+              Divider(),
+              _buildMenuOption(
+                icon: Icons.history,
+                label: 'History',
+                onTap: () => _navigateTo(HistoryPage(
+                  token: widget.token,
+                  outletId: widget.outletId,
+                  isManager: widget.isManager,
+                  // isManager: widget.isManager,
+                )),
               ),
             ],
           ),
@@ -1489,37 +1428,38 @@ class _ModifierPageState extends State<ModifierPage> {
 
   Widget _buildMenuOption({
     required IconData icon,
-    required MaterialColor color,
     required String label,
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: color),
+      leading: Icon(icon),
       title: Text(label),
       onTap: () {
-        Navigator.pop(context);
+        Navigator.pop(context); // Tutup bottom sheet
         onTap();
       },
     );
   }
 
   void _navigateTo(Widget page) {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => page),
     );
   }
 
-  Future<void> _handleNavigation(int index) async {
+  void _handleNavigation(int index) {
+    // Implementasi navigasi berdasarkan index
     if (widget.isManager == true) {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Home(
+            builder: (context) => ProductPage(
               token: widget.token,
-              outletId: null,
+              outletId: widget.outletId,
               isManager: widget.isManager,
+              // isManager: widget.isManager,
             ),
           ),
         );
@@ -1529,7 +1469,7 @@ class _ModifierPageState extends State<ModifierPage> {
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId!,
+              outletId: widget.outletId,
               isManager: widget.isManager,
             ),
           ),
@@ -1538,24 +1478,32 @@ class _ModifierPageState extends State<ModifierPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
+            builder: (context) => CategoryPage(
               token: widget.token,
-              outletId: widget.outletId!,
+              outletId: widget.outletId,
               isManager: widget.isManager,
             ),
           ),
         );
       } else if (index == 3) {
-        _showMoreOptions(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ModifierPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                isManager: widget.isManager),
+          ),
+        );
       }
     } else {
       if (index == 0) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Home(
+            builder: (context) => ProductPage(
               token: widget.token,
-              outletId: null,
+              outletId: widget.outletId,
               isManager: widget.isManager,
             ),
           ),
@@ -1566,7 +1514,7 @@ class _ModifierPageState extends State<ModifierPage> {
           MaterialPageRoute(
             builder: (context) => CreateOrderPage(
               token: widget.token,
-              outletId: widget.outletId!,
+              outletId: widget.outletId,
               isManager: widget.isManager,
             ),
           ),
@@ -1575,17 +1523,24 @@ class _ModifierPageState extends State<ModifierPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ProductPage(
-              token: widget.token,
-              outletId: widget.outletId!,
-              isManager: widget.isManager,
-            ),
+            builder: (context) => CategoryPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                isManager: widget.isManager),
           ),
         );
       } else if (index == 3) {
-        _showMoreOptions(context);
-        print('More options pressed');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ModifierPage(
+                token: widget.token,
+                outletId: widget.outletId,
+                isManager: widget.isManager),
+          ),
+        );
       }
     }
+    // Tambahkan case lainnya sesuai kebutuhan
   }
 }

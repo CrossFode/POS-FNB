@@ -8,6 +8,7 @@ import 'package:posmobile/model/model.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Auth/login.dart';
 import 'package:posmobile/Pages/Dashboard/Home.dart';
+import 'package:posmobile/Api/CreateOrder.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Ganti import model
 
 class ReferralCodePage extends StatefulWidget {
@@ -34,11 +35,25 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
   final String baseUrl = dotenv.env['API_BASE_URL'] ?? '';
   bool isLoading = true;
   List<ReferralCode> referralCodes = [];
+  String _outletName = '';
 
   @override
   void initState() {
     super.initState();
     fetchReferralCodes();
+    _loadOutletName();
+  }
+
+  Future<void> _loadOutletName() async {
+    try {
+      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      setState(() {
+        _outletName = outletResponse.data.outlet_name;
+      });
+    } catch (e) {
+      debugPrint('Error fetching outlet name: $e');
+      // Don't show error to user, just keep empty outlet name
+    }
   }
 
   Future<void> fetchReferralCodes() async {
@@ -273,9 +288,37 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text(
-            "Referal Code",
-            style: TextStyle(fontSize: 30),
+          title: Padding(
+            padding: const EdgeInsets.only(left: 30),
+            child: Row(
+              children: [
+                Text(
+                  "REFERRAL CODE",
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                if (_outletName.isNotEmpty) ...[
+                  Text(
+                    " ",
+                   
+                  ),
+                  Flexible(
+                    child: Text(
+                      _outletName,
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
           backgroundColor: const Color.fromARGB(255, 53, 150, 105),
           foregroundColor: Colors.white,

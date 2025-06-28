@@ -8,6 +8,7 @@ import 'package:posmobile/model/model.dart';
 import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Auth/login.dart';
 import 'package:posmobile/Pages/Dashboard/Home.dart';
+import 'package:posmobile/Api/CreateOrder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -40,6 +41,7 @@ class _HistoryPageState extends State<HistoryPage>
 
   List<History> orders = [];
   List<History> filteredOrders = [];
+  String _outletName = '';
 
   @override
   void initState() {
@@ -55,6 +57,19 @@ class _HistoryPageState extends State<HistoryPage>
       _fetchOrdersFromApi();
     });
     _animationController.forward();
+    _loadOutletName();
+  }
+
+  Future<void> _loadOutletName() async {
+    try {
+      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      setState(() {
+        _outletName = outletResponse.data.outlet_name;
+      });
+    } catch (e) {
+      debugPrint('Error fetching outlet name: $e');
+      // Don't show error to user, just keep empty outlet name
+    }
   }
 
   @override
@@ -1204,12 +1219,33 @@ class _HistoryPageState extends State<HistoryPage>
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text(
-          "Order History",
-          style: TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 255, 255, 255),
+        title: Padding(
+          padding: const EdgeInsets.only(left: 30),
+          child: Row(
+            children: [
+              Text(
+                "ORDER HISTORY ",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
+              ),
+              if (_outletName.isNotEmpty) ...[
+                
+                Flexible(
+                  child: Text(
+                    _outletName,
+                    style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
         backgroundColor: const Color.fromARGB(255, 53, 150, 105),

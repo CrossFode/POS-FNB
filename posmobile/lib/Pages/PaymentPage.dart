@@ -8,6 +8,7 @@ import 'package:posmobile/Pages/Pages.dart';
 import 'package:posmobile/Auth/login.dart';
 import 'package:posmobile/Pages/Dashboard/Home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:posmobile/Api/CreateOrder.dart';
 
 class Payment extends StatefulWidget {
   final String token;
@@ -34,11 +35,25 @@ class _PaymentState extends State<Payment> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
+  String _outletName = '';
 
   @override
   void initState() {
     super.initState();
     _paymentFuture = fetchAllPayments();
+    _loadOutletName();
+  }
+
+  Future<void> _loadOutletName() async {
+    try {
+      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      setState(() {
+        _outletName = outletResponse.data.outlet_name;
+      });
+    } catch (e) {
+      debugPrint('Error fetching outlet name: $e');
+      // Don't show error to user, just keep empty outlet name
+    }
   }
 
   Future<PaymentMethodResponse> fetchAllPayments() async {
@@ -276,26 +291,35 @@ class _PaymentState extends State<Payment> {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           title: Padding(
-            padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
-            child: Text(
-              "Payment Method",
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 255, 255, 255),
-              ),
+            padding: const EdgeInsets.only(left: 30.0),
+            child: Row(
+              children: [
+                Text(
+                  "PAYMENT METHOD ",
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                if (_outletName.isNotEmpty) ...[
+                  Flexible(
+                    child: Text(
+                      _outletName,
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           backgroundColor: const Color.fromARGB(255, 53, 150, 105),
-          elevation: 0,
-          centerTitle: false,
-          foregroundColor: Colors.black,
-          shape: const Border(
-            bottom: BorderSide(
-              color: Color.fromARGB(255, 102, 105, 108), // Outline color
-              width: 0.5, // Outline thickness
-            ),
-          ),
+          foregroundColor: const Color.fromARGB(255, 255, 255, 255),
         ),
         backgroundColor: const Color.fromARGB(255, 245, 244, 244),
         body: SafeArea(
@@ -327,6 +351,8 @@ class _PaymentState extends State<Payment> {
                 itemBuilder: (context, index) {
                   final payment = payments[index];
                   return Card(
+                    color: Colors.white,
+                    elevation: 2,
                     margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: ListTile(
                       title: Text(payment.payment_name),

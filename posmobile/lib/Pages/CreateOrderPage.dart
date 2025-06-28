@@ -83,6 +83,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   TextEditingController _searchController = TextEditingController();
   List<Product> _filteredProducts = [];
   final _formKey = GlobalKey<FormState>();
+  String _outletName = '';
 
   Diskon? _selectedDiskon;
   final Diskon noDiscountOption = Diskon(
@@ -103,6 +104,19 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     _selectedDiskon = noDiscountOption;
     _filteredProducts = []; // Initialize empty
     _searchController.addListener(_filterProducts);
+    _loadOutletName();
+  }
+
+  Future<void> _loadOutletName() async {
+    try {
+      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      setState(() {
+        _outletName = outletResponse.data.outlet_name;
+      });
+    } catch (e) {
+      debugPrint('Error fetching outlet name: $e');
+      // Don't show error to user, just keep empty outlet name
+    }
   }
 
   @override
@@ -150,13 +164,32 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           automaticallyImplyLeading: false,
           title: Padding(
             padding: const EdgeInsets.only(left: 30), // geser ke kanan 16px
-            child: Text(
-              "Menu",
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 255, 255, 255),
-              ),
+            child: Row(
+              children: [
+                Text(
+                  "MENU",
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                  ),
+                ),
+                if (_outletName.isNotEmpty) ...[
+                  SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      "$_outletName",
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           backgroundColor: const Color.fromARGB(255, 53, 150, 105),
