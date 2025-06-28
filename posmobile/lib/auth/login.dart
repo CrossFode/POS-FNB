@@ -246,13 +246,13 @@ class _LoginPageState extends State<LoginPage> {
                           topRight: Radius.circular(15),
                         ),
                         child: Container(
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage('assets/images/FixGaSihV2.png'),
-                              fit: BoxFit.fill,
-                              opacity: 0.16,
-                            ),
-                          ),
+                          // decoration: BoxDecoration(
+                          //   image: DecorationImage(
+                          //     image: AssetImage('assets/images/FixGaSihV2.png'),
+                          //     fit: BoxFit.fill,
+                          //     opacity: 0.16,
+                          //   ),
+                          // ),
                         ),
                       ),
                     ),

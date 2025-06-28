@@ -774,23 +774,24 @@ class _OutletPageState extends State<OutletPage> {
                                           });
                                           request.fields['outlet_name'] = nameController.text;
                                           request.fields['email'] = emailController.text;
-                                          // request.fields['is_dinein'] = isDineIn ? '1' : '0';
-                                          // request.fields['is_label'] = isLabel ? '1' : '0';
-                                          // request.fields['is_kitchen'] = isKitchen ? '1' : '0';
+                                          request.fields['is_dinein'] =  '1';
+                                          request.fields['is_label'] = '1';
+                                          request.fields['is_kitchen'] = '1';
                                           if (latitudeController.text.isNotEmpty) {
                                             request.fields['latitude'] = latitudeController.text;
                                           }
                                           if (longitudeController.text.isNotEmpty) {
                                             request.fields['longitude'] = longitudeController.text;
                                           }
-                                          if (imageFile != null) {
-                                            request.files.add(
-                                                await http.MultipartFile.fromPath(
-                                                    'image', imageFile!.path));
-                                          }
+                                          // if (imageFile != null) {
+                                          //   request.files.add(
+                                          //       await http.MultipartFile.fromPath(
+                                          //           'image', imageFile!.path));
+                                          // }
                                           final streamedResponse = await request.send();
                                           final response = await http.Response.fromStream(streamedResponse);
-
+                                          print('Response status: ${response.statusCode}');
+                                          print('Response body: ${response.body}');
                                           if (response.statusCode == 201 ||
                                               response.statusCode == 200) {
                                             Navigator.pop(context);
