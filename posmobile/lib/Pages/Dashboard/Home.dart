@@ -176,11 +176,13 @@ class _AdminScreenState extends State<Home> {
                                     height:
                                         48), // Tambahkan ini untuk memberi jarak
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 16.0),
+                                  padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
                                   child: Text(
                                     "Hi, ${role}",
                                     style: TextStyle(fontSize: 46),
                                     textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
                                 ),
                                 Padding(
@@ -270,6 +272,8 @@ class _AdminScreenState extends State<Home> {
                                                                 FontWeight.w600,
                                                             color: Colors.white,
                                                           ),
+                                                          overflow: TextOverflow.ellipsis,
+                                                          maxLines: 2,
                                                         ),
                                                       ],
                                                     ),
