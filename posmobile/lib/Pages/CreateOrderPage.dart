@@ -109,7 +109,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   Future<void> _loadOutletName() async {
     try {
-      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      final outletResponse =
+          await fetchOutletById(widget.token, widget.outletId);
       setState(() {
         _outletName = outletResponse.data.outlet_name;
       });
@@ -133,9 +134,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       final productResponse = await _productFuture;
       setState(() {
         _filteredProducts = productResponse.data.where((product) {
-          return query.isEmpty ||
-              product.name.toLowerCase().contains(query) ||
-              (product.description.toLowerCase().contains(query));
+          final matchesName =
+              query.isEmpty || product.name.toLowerCase().contains(query);
+          final matchesCategory = selectedCategory == 'All' ||
+              product.category_name == selectedCategory;
+          return matchesName && matchesCategory;
         }).toList();
       });
     } catch (e) {
@@ -182,7 +185,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 255, 255, 255),
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -208,7 +211,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           child: Stack(
             children: [
               // Background image - paling bawah dalam Stack
-            
 
               // Konten asli - tetap sama seperti sebelumnya, hanya dimasukkan ke dalam Stack
               Column(
@@ -268,6 +270,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                     setState(() {
                                       selectedCategory = category;
                                     });
+                                    _filterProducts();
                                   },
                                 ),
                               );
@@ -299,12 +302,12 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                         List<Product> productsToDisplay =
                             _searchController.text.isNotEmpty
                                 ? _filteredProducts
-                                : selectedCategory == 'All'
+                                : (selectedCategory == 'All'
                                     ? snapshot.data!.data
                                     : snapshot.data!.data
                                         .where((p) =>
                                             p.category_name == selectedCategory)
-                                        .toList();
+                                        .toList());
                         final filteredProducts = selectedCategory == 'All'
                             ? snapshot.data!.data
                             : snapshot.data!.data
