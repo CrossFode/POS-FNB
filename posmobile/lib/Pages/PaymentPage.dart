@@ -297,7 +297,7 @@ class _PaymentState extends State<Payment> {
                 Text(
                   "PAYMENT METHOD ",
                   style: TextStyle(
-                    fontSize: 25,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -307,7 +307,7 @@ class _PaymentState extends State<Payment> {
                     child: Text(
                       _outletName,
                       style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 255, 255, 255),
                       ),
@@ -325,17 +325,7 @@ class _PaymentState extends State<Payment> {
         body: SafeArea(
             child: Stack(children: [
           // Background image - paling bawah dalam Stack
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/FixGaSihV2.png'),
-                  fit: BoxFit.cover,
-                  opacity: 0.1,
-                ),
-              ),
-            ),
-          ),
+        
           FutureBuilder<PaymentMethodResponse>(
             future: _paymentFuture,
             builder: (context, snapshot) {

@@ -1058,7 +1058,7 @@ class _ModifierPageState extends State<ModifierPage> {
               Text(
                 "MODIFIER",
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Color.fromARGB(255, 255, 255, 255),
                 ),
@@ -1069,7 +1069,7 @@ class _ModifierPageState extends State<ModifierPage> {
                   child: Text(
                     "$_outletName",
                       style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                     color: Color.fromARGB(255, 255, 255, 255),
                     ),
@@ -1095,17 +1095,7 @@ class _ModifierPageState extends State<ModifierPage> {
       backgroundColor: const Color.fromARGB(255, 245, 244, 244),
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/FixGaSihV2.png'),
-                  fit: BoxFit.cover,
-                  opacity: 0.1,
-                ),
-              ),
-            ),
-          ),
+       
 
           // Konten asli
           Column(
