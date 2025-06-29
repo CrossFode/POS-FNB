@@ -767,6 +767,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   void _showOrderOptions(BuildContext context, Product product) {
     int quantity = 1;
+    bool variantError = false; // Tambahkan di StatefulBuilder
     List<Map<String, dynamic>> selectedModifiers = [];
     List<Map<String, dynamic>> selectedVariants = [];
     TextEditingController noteController = TextEditingController();
@@ -871,297 +872,334 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 left: 16,
                 right: 16,
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              product.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Tombol Save & Cancel di bawah judul
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              minimumSize: const Size(0, 36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(color: Colors.grey[300]!),
-                              ),
-                            ),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color.fromARGB(255, 53, 150, 105),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-
-                              int price = selectedVariants[0]['price'];
-                              int totalPrice =
-                                  _calculateTotalPriceWithModifiers(
-                                      price, selectedModifiers, quantity);
-
-                              Map<String, dynamic> newItem = {
-                                'product_id': product.id,
-                                'name': product.name,
-                                'modifier': List.from(selectedModifiers),
-                                'quantity': quantity,
-                                'notes': noteController.text,
-                                'variants':
-                                    List<dynamic>.from(selectedVariants),
-                                'variant_price': selectedVariants[0]['price'],
-                                'total_price': totalPrice
-                              };
-
-                              setState(() {
-                                bool itemExists = false;
-
-                                for (int i = 0; i < _cartItems.length; i++) {
-                                  var item = _cartItems[i];
-
-                                  if (item['product_id'] ==
-                                          newItem['product_id'] &&
-                                      _areVariantsEqual(item['variants'],
-                                          newItem['variants']) &&
-                                      _areModifiersEqual(item['modifier'],
-                                          newItem['modifier']) &&
-                                      item['notes'] == newItem['notes']) {
-                                    _cartItems[i]['quantity'] +=
-                                        newItem['quantity'];
-                                    _cartItems[i]['total_price'] +=
-                                        newItem['total_price'];
-                                    itemExists = true;
-                                    break;
-                                  }
-                                }
-
-                                if (!itemExists) {
-                                  _cartItems.add(newItem);
-                                }
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 53, 150, 105),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              minimumSize: const Size(0, 36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Text(
-                              "Save",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Content: Modifiers, Variants, Quantity, Notes, dst
-                    if (product.modifiers.isNotEmpty) ...[
-                      ...product.modifiers.map(
-                        (modifier) => Column(
-                          children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Center(
                               child: Text(
-                                "${modifier.name}${modifier.is_required == 1 ? ' (Required) ' : ''}",
+                                product.name,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            if (modifier.modifier_options.isNotEmpty)
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  crossAxisAlignment: WrapCrossAlignment.start,
-                                  children:
-                                      modifier.modifier_options.map((option) {
-                                    final isSelected = selectedModifiers.any(
-                                        (m) =>
-                                            m['id'] == modifier.id &&
-                                            m['modifier_options']['id'] ==
-                                                option.id);
-
-                                    return ChoiceChip(
-                                      label: Text(
-                                        "${option.name}${option.price! > 0 ? ' (+${option.price})' : ''}",
-                                      ),
-                                      selected: isSelected,
-                                      onSelected: (selected) {
-                                        setModalState(() {
-                                          _handleModifierSelection(
-                                            selected: selected,
-                                            modifier: modifier,
-                                            option: option,
-                                          );
-                                        });
-                                      },
-                                      backgroundColor: const Color.fromARGB(
-                                          255, 255, 255, 255),
-                                      selectedColor:
-                                          Color.fromARGB(255, 53, 150, 105),
-                                      checkmarkColor: Colors.white,
-                                      labelStyle: TextStyle(
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        side: BorderSide(
-                                            color: const Color.fromARGB(
-                                                255, 187, 187, 187)),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              )
-                            else
-                              Text(
-                                "No options available",
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-                      ),
-                    ] else
-                      Text(
-                        "No options available",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    const SizedBox(height: 8),
-                    if (product.variants.isNotEmpty) ...[
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Variants",
-                        ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.start,
-                          children: product.variants.map((variants) {
-                            final isSelected = selectedVariants.any((v) =>
-                                v['id'] == variants.id &&
-                                v['product_id'] == product.id);
 
-                            return ChoiceChip(
-                              label: Text(
-                                "${variants.name}${variants.price > 0 ? ' ${variants.price}' : ''}",
+                      // Tombol Save & Cancel di bawah judul
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: TextButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                minimumSize: const Size(0, 36),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(color: Colors.grey[300]!),
+                                ),
                               ),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setModalState(() {
-                                  _handlerVariantsSelection(
-                                      selected: selected,
-                                      variants: variants,
-                                      max_selected: 1);
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color.fromARGB(255, 53, 150, 105),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                int? price;
+                                Navigator.pop(context);
+                                if (selectedVariants.isEmpty) {
+                                  setModalState(() {
+                                    variantError = true;
+                                    // Snakbar untuk menunjukkan error
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(SnackBar(
+                                      content: Text(
+                                          'Please select a variant for ${product.name}'),
+                                      backgroundColor: Colors.red,
+                                    ));
+                                  });
+                                  return;
+                                } else {
+                                  setModalState(() {
+                                    variantError = false;
+                                    price = selectedVariants[0]['price'];
+                                  });
+                                }
+
+                                int totalPrice =
+                                    _calculateTotalPriceWithModifiers(
+                                        price!, selectedModifiers, quantity);
+
+                                Map<String, dynamic> newItem = {
+                                  'product_id': product.id,
+                                  'name': product.name,
+                                  'modifier': List.from(selectedModifiers),
+                                  'quantity': quantity,
+                                  'notes': noteController.text,
+                                  'variants':
+                                      List<dynamic>.from(selectedVariants),
+                                  'variant_price': selectedVariants[0]['price'],
+                                  'total_price': totalPrice
+                                };
+
+                                setState(() {
+                                  bool itemExists = false;
+
+                                  for (int i = 0; i < _cartItems.length; i++) {
+                                    var item = _cartItems[i];
+
+                                    if (item['product_id'] ==
+                                            newItem['product_id'] &&
+                                        _areVariantsEqual(item['variants'],
+                                            newItem['variants']) &&
+                                        _areModifiersEqual(item['modifier'],
+                                            newItem['modifier']) &&
+                                        item['notes'] == newItem['notes']) {
+                                      _cartItems[i]['quantity'] +=
+                                          newItem['quantity'];
+                                      _cartItems[i]['total_price'] +=
+                                          newItem['total_price'];
+                                      itemExists = true;
+                                      break;
+                                    }
+                                  }
+
+                                  if (!itemExists) {
+                                    _cartItems.add(newItem);
+                                  }
                                 });
                               },
-                              backgroundColor:
-                                  const Color.fromARGB(255, 255, 255, 255),
-                              selectedColor: Color.fromARGB(255, 53, 150, 105),
-                              checkmarkColor: Colors.white,
-                              labelStyle: TextStyle(
-                                color: isSelected ? Colors.white : Colors.black,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(255, 53, 150, 105),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                minimumSize: const Size(0, 36),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(
-                                    color: const Color.fromARGB(
-                                        255, 187, 187, 187)),
+                              child: const Text(
+                                "Save",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      )
-                    ] else
-                      Text(
-                        "No options available",
-                        style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        ],
                       ),
-                    const SizedBox(height: 16),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Quantity",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            if (quantity > 1) setModalState(() => quantity--);
-                          },
-                          icon: const Icon(Icons.remove),
+                      const SizedBox(height: 16),
+
+                      // Content: Modifiers, Variants, Quantity, Notes, dst
+                      if (product.modifiers.isNotEmpty) ...[
+                        ...product.modifiers.map(
+                          (modifier) => Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  "${modifier.name}${modifier.is_required == 1 ? ' (Required) ' : ''}",
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              if (modifier.modifier_options.isNotEmpty)
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.start,
+                                    children:
+                                        modifier.modifier_options.map((option) {
+                                      final isSelected = selectedModifiers.any(
+                                          (m) =>
+                                              m['id'] == modifier.id &&
+                                              m['modifier_options']['id'] ==
+                                                  option.id);
+
+                                      return ChoiceChip(
+                                        label: Text(
+                                          "${option.name}${option.price! > 0 ? ' (+${option.price})' : ''}",
+                                        ),
+                                        selected: isSelected,
+                                        onSelected: (selected) {
+                                          setModalState(() {
+                                            _handleModifierSelection(
+                                              selected: selected,
+                                              modifier: modifier,
+                                              option: option,
+                                            );
+                                          });
+                                        },
+                                        backgroundColor: const Color.fromARGB(
+                                            255, 255, 255, 255),
+                                        selectedColor:
+                                            Color.fromARGB(255, 53, 150, 105),
+                                        checkmarkColor: Colors.white,
+                                        labelStyle: TextStyle(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          side: BorderSide(
+                                              color: const Color.fromARGB(
+                                                  255, 187, 187, 187)),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                )
+                              else
+                                Text(
+                                  "No options available",
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
                         ),
-                        Text('$quantity', style: const TextStyle(fontSize: 18)),
-                        IconButton(
-                          onPressed: () => setModalState(() => quantity++),
-                          icon: const Icon(Icons.add),
+                      ] else
+                        Text(
+                          "No options available",
+                          style: TextStyle(color: Colors.grey),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text("Notes",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: noteController,
-                      decoration: const InputDecoration(
-                        hintText: 'Add notes here',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 8),
+                      if (product.variants.isNotEmpty) ...[
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Variants",
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.start,
+                            children: product.variants.map((variants) {
+                              final isSelected = selectedVariants.any((v) =>
+                                  v['id'] == variants.id &&
+                                  v['product_id'] == product.id);
+
+                              return ChoiceChip(
+                                label: Text(
+                                  "${variants.name}${variants.price > 0 ? ' ${variants.price}' : ''}",
+                                ),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  setModalState(() {
+                                    _handlerVariantsSelection(
+                                        selected: selected,
+                                        variants: variants,
+                                        max_selected: 1);
+                                    variantError = false;
+                                  });
+                                },
+                                backgroundColor:
+                                    const Color.fromARGB(255, 255, 255, 255),
+                                selectedColor:
+                                    Color.fromARGB(255, 53, 150, 105),
+                                checkmarkColor: Colors.white,
+                                labelStyle: TextStyle(
+                                  color:
+                                      isSelected ? Colors.white : Colors.black,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: BorderSide(
+                                      color: const Color.fromARGB(
+                                          255, 187, 187, 187)),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        if (variantError)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0, left: 4.0),
+                            child: Text(
+                              'Pilih salah satu varian!',
+                              style: TextStyle(color: Colors.red, fontSize: 12),
+                            ),
+                          ),
+                      ] else
+                        Text(
+                          "No options available",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      const SizedBox(height: 16),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Quantity",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              if (quantity > 1) setModalState(() => quantity--);
+                            },
+                            icon: const Icon(Icons.remove),
+                          ),
+                          Text('$quantity',
+                              style: const TextStyle(fontSize: 18)),
+                          IconButton(
+                            onPressed: () => setModalState(() => quantity++),
+                            icon: const Icon(Icons.add),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Notes",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: noteController,
+                        decoration: const InputDecoration(
+                          hintText: 'Add notes here',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ));
         });
