@@ -43,7 +43,8 @@ class _CategoryPageState extends State<CategoryPage> {
 
   Future<void> _loadOutletName() async {
     try {
-      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      final outletResponse =
+          await fetchOutletById(widget.token, widget.outletId);
       setState(() {
         _outletName = outletResponse.data.outlet_name;
       });
@@ -121,7 +122,7 @@ class _CategoryPageState extends State<CategoryPage> {
             ),
           ),
           content: Text(
-            'Apakah anda yakin akan menghapus "${category.category_name}"?',
+            'Are you sure want to delete category "${category.category_name}"?',
             textAlign: TextAlign.center,
           ),
           actionsPadding:
@@ -189,7 +190,7 @@ class _CategoryPageState extends State<CategoryPage> {
     final _formKey = GlobalKey<FormState>();
     final TextEditingController _nameController =
         TextEditingController(text: isEdit ? category?.category_name : '');
-    int _isFood = isEdit ? category?.is_food ?? 1 : 1;
+    int _isFood = 1; // Default to Food
 
     showDialog(
       context: context,
@@ -257,38 +258,38 @@ class _CategoryPageState extends State<CategoryPage> {
                     const SizedBox(height: 18),
 
                     // Type (Food/Non-Food)
-                    const Text(
-                      "TYPE",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                        fontSize: 13,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    DropdownButtonFormField<int>(
-                      value: _isFood,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 12),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      dropdownColor: Colors.white,
-                      items: const [
-                        DropdownMenuItem(value: 1, child: Text('Food')),
-                        DropdownMenuItem(value: 0, child: Text('Non-Food')),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          _isFood = value;
-                        }
-                      },
-                    ),
+                    // const Text(
+                    //   "TYPE",
+                    //   style: TextStyle(
+                    //     fontWeight: FontWeight.bold,
+                    //     letterSpacing: 1,
+                    //     fontSize: 13,
+                    //     color: Colors.black54,
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 6),
+                    // DropdownButtonFormField<int>(
+                    //   value: _isFood,
+                    //   decoration: InputDecoration(
+                    //     border: OutlineInputBorder(
+                    //       borderRadius: BorderRadius.circular(12),
+                    //     ),
+                    //     contentPadding: const EdgeInsets.symmetric(
+                    //         horizontal: 12, vertical: 12),
+                    //     filled: true,
+                    //     fillColor: Colors.white,
+                    //   ),
+                    //   dropdownColor: Colors.white,
+                    //   items: const [
+                    //     DropdownMenuItem(value: 1, child: Text('Food')),
+                    //     DropdownMenuItem(value: 0, child: Text('Non-Food')),
+                    //   ],
+                    //   onChanged: (value) {
+                    //     if (value != null) {
+                    //       _isFood = value;
+                    //     }
+                    //   },
+                    // ),
                     const SizedBox(height: 24),
 
                     // Action Buttons
@@ -425,14 +426,13 @@ class _CategoryPageState extends State<CategoryPage> {
                   ),
                 ),
                 if (_outletName.isNotEmpty) ...[
-                  
                   Flexible(
                     child: Text(
                       _outletName,
-                     style: TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 255, 255, 255),
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -457,7 +457,6 @@ class _CategoryPageState extends State<CategoryPage> {
           child: Stack(
             children: [
               // Background image - paling bawah dalam Stack
-             
 
               // Content asli tetap disini
               Padding(
@@ -495,30 +494,12 @@ class _CategoryPageState extends State<CategoryPage> {
                                   elevation: 2,
                                   color: Colors.white.withOpacity(0.9),
                                   child: ListTile(
-                                    leading: Icon(
-                                      category.is_food == 1
-                                          ? Icons.fastfood
-                                          : Icons.category,
-                                      color: category.is_food == 1
-                                          ? Colors.green
-                                          : Colors.blueGrey,
-                                    ),
+                                    leading: Icon(Icons.category,
+                                        color: Colors.grey),
                                     title: Text(
                                       category.category_name,
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
-                                    ),
-                                    subtitle: Row(
-                                      children: [
-                                        Text('Outlet ID: '),
-                                        Flexible(
-                                          child: Text(
-                                            category.outlet_id,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                          ),
-                                        ),
-                                      ],
                                     ),
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
