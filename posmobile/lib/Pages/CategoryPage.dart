@@ -417,27 +417,20 @@ class _CategoryPageState extends State<CategoryPage> {
             child: Row(
               children: [
                 Text(
-                  "CATEGORY",
+                  "CATEGORY ",
                   style: TextStyle(
-                    fontSize: 25,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Color.fromARGB(255, 255, 255, 255),
                   ),
                 ),
                 if (_outletName.isNotEmpty) ...[
-                  Text(
-                    " ",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Color.fromARGB(255, 230, 230, 230),
-                    ),
-                  ),
+                  
                   Flexible(
                     child: Text(
                       _outletName,
                      style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                     color: Color.fromARGB(255, 255, 255, 255),
                       ),
@@ -464,17 +457,7 @@ class _CategoryPageState extends State<CategoryPage> {
           child: Stack(
             children: [
               // Background image - paling bawah dalam Stack
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/FixGaSihV2.png'),
-                      fit: BoxFit.cover,
-                      opacity: 0.1,
-                    ),
-                  ),
-                ),
-              ),
+             
 
               // Content asli tetap disini
               Padding(

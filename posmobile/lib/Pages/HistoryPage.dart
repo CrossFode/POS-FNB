@@ -1226,7 +1226,7 @@ class _HistoryPageState extends State<HistoryPage>
               Text(
                 "ORDER HISTORY ",
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Color.fromARGB(255, 255, 255, 255),
                 ),
@@ -1237,7 +1237,7 @@ class _HistoryPageState extends State<HistoryPage>
                   child: Text(
                     _outletName,
                     style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                     color: Color.fromARGB(255, 255, 255, 255),
                     ),
@@ -1285,17 +1285,7 @@ class _HistoryPageState extends State<HistoryPage>
       body: Stack(
         children: [
           // Background image (hanya di belakang konten)
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/FixGaSihV2.png'),
-                  fit: BoxFit.cover,
-                  opacity: 0.1,
-                ),
-              ),
-            ),
-          ),
+         
 
           // Konten utama
           Column(
@@ -1427,7 +1417,7 @@ class _HistoryPageState extends State<HistoryPage>
                             return Container(
                                 margin: const EdgeInsets.only(bottom: 12),
                                 child: Card(
-                                  elevation: 1,
+                                  elevation: 3,
                                   color: Colors.white,
                                   shadowColor: Colors.grey.withOpacity(0.1),
                                   shape: RoundedRectangleBorder(

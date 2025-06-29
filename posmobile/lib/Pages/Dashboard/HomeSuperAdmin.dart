@@ -88,17 +88,7 @@ class _HomePageSuperAdminState extends State<HomePageSuperAdmin> {
                       child: Stack(
                         children: [
                           // Background image di dalam Container
-                          Positioned.fill(
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage('assets/images/FixGaSihV2.png'),
-                                  fit: BoxFit.cover,
-                                  opacity: 0.1,
-                                ),
-                              ),
-                            ),
-                          ),
+                       
                           // Tombol Logout di pojok kanan atas dalam Container
                           Positioned(
                             top: 8,

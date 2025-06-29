@@ -706,7 +706,7 @@ class _ProductPageState extends State<ProductPage> {
                 Text(
                   "PRODUCT",
                   style: TextStyle(
-                    fontSize: 25,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Color.fromARGB(255, 255, 255, 255),
                   ),
@@ -717,7 +717,7 @@ class _ProductPageState extends State<ProductPage> {
                     child: Text(
                       "$_outletName",
                       style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 255, 255, 255),
                       ),
@@ -747,17 +747,7 @@ class _ProductPageState extends State<ProductPage> {
           child: Stack(
             children: [
               // Background image - paling bawah dalam Stack
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/FixGaSihV2.png'),
-                      fit: BoxFit.cover,
-                      opacity: 0.1,
-                    ),
-                  ),
-                ),
-              ),
+             
 
               // Konten asli tetap di sini
               Column(

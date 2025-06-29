@@ -293,23 +293,20 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
             child: Row(
               children: [
                 Text(
-                  "REFERRAL CODE",
+                  "REFERRAL CODE ",
                   style: TextStyle(
-                    fontSize: 25,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
                 if (_outletName.isNotEmpty) ...[
-                  Text(
-                    " ",
-                   
-                  ),
+                 
                   Flexible(
                     child: Text(
                       _outletName,
                       style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                     color: Color.fromARGB(255, 255, 255, 255),
                       ),
@@ -658,17 +655,7 @@ class _ReferralCodePageState extends State<ReferralCodePage> {
         body: Stack(
           children: [
             // Background image dengan opacity 0.5
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/FixGaSihV2.png'),
-                    fit: BoxFit.cover,
-                    opacity: 0.1,
-                  ),
-                ),
-              ),
-            ),
+          
 
             // Konten asli
             isLoading

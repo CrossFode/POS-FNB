@@ -169,7 +169,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 Text(
                   "MENU",
                   style: TextStyle(
-                    fontSize: 25,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Color.fromARGB(255, 255, 255, 255),
                   ),
@@ -180,7 +180,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                     child: Text(
                       "$_outletName",
                       style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                     color: Color.fromARGB(255, 255, 255, 255),
                       ),
@@ -208,17 +208,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           child: Stack(
             children: [
               // Background image - paling bawah dalam Stack
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/FixGaSihV2.png'),
-                      fit: BoxFit.cover,
-                      opacity: 0.1,
-                    ),
-                  ),
-                ),
-              ),
+            
 
               // Konten asli - tetap sama seperti sebelumnya, hanya dimasukkan ke dalam Stack
               Column(

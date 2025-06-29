@@ -108,24 +108,12 @@ class _AdminScreenState extends State<Home> {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 255, 255, 255),
+                          color: const Color.fromARGB(255, 237, 236, 236),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Stack(
                           children: [
-                            // Background image di dalam Container
-                            Positioned.fill(
-                              child: Container(
-                                decoration: const BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                        'assets/images/FixGaSihV2.png'),
-                                    fit: BoxFit.cover,
-                                    opacity: 0.1,
-                                  ),
-                                ),
-                              ),
-                            ),
+                          
                             // Tombol Logout di pojok kanan atas dalam Container
                             Positioned(
                               top: 8,

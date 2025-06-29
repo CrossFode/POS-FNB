@@ -551,7 +551,7 @@ class _DiscountPageState extends State<DiscountPage> {
                 Text(
                   "DISCOUNT ",
                   style: TextStyle(
-                    fontSize: 25,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -561,7 +561,7 @@ class _DiscountPageState extends State<DiscountPage> {
                     child: Text(
                       _outletName,
                       style: TextStyle(
-                        fontSize: 25,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 255, 255, 255),
                       ),
@@ -581,17 +581,7 @@ class _DiscountPageState extends State<DiscountPage> {
         body: Stack(
           children: [
             // Background image dengan opacity 0.5
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/FixGaSihV2.png'),
-                    fit: BoxFit.cover,
-                    opacity: 0.1,
-                  ),
-                ),
-              ),
-            ),
+         
 
             // Konten asli
             Column(
