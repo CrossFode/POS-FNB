@@ -46,7 +46,8 @@ class _PaymentState extends State<Payment> {
 
   Future<void> _loadOutletName() async {
     try {
-      final outletResponse = await fetchOutletById(widget.token, widget.outletId);
+      final outletResponse =
+          await fetchOutletById(widget.token, widget.outletId);
       setState(() {
         _outletName = outletResponse.data.outlet_name;
       });
@@ -325,7 +326,7 @@ class _PaymentState extends State<Payment> {
         body: SafeArea(
             child: Stack(children: [
           // Background image - paling bawah dalam Stack
-        
+
           FutureBuilder<PaymentMethodResponse>(
             future: _paymentFuture,
             builder: (context, snapshot) {
@@ -356,7 +357,8 @@ class _PaymentState extends State<Payment> {
                           ),
                           IconButton(
                             icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => deletePayment(payment.id),
+                            onPressed: () =>
+                                _showDeleteConfirmationDialog(payment),
                           ),
                         ],
                       ),
@@ -376,6 +378,90 @@ class _PaymentState extends State<Payment> {
           tooltip: 'Create Category',
         ),
         bottomNavigationBar: _buildNavbar());
+  }
+
+  void _showDeleteConfirmationDialog(PaymentMethod payment) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+          title: const Center(
+            child: Text(
+              'Delete Payment Method',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          content: Text(
+            'Are you sure want to delete "${payment.payment_name}" payment method?',
+            textAlign: TextAlign.center,
+          ),
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey[300]!),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color.fromARGB(255, 145, 145, 145),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context); // Close the dialog
+                      deletePayment(payment.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Payment method "${payment.payment_name}" deleted successfully',
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildNavbar() {
