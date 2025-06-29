@@ -1394,23 +1394,24 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                                               _showCart();
                                             });
                                             ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                    '$itemName removed from cart'),
-                                                duration:
-                                                    const Duration(seconds: 2),
-                                                action: SnackBarAction(
-                                                  label: 'Undo',
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      _cartItems.insert(
-                                                          index, item);
-                                                    });
-                                                  },
+                                              ..hideCurrentSnackBar()
+                                              ..showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                      '$itemName removed from cart'),
+                                                  duration: const Duration(
+                                                      seconds: 3),
+                                                  action: SnackBarAction(
+                                                    label: 'Undo',
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        _cartItems.insert(
+                                                            index, item);
+                                                      });
+                                                    },
+                                                  ),
                                                 ),
-                                              ),
-                                            );
+                                              );
                                             if (_cartItems.isEmpty) {
                                               Navigator.pop(context);
                                             }
