@@ -334,8 +334,16 @@ class _OutletPageState extends State<OutletPage> {
                     TextFormField(
                       controller: nameController,
                       decoration: InputDecoration(labelText: 'Outlet Name'),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? 'Required' : null,
+                      textCapitalization: TextCapitalization.characters,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        if (value != value.toUpperCase()) {
+                          return 'Please use ALL CAPITAL LETTERS for the outlet name';
+                        }
+                        return null;
+                      },
                     ),
                     TextFormField(
                       controller: emailController,
@@ -616,8 +624,16 @@ class _OutletPageState extends State<OutletPage> {
                           filled: true,
                           fillColor: Colors.white,
                         ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? 'Required' : null,
+                        textCapitalization: TextCapitalization.characters,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Required';
+                          }
+                          if (value != value.toUpperCase()) {
+                            return 'Please use ALL CAPITAL LETTERS for the outlet name';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 18),
 

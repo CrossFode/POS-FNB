@@ -213,8 +213,16 @@ class _ProductPageState extends State<ProductPage> {
                             filled: true,
                             fillColor: Colors.white,
                           ),
-                          validator: (value) =>
-                              value?.isEmpty ?? true ? 'Required' : null,
+                          textCapitalization: TextCapitalization.characters,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Required';
+                            }
+                            if (value != value.toUpperCase()) {
+                              return 'Use Capital Letters Only';
+                            }
+                            return null;
+                          },
                           onSaved: (value) => _productName = value!,
                           initialValue: isEdit ? product?.name : null,
                         ),
